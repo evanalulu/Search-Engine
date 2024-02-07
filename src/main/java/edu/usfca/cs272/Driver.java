@@ -1,9 +1,18 @@
 package edu.usfca.cs272;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.TreeSet;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -22,11 +31,7 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 */
 	public static void main(String[] args) {
-		// store initial start time
-		Instant start = Instant.now();
-
 		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
-//		System.out.println("Arguments: " + Arrays.toString(args));
 		
 		String textPath = null;
         String countsPath = "counts.json";
@@ -51,26 +56,39 @@ public class Driver {
             }
         }
          
-		System.out.println("-text: " + textPath + " -count: " + countsPath);
+        if (textPath != null) {
+            int wordCount = countWords(textPath);
+            System.out.println("Word count: " + wordCount);
+        } else {
+            System.err.println("Error: No input text file");
+        }
 
 	}
 	
+	private static int countWords(String filePath) {
+        int wordCount = 0;
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.split("\\s+");
+                wordCount += words.length;
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading input text file");
+        }
+        return wordCount;
+    }
 	
-
 	/*
-	 * Generally, "Driver" classes are responsible for setting up and calling other
-	 * classes, usually from a main() method that parses command-line parameters.
-	 * Generalized reusable code are usually placed outside of the Driver class.
-	 * They are sometimes called "Main" classes too, since they usually include the
-	 * main() method.
-	 *
-	 * If the driver were only responsible for a single class, we use that class
-	 * name. For example, "TaxiDriver" is what we would name a driver class that
-	 * just sets up and calls the "Taxi" class.
-	 *
-	 * The starter code (calculating elapsed time) is not necessary. It can be
-	 * removed from the main method.
-	 *
-	 * TODO Delete this after reading.
-	 */
+	try (
+			BufferedReader reader = Files.newBufferedReader(input, UTF_8);
+	) {
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			TreeSet<String> uniques = uniqueStems(line);
+			uniqueStems.add(uniques);
+		}
+	}
+	*/
+	
 }
