@@ -12,7 +12,7 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="target/test-classes" path="../project-tests/src/test/java">
+	<classpathentry kind="src" output="target/test-classes" path="Users/evanapradhan/Desktop/cs272/Repositories/project-tests/src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
