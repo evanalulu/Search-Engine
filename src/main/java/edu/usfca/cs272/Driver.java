@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.TreeSet;
 
 /**
@@ -32,13 +33,6 @@ public class Driver {
 		
 		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
 		
-	    /* DEBUG 
-        try (FileWriter writer = new FileWriter("actual/test.txt")) {
-            writer.write("TEST WORKS YAY");
-        } catch (IOException e) {
-            System.err.println("Error creating file: " + e.getMessage());
-        }
-		*/
 		String input = null;
         String output = "counts.json";
         
@@ -64,8 +58,8 @@ public class Driver {
          
         if (input != null) {
             int wordCount = countWords(input);
-            System.out.println("word count: " + wordCount);
-            outputWordCount(output, wordCount);
+            String res = JsonWriter.writeObject(Map.of(input, wordCount));
+            outputWordCount(output, res);
         } else {
             System.err.println("Error: No input text file");
         }
@@ -87,11 +81,11 @@ public class Driver {
         }
     }
 	
-    private static void outputWordCount(String filePath, int wordCount) {
+    private static void outputWordCount(String filePath, String res) {
         try (Writer writer = new FileWriter(filePath)) {
-            writer.write("Word count: " + wordCount);
+            writer.write(res);
         } catch (IOException e) {
-            System.err.println("Error writing word count to file: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 	
