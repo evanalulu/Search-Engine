@@ -2,15 +2,13 @@ package edu.usfca.cs272;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
+import java.io.Writer;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.TreeSet;
 
@@ -31,15 +29,23 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 */
 	public static void main(String[] args) {
+		
 		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
 		
-		String textPath = null;
-        String countsPath = "counts.json";
+	    /* DEBUG 
+        try (FileWriter writer = new FileWriter("actual/test.txt")) {
+            writer.write("TEST WORKS YAY");
+        } catch (IOException e) {
+            System.err.println("Error creating file: " + e.getMessage());
+        }
+		*/
+		String input = null;
+        String output = "counts.json";
         
         for (int i = 0; i < args.length; i ++) {
         	if (args[i].equals("-text")) {
         		if (args.length > i + 1) {
-        			textPath = args[i + 1];
+        			input = args[i + 1];
         			i++;
         		} else {
         			System.err.print("Error: Missing argument for -text");
@@ -47,7 +53,7 @@ public class Driver {
         		}
             } else if (args[i].equals("-counts")) {
             	if (args.length > i + 1) {
-            		countsPath = args[i + 1];
+            		output = args[i + 1];
             	} else {
         			System.err.print("Error: Missing argument for -counts");
         			return;
@@ -56,9 +62,10 @@ public class Driver {
             }
         }
          
-        if (textPath != null) {
-            int wordCount = countWords(textPath);
-            System.out.println("Word count: " + wordCount);
+        if (input != null) {
+            int wordCount = countWords(input);
+            System.out.println("word count: " + wordCount);
+            outputWordCount(output, wordCount);
         } else {
             System.err.println("Error: No input text file");
         }
@@ -73,22 +80,19 @@ public class Driver {
                 String[] words = line.split("\\s+");
                 wordCount += words.length;
             }
+            return wordCount;
         } catch (IOException e) {
             System.err.println("Error reading input text file");
+            return -1;
         }
-        return wordCount;
     }
 	
-	/*
-	try (
-			BufferedReader reader = Files.newBufferedReader(input, UTF_8);
-	) {
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			TreeSet<String> uniques = uniqueStems(line);
-			uniqueStems.add(uniques);
-		}
-	}
-	*/
+    private static void outputWordCount(String filePath, int wordCount) {
+        try (Writer writer = new FileWriter(filePath)) {
+            writer.write("Word count: " + wordCount);
+        } catch (IOException e) {
+            System.err.println("Error writing word count to file: " + e.getMessage());
+        }
+    }
 	
 }
