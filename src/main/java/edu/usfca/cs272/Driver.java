@@ -63,35 +63,24 @@ public class Driver {
         
 
          
-        if (input != null) {
-        	if(Files.isDirectory(Paths.get(input))) {
-        		Map<String, Integer> wordCountMap = new TreeMap<>();
-        		try {
-                    Stream<Path> paths = Files.list(Paths.get(input));
-                    paths.forEach(path -> {
-                        if (Files.isRegularFile(path)) {
-                            wordCountMap.put(path.toString(), countWords(path.toString()));
-                        }
-                    });
-                    paths.close(); 
-                    String res = JsonWriter.writeObject(wordCountMap);
-                    outputWordCount(output,res);
-                } catch (IOException e) {
-                    System.err.println("Error listing files: " + e.getMessage());
-                }
-        	} else {
-	            int wordCount = countWords(input);
-	            if (wordCount > 0) {
-	            	String res = JsonWriter.writeObject(Map.of(input, wordCount));
-	            	outputWordCount(output, res);
-	            } else {
-	            	String res = JsonWriter.writeObject(Collections.emptyMap());
-	            	outputWordCount(output, res);
-	            }
-        	}
-        } else {
-            System.err.println("Error: No input text file");
-        }
+        if (input == null)
+        	System.err.println("Error: No input text file");
+        
+    	if(Files.isDirectory(Paths.get(input))) {
+    		Map<String, Integer> wordCountMap = new TreeMap<>();
+            traverseDirectory(Paths.get(input), wordCountMap);
+            String res = JsonWriter.writeObject(wordCountMap);
+            outputWordCount(output, res);
+    	} else {
+            int wordCount = countWords(input);
+            if (wordCount > 0) {
+            	String res = JsonWriter.writeObject(Map.of(input, wordCount));
+            	outputWordCount(output, res);
+            } else {
+            	String res = JsonWriter.writeObject(Collections.emptyMap());
+            	outputWordCount(output, res);
+            }
+    	}
         
         System.out.println();
         printFile(input);
@@ -99,6 +88,20 @@ public class Driver {
         printFile(output);
 
 	}
+	
+    private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap) {
+        try (Stream<Path> paths = Files.list(directory)) {
+            paths.forEach(path -> {
+                if (Files.isDirectory(path)) {
+                    traverseDirectory(path, wordCountMap);
+                } else if (Files.isRegularFile(path)) {
+                    wordCountMap.put(path.toString(), countWords(path.toString()));
+                }
+            });
+        } catch (IOException e) {
+            System.err.println("Error traversing directory: " + e.getMessage());
+        }
+    }
 
 	private static int countWords(String filePath) {
 		int wordCount = 0;
