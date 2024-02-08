@@ -95,7 +95,12 @@ public class Driver {
                 if (Files.isDirectory(path)) {
                     traverseDirectory(path, wordCountMap);
                 } else if (Files.isRegularFile(path)) {
-                    wordCountMap.put(path.toString(), countWords(path.toString()));
+                	String pathString = path.toString();
+                	String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
+                	if (extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) {
+                		if (countWords(pathString) > 0)
+                			wordCountMap.put(path.toString(), countWords(pathString));
+                	}
                 }
             });
         } catch (IOException e) {
