@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.stream.Stream;
@@ -60,15 +61,17 @@ public class Driver {
          
         if (input != null) {
         	if(Files.isDirectory(Paths.get(input))) {
-                try {
+        		Map<String, Integer> wordCountMap = new HashMap<>();
+        		try {
                     Stream<Path> paths = Files.list(Paths.get(input));
                     paths.forEach(path -> {
                         if (Files.isRegularFile(path)) {
-                            int wordCount = countWords(path.toString());
-                            System.out.println(path.getFileName() + ": "+ wordCount);
+                            wordCountMap.put(path.toString(), countWords(path.toString()));
                         }
                     });
                     paths.close(); 
+                    String res = JsonWriter.writeObject(wordCountMap);
+                    outputWordCount(output,res);
                 } catch (IOException e) {
                     System.err.println("Error listing files: " + e.getMessage());
                 }
