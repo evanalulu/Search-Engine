@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -34,7 +35,7 @@ public class Driver {
 	 */
 	public static void main(String[] args) {
 		
-		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
+//		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
 				
 		String input = null;
         String output = "counts.json";
@@ -55,18 +56,32 @@ public class Driver {
             }
         }
         
-		System.out.println(Files.isDirectory(Paths.get(input)));
 
          
         if (input != null) {
-            int wordCount = countWords(input);
-            if (wordCount > 0) {
-            	String res = JsonWriter.writeObject(Map.of(input, wordCount));
-            	outputWordCount(output, res);
-            } else {
-            	String res = JsonWriter.writeObject(Collections.emptyMap());
-            	outputWordCount(output, res);
-            }
+        	if(Files.isDirectory(Paths.get(input))) {
+                try {
+                    Stream<Path> paths = Files.list(Paths.get(input));
+                    paths.forEach(path -> {
+                        if (Files.isRegularFile(path)) {
+                            int wordCount = countWords(path.toString());
+                            System.out.println(path.getFileName() + ": "+ wordCount);
+                        }
+                    });
+                    paths.close(); 
+                } catch (IOException e) {
+                    System.err.println("Error listing files: " + e.getMessage());
+                }
+        	} else {
+	            int wordCount = countWords(input);
+	            if (wordCount > 0) {
+	            	String res = JsonWriter.writeObject(Map.of(input, wordCount));
+	            	outputWordCount(output, res);
+	            } else {
+	            	String res = JsonWriter.writeObject(Collections.emptyMap());
+	            	outputWordCount(output, res);
+	            }
+        	}
         } else {
             System.err.println("Error: No input text file");
         }
