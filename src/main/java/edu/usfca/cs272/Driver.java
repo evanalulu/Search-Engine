@@ -8,8 +8,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -32,7 +35,7 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
-		
+				
 		String input = null;
         String output = "counts.json";
         
@@ -48,44 +51,70 @@ public class Driver {
             } else if (args[i].equals("-counts")) {
             	if (args.length > i + 1) {
             		output = args[i + 1];
-            	} else {
-        			System.err.print("Error: Missing argument for -counts");
-        			return;
-        		}
-            	
+            	}
             }
         }
+        
+		System.out.println(Files.isDirectory(Paths.get(input)));
+
          
         if (input != null) {
             int wordCount = countWords(input);
-            String res = JsonWriter.writeObject(Map.of(input, wordCount));
-            outputWordCount(output, res);
+            if (wordCount > 0) {
+            	String res = JsonWriter.writeObject(Map.of(input, wordCount));
+            	outputWordCount(output, res);
+            } else {
+            	String res = JsonWriter.writeObject(Collections.emptyMap());
+            	outputWordCount(output, res);
+            }
         } else {
             System.err.println("Error: No input text file");
         }
+        
+        System.out.println();
+        printFile(input);
+        System.out.println();
+        printFile(output);
 
 	}
+
 	
 	private static int countWords(String filePath) {
-        int wordCount = 0;
+		int wordCount = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] words = line.split("\\s+");
-                wordCount += words.length;
+            	String clean = FileStemmer.clean(line);
+                String[] split = FileStemmer.split(clean);
+                wordCount += split.length;
             }
-            return wordCount;
         } catch (IOException e) {
-            System.err.println("Error reading input text file");
-            return -1;
+            System.err.println("Error reading file: " + e.getMessage());
         }
+        return wordCount;
     }
+	
+	private static void handleDirectory(String filePath) {
+		
+	}
 	
     private static void outputWordCount(String filePath, String res) {
         try (Writer writer = new FileWriter(filePath)) {
             writer.write(res);
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
+        }
+    }
+    
+    private static void printFile(String filePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            System.out.println(filePath);
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
         }
     }
 	
