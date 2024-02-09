@@ -48,8 +48,9 @@ public class Driver {
         String output = null;
 
         if (argsMap.hasFlag("-counts"))
-            output = (argsMap.hasValue("-counts")) ? argsMap.getString("-counts") : null;
+            output = (argsMap.hasValue("-counts")) ? argsMap.getString("-counts") : "counts.json";
 
+		System.out.println("INPUT TEST: " + input);   
 		System.out.println("OUTPUT TEST: " + output);   
         
     	if(input != null && Files.isDirectory(Paths.get(input))) {
@@ -66,6 +67,9 @@ public class Driver {
             	String res = JsonWriter.writeObject(Collections.emptyMap());
             	outputWordCount(output, res);
             }
+    	} else if (input == null && output != null) {
+    		String res = JsonWriter.writeObject(Collections.emptyMap());
+        	outputWordCount(output, res);
     	}
         
 //        System.out.println();
