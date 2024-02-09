@@ -41,11 +41,19 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		ArgumentParser argsMap = new ArgumentParser(args);
+		if (argsMap.empty())
+			System.err.println("Error: No arguments provided.");
+		
 		System.out.println(argsMap);
 						        
         String input = argsMap.getString("-text");
-        String output = argsMap.getString("-counts");		
-		output = (output != null) ? output : "counts.json";
+        String output = null;
+
+        if (argsMap.hasFlag("-counts")) {
+            output = (argsMap.hasValue("-counts")) ? argsMap.getString("-counts") : null;
+        } else {
+        	System.err.println("Error: No -counts passed");
+        }
 		System.out.println("OUTPUT TEST: " + output);   
 
          

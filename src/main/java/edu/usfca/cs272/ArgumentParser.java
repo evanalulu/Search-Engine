@@ -102,6 +102,10 @@ public class ArgumentParser {
 	public int numFlags() {
 		return map.size();
 	}
+	
+	public boolean empty() {
+		return (map.size() < 1) ? true : false;
+	}
 
 	/**
 	 * Determines whether the specified flag exists.
