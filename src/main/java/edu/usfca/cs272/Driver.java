@@ -40,31 +40,17 @@ public class Driver {
 	 */
 	public static void main(String[] args) {
 		
-//		System.out.println("Working Directory: " + Path.of(".").toAbsolutePath().normalize().getFileName());
-				
-		String input = null;
-        String output = "counts.json";
-        
-        for (int i = 0; i < args.length; i ++) {
-        	if (args[i].equals("-text")) {
-        		if (args.length > i + 1) {
-        			input = args[i + 1];
-        			i++;
-        		} else {
-        			System.err.print("Error: Missing argument for -text");
-        			return;
-        		}
-            } else if (args[i].equals("-counts")) {
-            	if (args.length > i + 1) {
-            		output = args[i + 1];
-            	}
-            }
-        }
-        
+		ArgumentParser argsMap = new ArgumentParser(args);
+		System.out.println(argsMap);
+						        
+        String input = argsMap.getString("-text");
+        String output = argsMap.getString("-counts");		
+		output = (output != null) ? output : "counts.json";
+		System.out.println("OUTPUT TEST: " + output);   
 
          
         if (input == null)
-        	System.err.println("Error: No input text file");
+        	System.err.println("Error: File Handling");
         
     	if(Files.isDirectory(Paths.get(input))) {
     		Map<String, Integer> wordCountMap = new TreeMap<>();
