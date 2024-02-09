@@ -41,31 +41,23 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		ArgumentParser argsMap = new ArgumentParser(args);
-		if (argsMap.empty())
-			System.err.println("Error: No arguments provided.");
-		
-		System.out.println(argsMap);
-						        
+//		if (argsMap.empty())
+//			System.err.println("Error: No arguments provided.");
+								        
         String input = argsMap.getString("-text");
         String output = null;
 
-        if (argsMap.hasFlag("-counts")) {
+        if (argsMap.hasFlag("-counts"))
             output = (argsMap.hasValue("-counts")) ? argsMap.getString("-counts") : null;
-        } else {
-        	System.err.println("Error: No -counts passed");
-        }
-		System.out.println("OUTPUT TEST: " + output);   
 
-         
-        if (input == null)
-        	System.err.println("Error: File Handling");
+		System.out.println("OUTPUT TEST: " + output);   
         
-    	if(Files.isDirectory(Paths.get(input))) {
+    	if(input != null && Files.isDirectory(Paths.get(input))) {
     		Map<String, Integer> wordCountMap = new TreeMap<>();
             traverseDirectory(Paths.get(input), wordCountMap);
             String res = JsonWriter.writeObject(wordCountMap);
             outputWordCount(output, res);
-    	} else {
+    	} else if (input != null && output != null) {
             int wordCount = countWords(input);
             if (wordCount > 0) {
             	String res = JsonWriter.writeObject(Map.of(input, wordCount));
@@ -76,10 +68,10 @@ public class Driver {
             }
     	}
         
-        System.out.println();
-        printFile(input);
-        System.out.println();
-        printFile(output);
+//        System.out.println();
+//        printFile(input);
+//        System.out.println();
+//        printFile(output);
 
 	}
 	
