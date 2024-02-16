@@ -64,6 +64,10 @@ public class ArgumentParser {
 	public static boolean isCounts(String arg) {
 		return (isFlag(arg) && arg.equalsIgnoreCase("-counts")) ? true : false; 
 	}
+	
+	public static boolean isIndex(String arg) {
+		return (isFlag(arg) && arg.equalsIgnoreCase("-index")) ? true : false; 
+	}
 
 	/**
 	 * Determines whether the argument is a value. Anything that is not a flag is
@@ -85,7 +89,7 @@ public class ArgumentParser {
 	public void parse(String[] args) {
 		for (int i = 0; i < args.length; i++) {
 		    String flag = args[i], value = (i + 1 < args.length) ? args[i + 1] : null;
-			if (isText(flag) || isCounts(flag)) {
+			if (isText(flag) || isCounts(flag) || isIndex(flag)) {
 				if (isValue(value))
 					map.put(flag.substring(1), value);
 				else

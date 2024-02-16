@@ -45,38 +45,46 @@ public class Driver {
 //			System.err.println("Error: No arguments provided.");
 								        
         String input = argsMap.getString("-text");
-        String output = null;
+        String countOutput = null;
+        String indexOutput = null;
 
         if (argsMap.hasFlag("-counts"))
-            output = (argsMap.hasValue("-counts")) ? argsMap.getString("-counts") : "counts.json";
-
-		System.out.println("INPUT TEST: " + input);   
-		System.out.println("OUTPUT TEST: " + output);   
+            countOutput = (argsMap.hasValue("-counts")) ? argsMap.getString("-counts") : "counts.json";
         
-    	if(input != null && Files.isDirectory(Paths.get(input))) {
-    		Map<String, Integer> wordCountMap = new TreeMap<>();
-            traverseDirectory(Paths.get(input), wordCountMap);
-            String res = JsonWriter.writeObject(wordCountMap);
-            outputWordCount(output, res);
-    	} else if (input != null && output != null) {
-            int wordCount = countWords(input);
-            if (wordCount > 0) {
-            	String res = JsonWriter.writeObject(Map.of(input, wordCount));
-            	outputWordCount(output, res);
-            } else {
-            	String res = JsonWriter.writeObject(Collections.emptyMap());
-            	outputWordCount(output, res);
-            }
-    	} else if (input == null && output != null) {
-    		String res = JsonWriter.writeObject(Collections.emptyMap());
-        	outputWordCount(output, res);
-    	}
-        
-//        System.out.println();
-//        printFile(input);
-//        System.out.println();
-//        printFile(output);
+        if (argsMap.hasFlag("-index"))
+        	indexOutput = (argsMap.hasValue("-index")) ? argsMap.getString("-index") : "index.json";
 
+        
+        countWords(input);
+        writeFile(indexOutput, "TEST");
+        printFile(indexOutput);
+        
+        	
+        
+//    	if(input != null && Files.isDirectory(Paths.get(input))) {
+//    		Map<String, Integer> wordCountMap = new TreeMap<>();
+//            traverseDirectory(Paths.get(input), wordCountMap);
+//            String res = JsonWriter.writeObject(wordCountMap);
+//            writeFile(countOutput, res);
+//    	} else if (input != null && countOutput != null) {
+//            int wordCount = countWords(input);
+//            if (wordCount > 0) {
+//            	String countRes = JsonWriter.writeObject(Map.of(input, wordCount));
+//            	writeFile(countOutput, countRes);
+//            	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
+//                writeFile(indexOutput, indexRes);
+//            } else {
+//            	String res = JsonWriter.writeObject(Collections.emptyMap());
+//            	writeFile(countOutput, res);
+//            	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
+//                writeFile(indexOutput, indexRes);
+//            }
+//    	} else if (input == null && countOutput != null) {
+//    		String res = JsonWriter.writeObject(Collections.emptyMap());
+//        	writeFile(countOutput, res);
+//        	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
+//            writeFile(indexOutput, res);
+//    	}
 	}
 	
     private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap) {
@@ -88,8 +96,9 @@ public class Driver {
                 	String pathString = path.toString();
                 	String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
                 	if (extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) {
-                		if (countWords(pathString) > 0)
-                			wordCountMap.put(path.toString(), countWords(pathString));
+                		int wordCount = countWords(pathString);
+                		if (wordCount > 0)
+                			wordCountMap.put(path.toString(), wordCount);
                 	}
                 }
             });
@@ -100,13 +109,25 @@ public class Driver {
 
 	private static int countWords(String filePath) {
 		int wordCount = 0;
+        Map<String, Map<Path, Integer[]>> wordPositionsMap = new HashMap<>();
+
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
+            int position = 0;
             while ((line = reader.readLine()) != null) {
             	String clean = FileStemmer.clean(line);
                 String[] split = FileStemmer.split(clean);
+                System.out.println(Arrays.toString(split));
+                
+                for (String word : split) {
+                	System.out.println("testing");
+                	wordPositionsMap.computeIfAbsent(word, k -> new HashMap<>()).computeIfAbsent(Paths.get(filePath), k -> new Integer[0])[position - 1] = position++;
+                	System.out.println("worked");
+                }
+                
                 wordCount += split.length;
             }
+            System.out.println(wordPositionsMap);
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
         }
@@ -114,7 +135,7 @@ public class Driver {
     }
 	
 	
-    private static void outputWordCount(String filePath, String res) {
+    private static void writeFile(String filePath, String res) {
         try (Writer writer = new FileWriter(filePath)) {
             writer.write(res);
         } catch (IOException e) {
