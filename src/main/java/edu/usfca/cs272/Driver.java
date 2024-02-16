@@ -43,8 +43,6 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		ArgumentParser argsMap = new ArgumentParser(args);
-//		if (argsMap.empty())
-//			System.err.println("Error: No arguments provided.");
 								        
         String input = argsMap.getString("-text");
         String countOutput = null;
@@ -62,7 +60,12 @@ public class Driver {
         TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
         
         String outputMap = JsonWriter.writeWordPositionsMap(sortedWordPositionsMap);
+        if (outputMap.length() == 2) {
+        	outputMap = JsonWriter.writeObject(Collections.emptyMap());
+            
 
+        }
+        
         writeFile(indexOutput, outputMap);
         printFile(indexOutput);
         
@@ -137,6 +140,9 @@ public class Driver {
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
         }
+        
+        if (wordCount == 0)
+        	return Pair.of(wordCount, Collections.emptyMap());
 
         return Pair.of(wordCount, wordPositionsMap);
     }
