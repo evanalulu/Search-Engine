@@ -22,6 +22,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -54,9 +56,14 @@ public class Driver {
         if (argsMap.hasFlag("-index"))
         	indexOutput = (argsMap.hasValue("-index")) ? argsMap.getString("-index") : "index.json";
 
+        Pair<Integer, Map<String, Map<Path, List<Integer>>>> res = readInput(input);
+        int wordCount = res.getLeft();
+        Map<String, Map<Path, List<Integer>>> wordPositionsMap = res.getRight();
+        TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
         
-        countWords(input);
-        writeFile(indexOutput, "TEST");
+        String outputMap = JsonWriter.writeWordPositionsMap(sortedWordPositionsMap);
+
+        writeFile(indexOutput, outputMap);
         printFile(indexOutput);
         
         	
@@ -87,51 +94,50 @@ public class Driver {
 //    	}
 	}
 	
-    private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap) {
-        try (Stream<Path> paths = Files.list(directory)) {
-            paths.forEach(path -> {
-                if (Files.isDirectory(path)) {
-                    traverseDirectory(path, wordCountMap);
-                } else if (Files.isRegularFile(path)) {
-                	String pathString = path.toString();
-                	String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
-                	if (extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) {
-                		int wordCount = countWords(pathString);
-                		if (wordCount > 0)
-                			wordCountMap.put(path.toString(), wordCount);
-                	}
-                }
-            });
-        } catch (IOException e) {
-            System.err.println("Error traversing directory: " + e.getMessage());
-        }
-    }
+//    private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap) {
+//        try (Stream<Path> paths = Files.list(directory)) {
+//            paths.forEach(path -> {
+//                if (Files.isDirectory(path)) {
+//                    traverseDirectory(path, wordCountMap);
+//                } else if (Files.isRegularFile(path)) {
+//                	String pathString = path.toString();
+//                	String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
+//                	if (extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) {
+//                		int wordCount = countWords(pathString);
+//                		if (wordCount > 0)
+//                			wordCountMap.put(path.toString(), wordCount);
+//                	}
+//                }
+//            });
+//        } catch (IOException e) {
+//            System.err.println("Error traversing directory: " + e.getMessage());
+//        }
+//    }
 
-	private static int countWords(String filePath) {
-		int wordCount = 0;
-        Map<String, Map<Path, Integer[]>> wordPositionsMap = new HashMap<>();
+    private static Pair<Integer, Map<String, Map<Path, List<Integer>>>> readInput(String filePath) {
+        int wordCount = 0;
+        Map<String, Map<Path, List<Integer>>> wordPositionsMap = new HashMap<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
-            int position = 0;
+            int position = 1;
             while ((line = reader.readLine()) != null) {
-            	String clean = FileStemmer.clean(line);
+                String clean = FileStemmer.clean(line);
                 String[] split = FileStemmer.split(clean);
-                System.out.println(Arrays.toString(split));
-                
+
                 for (String word : split) {
-                	System.out.println("testing");
-                	wordPositionsMap.computeIfAbsent(word, k -> new HashMap<>()).computeIfAbsent(Paths.get(filePath), k -> new Integer[0])[position - 1] = position++;
-                	System.out.println("worked");
+                    wordPositionsMap.computeIfAbsent(word, k -> new HashMap<>())
+                            .computeIfAbsent(Paths.get(filePath), k -> new ArrayList<>()).add(position);
+                    position++;
                 }
-                
+
                 wordCount += split.length;
             }
-            System.out.println(wordPositionsMap);
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
         }
-        return wordCount;
+
+        return Pair.of(wordCount, wordPositionsMap);
     }
 	
 	
