@@ -126,7 +126,8 @@ public class Driver {
                 String[] split = FileStemmer.split(clean);
 
                 for (String word : split) {
-                    wordPositionsMap.computeIfAbsent(word, k -> new HashMap<>())
+                	TreeSet<String> stemmed = FileStemmer.uniqueStems(word);
+                    wordPositionsMap.computeIfAbsent(stemmed.getFirst(), k -> new HashMap<>())
                             .computeIfAbsent(Paths.get(filePath), k -> new ArrayList<>()).add(position);
                     position++;
                 }

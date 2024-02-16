@@ -306,11 +306,7 @@ public class FileStemmer {
 		System.out.println("____STEMMING TEXT____");
 		System.out.println();
 
-		String practice = """
-				practic practical practice practiced practicer practices
-				practicing practis practisants practise practised practiser
-				practisers practises practising practitioner practitioners
-				""";
+		String practice = "elephant";
 
 		System.out.println("Original: \n" + practice);
 		System.out.println("  List: " + listStems(practice));
