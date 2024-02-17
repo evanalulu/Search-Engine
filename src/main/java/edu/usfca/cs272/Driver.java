@@ -63,7 +63,7 @@ public class Driver {
             String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
 
-            writeFile(countOutput, wordCountMap_JSON);
+            if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
             writeFile(indexOutput, indexMap_JSON);
 
     	} else {
@@ -72,7 +72,7 @@ public class Driver {
             Map<String, Map<Path, List<Integer>>> wordPositionsMap = res.getRight();
             TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
             
-//            String countMap = JsonWriter.writeObject(Map.of(input, wordCount));
+            String countMap = JsonWriter.writeObject(Map.of(input, wordCount));
             String indexMap = JsonWriter.writeWordPositionsMap(sortedWordPositionsMap);
             if (indexMap.length() == 2) {
             	indexMap = JsonWriter.writeObject(Collections.emptyMap());
@@ -80,7 +80,7 @@ public class Driver {
             
             
             writeFile(indexOutput, indexMap);
-//            writeFile(countOutput, countMap);
+            if (countOutput != null) writeFile(countOutput, countMap);
     	}
 
 
@@ -120,15 +120,12 @@ public class Driver {
 	                    Pair<Integer, Map<String, Map<Path, List<Integer>>>> res = readInput(pathString);
 	                    int wordCount = res.getLeft();
 	                    Map<String, Map<Path, List<Integer>>> wordPositionsMap = res.getRight();
-	                    
-	                    // Convert wordPositionsMap to a TreeMap
-	                    TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
+	                    	                    TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
 	                    
 	                    if (wordCount > 0) {
 	                        wordCountMap.put(path.toString(), wordCount);
 	                    }
 	                    
-	                    // Merge sortedWordPositionsMap into indexMap
 	                    sortedWordPositionsMap.forEach((word, positionsMap) -> {
 	                        indexMap.merge(word, positionsMap, (existingPositionsMap, newPositionsMap) -> {
 	                            existingPositionsMap.putAll(newPositionsMap);
