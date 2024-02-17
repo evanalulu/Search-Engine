@@ -53,30 +53,41 @@ public class Driver {
         
         if (argsMap.hasFlag("-index"))
         	indexOutput = (argsMap.hasValue("-index")) ? argsMap.getString("-index") : "index.json";
-
-        Pair<Integer, Map<String, Map<Path, List<Integer>>>> res = readInput(input);
-        int wordCount = res.getLeft();
-        Map<String, Map<Path, List<Integer>>> wordPositionsMap = res.getRight();
-        TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
         
-        String outputMap = JsonWriter.writeWordPositionsMap(sortedWordPositionsMap);
-        if (outputMap.length() == 2) {
-        	outputMap = JsonWriter.writeObject(Collections.emptyMap());
+        
+    	if(input != null && Files.isDirectory(Paths.get(input))) {
+    		Map<String, Integer> wordCountMap = new TreeMap<>();
+    		TreeMap<String, Map<Path, List<Integer>>> indexMap = new TreeMap<>();
+    		
+            traverseDirectory(Paths.get(input), wordCountMap, indexMap);
+            String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
+            String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
+
+            writeFile(countOutput, wordCountMap_JSON);
+            writeFile(indexOutput, indexMap_JSON);
+
+    	} else {
+            Pair<Integer, Map<String, Map<Path, List<Integer>>>> res = readInput(input);
+            int wordCount = res.getLeft();
+            Map<String, Map<Path, List<Integer>>> wordPositionsMap = res.getRight();
+            TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
             
+//            String countMap = JsonWriter.writeObject(Map.of(input, wordCount));
+            String indexMap = JsonWriter.writeWordPositionsMap(sortedWordPositionsMap);
+            if (indexMap.length() == 2) {
+            	indexMap = JsonWriter.writeObject(Collections.emptyMap());
+            }
+            
+            
+            writeFile(indexOutput, indexMap);
+//            writeFile(countOutput, countMap);
+    	}
 
-        }
-        
-        writeFile(indexOutput, outputMap);
-        printFile(indexOutput);
+
+//        printFile(indexOutput);
         
         	
-        
-//    	if(input != null && Files.isDirectory(Paths.get(input))) {
-//    		Map<String, Integer> wordCountMap = new TreeMap<>();
-//            traverseDirectory(Paths.get(input), wordCountMap);
-//            String res = JsonWriter.writeObject(wordCountMap);
-//            writeFile(countOutput, res);
-//    	} else if (input != null && countOutput != null) {
+//        else if (input != null && countOutput != null) {
 //            int wordCount = countWords(input);
 //            if (wordCount > 0) {
 //            	String countRes = JsonWriter.writeObject(Map.of(input, wordCount));
@@ -97,25 +108,41 @@ public class Driver {
 //    	}
 	}
 	
-//    private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap) {
-//        try (Stream<Path> paths = Files.list(directory)) {
-//            paths.forEach(path -> {
-//                if (Files.isDirectory(path)) {
-//                    traverseDirectory(path, wordCountMap);
-//                } else if (Files.isRegularFile(path)) {
-//                	String pathString = path.toString();
-//                	String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
-//                	if (extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) {
-//                		int wordCount = countWords(pathString);
-//                		if (wordCount > 0)
-//                			wordCountMap.put(path.toString(), wordCount);
-//                	}
-//                }
-//            });
-//        } catch (IOException e) {
-//            System.err.println("Error traversing directory: " + e.getMessage());
-//        }
-//    }
+	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, Map<Path, List<Integer>>> indexMap) {
+	    try (Stream<Path> paths = Files.list(directory)) {
+	        paths.forEach(path -> {
+	            if (Files.isDirectory(path)) {
+	                traverseDirectory(path, wordCountMap, indexMap);
+	            } else if (Files.isRegularFile(path)) {
+	                String pathString = path.toString();
+	                String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
+	                if (extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) {
+	                    Pair<Integer, Map<String, Map<Path, List<Integer>>>> res = readInput(pathString);
+	                    int wordCount = res.getLeft();
+	                    Map<String, Map<Path, List<Integer>>> wordPositionsMap = res.getRight();
+	                    
+	                    // Convert wordPositionsMap to a TreeMap
+	                    TreeMap<String, Map<Path, List<Integer>>> sortedWordPositionsMap = new TreeMap<>(wordPositionsMap);
+	                    
+	                    if (wordCount > 0) {
+	                        wordCountMap.put(path.toString(), wordCount);
+	                    }
+	                    
+	                    // Merge sortedWordPositionsMap into indexMap
+	                    sortedWordPositionsMap.forEach((word, positionsMap) -> {
+	                        indexMap.merge(word, positionsMap, (existingPositionsMap, newPositionsMap) -> {
+	                            existingPositionsMap.putAll(newPositionsMap);
+	                            return existingPositionsMap;
+	                        });
+	                    });
+	                }
+	            }
+	        });
+	    } catch (IOException e) {
+	        System.err.println("Error traversing directory: " + e.getMessage());
+	    }
+	}
+
 
     private static Pair<Integer, Map<String, Map<Path, List<Integer>>>> readInput(String filePath) {
         int wordCount = 0;
