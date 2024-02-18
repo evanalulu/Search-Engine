@@ -320,7 +320,7 @@ public class FileStemmer {
 		System.out.println();
 
 		String practice2 = """
-				conspicuously
+				zigzag, zig
 				""";
 
 		System.out.println("Original: \n" + practice2);

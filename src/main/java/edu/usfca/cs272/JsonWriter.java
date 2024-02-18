@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Outputs several simple data structures in "pretty" JSON format where newlines
@@ -368,44 +370,42 @@ public class JsonWriter {
 		}
 	}
 	
-    public static void writeWordPositionsMap(Map<String, Map<Path, List<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
-        writer.write("{");
-        if (!wordPositionsMap.isEmpty()) {
-            writer.write(System.lineSeparator());
-            int counter = 0;
-            for (Map.Entry<String, Map<Path, List<Integer>>> entry : wordPositionsMap.entrySet()) {
-                writeIndent(writer, indent + 1);
-                writer.write("\"" + entry.getKey() + "\": ");
-                System.out.println(entry.getValue());
-                writeObjectArrays(adaptEntrySet(entry.getValue().entrySet()), writer, indent + 1);
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<Path, List<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+	    writer.write("{");
+	    if (!wordPositionsMap.isEmpty()) {
+	        writer.write(System.lineSeparator());
+	        int counter = 0;
+	        for (Map.Entry<String, TreeMap<Path, List<Integer>>> entry : wordPositionsMap.entrySet()) {
+	            writeIndent(writer, indent + 1);
+	            writer.write("\"" + entry.getKey() + "\": ");
+	            writeObjectArrays(adaptEntrySet(entry.getValue().entrySet()), writer, indent + 1);
 
-                if (++counter < wordPositionsMap.size()) {
-                    writer.write(",");
-                    writer.write(System.lineSeparator());
-                }
-            }
-            writer.write(System.lineSeparator());
-        }
-        writeIndent("}", writer, indent);
-    }
-	
-	public static void writeWordPositionsMap(Map<String, Map<Path, List<Integer>>> wordPositionsMap, Path path) throws IOException {
-		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
-			writeWordPositionsMap(wordPositionsMap, writer, 0);
-		}
+	            if (++counter < wordPositionsMap.size()) {
+	                writer.write(",");
+	                writer.write(System.lineSeparator());
+	            }
+	        }
+	        writer.write(System.lineSeparator());
+	    }
+	    writeIndent("}", writer, indent);
 	}
-	
-	public static String writeWordPositionsMap(Map<String, Map<Path, List<Integer>>> wordPositionsMap) {
-		try {
-			StringWriter writer = new StringWriter();
-			writeWordPositionsMap(wordPositionsMap, writer, 0);
-			return writer.toString();
-		}
-		catch (IOException e) {
-			return null;
-		}
+
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<Path, List<Integer>>> wordPositionsMap, Path path) throws IOException {
+	    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+	        writeWordPositionsMap(wordPositionsMap, writer, 0);
+	    }
 	}
-	
+
+	public static String writeWordPositionsMap(TreeMap<String, TreeMap<Path, List<Integer>>> wordPositionsMap) {
+	    try {
+	        StringWriter writer = new StringWriter();
+	        writeWordPositionsMap(wordPositionsMap, writer, 0);
+	        return writer.toString();
+	    } catch (IOException e) {
+	        return null;
+	    }
+	}
+
     private static Map<String, ? extends Collection<? extends Number>> adaptEntrySet(Set<Map.Entry<Path, List<Integer>>> entrySet) {
         return entrySet.stream()
                 .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
