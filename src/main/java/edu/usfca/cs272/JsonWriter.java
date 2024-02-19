@@ -370,12 +370,12 @@ public class JsonWriter {
 		}
 	}
 	
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<Path, List<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, List<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
 	    writer.write("{");
 	    if (!wordPositionsMap.isEmpty()) {
 	        writer.write(System.lineSeparator());
 	        int counter = 0;
-	        for (Map.Entry<String, TreeMap<Path, List<Integer>>> entry : wordPositionsMap.entrySet()) {
+	        for (Map.Entry<String, TreeMap<String, List<Integer>>> entry : wordPositionsMap.entrySet()) {
 	            writeIndent(writer, indent + 1);
 	            writer.write("\"" + entry.getKey() + "\": ");
 	            writeObjectArrays(adaptEntrySet(entry.getValue().entrySet()), writer, indent + 1);
@@ -390,13 +390,13 @@ public class JsonWriter {
 	    writeIndent("}", writer, indent);
 	}
 
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<Path, List<Integer>>> wordPositionsMap, Path path) throws IOException {
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, List<Integer>>> wordPositionsMap, Path path) throws IOException {
 	    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
 	        writeWordPositionsMap(wordPositionsMap, writer, 0);
 	    }
 	}
 
-	public static String writeWordPositionsMap(TreeMap<String, TreeMap<Path, List<Integer>>> wordPositionsMap) {
+	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, List<Integer>>> wordPositionsMap) {
 	    try {
 	        StringWriter writer = new StringWriter();
 	        writeWordPositionsMap(wordPositionsMap, writer, 0);
@@ -406,11 +406,10 @@ public class JsonWriter {
 	    }
 	}
 
-    private static Map<String, ? extends Collection<? extends Number>> adaptEntrySet(Set<Map.Entry<Path, List<Integer>>> entrySet) {
-        return entrySet.stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
-    }
-	
+	private static Map<String, ? extends Collection<? extends Number>> adaptEntrySet(Set<Map.Entry<String, List<Integer>>> entrySet) {
+	    return entrySet.stream()
+	            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
 	
 	/**
 	 * Demonstrates this class.
