@@ -53,25 +53,25 @@ public class Driver {
         
         if (argsMap.hasFlag("-index"))
         	indexOutput = (argsMap.hasValue("-index")) ? argsMap.getString("-index") : "index.json";
-        
+                
     	if(input != null && Files.isDirectory(Paths.get(input))) {
     		Map<String, Integer> wordCountMap = new TreeMap<>();
     		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = new TreeMap<>();
     		
-            traverseDirectory(Paths.get(input), wordCountMap, indexMap);            
+            traverseDirectory(Paths.get(input), wordCountMap, indexMap);  
+            
             String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
-
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
-            System.out.println(indexMap_JSON);
-
             writeFile(indexOutput, indexMap_JSON);
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
     	} else if (input == null) {
-        	String res = JsonWriter.writeObject(Collections.emptyMap());
-        	writeFile(countOutput, res);
-        	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
-            writeFile(indexOutput, indexRes);
+        	String wordCountMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
+            if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
+        	String indexMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
+            writeFile(indexOutput, indexMap_JSON);
             printFile(indexOutput);
+		} else if (indexOutput == null) {
+			
 		} else {
     		Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(input);
             int wordCount = res.getLeft();
