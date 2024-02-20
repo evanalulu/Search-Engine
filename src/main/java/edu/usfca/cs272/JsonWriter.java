@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -370,12 +371,12 @@ public class JsonWriter {
 		}
 	}
 	
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, List<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
 	    writer.write("{");
 	    if (!wordPositionsMap.isEmpty()) {
 	        writer.write(System.lineSeparator());
 	        int counter = 0;
-	        for (Map.Entry<String, TreeMap<String, List<Integer>>> entry : wordPositionsMap.entrySet()) {
+	        for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : wordPositionsMap.entrySet()) {
 	            writeIndent(writer, indent + 1);
 	            writer.write("\"" + entry.getKey() + "\": ");
 	            writeObjectArrays(adaptEntrySet(entry.getValue().entrySet()), writer, indent + 1);
@@ -390,13 +391,14 @@ public class JsonWriter {
 	    writeIndent("}", writer, indent);
 	}
 
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, List<Integer>>> wordPositionsMap, Path path) throws IOException {
+
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Path path) throws IOException {
 	    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
 	        writeWordPositionsMap(wordPositionsMap, writer, 0);
 	    }
 	}
 
-	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, List<Integer>>> wordPositionsMap) {
+	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) {
 	    try {
 	        StringWriter writer = new StringWriter();
 	        writeWordPositionsMap(wordPositionsMap, writer, 0);
@@ -406,7 +408,7 @@ public class JsonWriter {
 	    }
 	}
 
-	private static Map<String, ? extends Collection<? extends Number>> adaptEntrySet(Set<Map.Entry<String, List<Integer>>> entrySet) {
+	private static Map<String, ? extends Collection<? extends Number>> adaptEntrySet(Set<Map.Entry<String, ArrayList<Integer>>> entrySet) {
 	    return entrySet.stream()
 	            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
