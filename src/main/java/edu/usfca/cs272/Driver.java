@@ -62,50 +62,26 @@ public class Driver {
             
             String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
-            writeFile(indexOutput, indexMap_JSON);
+            if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
     	} else if (input == null) {
         	String wordCountMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
         	String indexMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
-            writeFile(indexOutput, indexMap_JSON);
-            printFile(indexOutput);
-		} else if (indexOutput == null) {
-			
+        	if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
 		} else {
     		Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(input);
+    		
             int wordCount = res.getLeft();
-            TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = res.getRight();
-            
-            String countMap = JsonWriter.writeObject(Map.of(input, wordCount));
-            String indexMap = JsonWriter.writeWordPositionsMap(index);
-            if (indexMap.length() == 2) indexMap = JsonWriter.writeObject(Collections.emptyMap());
-            
-            writeFile(indexOutput, indexMap);
-            if (countOutput != null) writeFile(countOutput, countMap);
-    	}
+            String wordCountMap = JsonWriter.writeObject(Map.of(input, wordCount));
+            if (wordCount < 1) wordCountMap =  JsonWriter.writeObject(Collections.emptyMap());
+            if (countOutput != null) writeFile(countOutput, wordCountMap);
 
-        
-        	
-//        else if (input != null && countOutput != null) {
-//            int wordCount = countWords(input);
-//            if (wordCount > 0) {
-//            	String countRes = JsonWriter.writeObject(Map.of(input, wordCount));
-//            	writeFile(countOutput, countRes);
-//            	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
-//                writeFile(indexOutput, indexRes);
-//            } else {
-//            	String res = JsonWriter.writeObject(Collections.emptyMap());
-//            	writeFile(countOutput, res);
-//            	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
-//                writeFile(indexOutput, indexRes);
-//            }
-//    	} else if (input == null && countOutput != null) {
-//    		String res = JsonWriter.writeObject(Collections.emptyMap());
-//        	writeFile(countOutput, res);
-//        	String indexRes = JsonWriter.writeObject(Collections.emptyMap());
-//            writeFile(indexOutput, res);
-//    	}
+            TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = res.getRight();
+            String indexMap = JsonWriter.writeWordPositionsMap(index);
+            if (indexMap.length() == 2) indexMap = JsonWriter.writeObject(Collections.emptyMap());            
+            if (indexOutput != null) writeFile(indexOutput, indexMap);
+    	}
 	}
 	
 	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) {
@@ -163,6 +139,7 @@ public class Driver {
 	        while ((line = reader.readLine()) != null) {
 	            String clean = FileStemmer.clean(line);
 	            String[] split = FileStemmer.split(clean);
+	            wordCount += split.length;
 
 	            for (String word : split) {
 	                TreeSet<String> stemmed = FileStemmer.uniqueStems(word);
@@ -172,7 +149,6 @@ public class Driver {
 	                position++;
 	            }
 
-	            wordCount += split.length;
 	        }
 	    } catch (IOException e) {
 	        System.err.println("Error reading file: " + e.getMessage());
