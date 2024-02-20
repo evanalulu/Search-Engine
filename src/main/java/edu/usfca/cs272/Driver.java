@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Stream;
@@ -58,12 +59,17 @@ public class Driver {
     		Map<String, Integer> wordCountMap = new TreeMap<>();
     		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = new TreeMap<>();
     		
-            traverseDirectory(Paths.get(input), wordCountMap, indexMap);
+            traverseDirectory(Paths.get(input), indexMap);
+            System.out.println("DONEEEE");
+            
             String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
+
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
+            System.out.println(indexMap_JSON);
+
 
             writeFile(indexOutput, indexMap_JSON);
-            printFile(indexOutput);
+//            printFile(indexOutput);
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
 
     	} 
@@ -106,47 +112,90 @@ public class Driver {
 //    	}
 	}
 	
-	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) {
-	    try (Stream<Path> paths = Files.list(directory)) {
+	private static void traverseDirectory(Path directory, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) {
+		try (Stream<Path> paths = Files.list(directory)) {
 	        paths.forEach(path -> {
 	            if (Files.isDirectory(path)) {
-	                traverseDirectory(path, wordCountMap, indexMap);
+	                traverseDirectory(path, indexMap);
 	            } else if (Files.isRegularFile(path)) {
 	                String pathString = path.toString();
 	                String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
 	                
 	                if ((extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) && !pathString.equalsIgnoreCase("input/text/simple/stem-in.txt")) {
 	                    Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(pathString);
-	                    int wordCount = res.getLeft();
 	                    TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = res.getRight();
 	                    
-	                    System.out.println(index);
-
-	                    if (wordCount > 0) {
-	                        wordCountMap.put(pathString, wordCount);
-	                    }
-
-	                    for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : index.entrySet()) {
-	                        String word = entry.getKey();
-	                        TreeMap<String, ArrayList<Integer>> positionsMap = entry.getValue();
+	                    for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : index.entrySet()) { 
+	                        String key = entry.getKey();
+	                        TreeMap<String, ArrayList<Integer>> value = entry.getValue();
 	                        
-	                        TreeMap<String, ArrayList<Integer>> existingPositionsMap = indexMap.get(word);
-
-	                        if (indexMap.get(word) == null) {
-	                            existingPositionsMap = new TreeMap<>();
-	                            indexMap.put(word, positionsMap);
+	                        String filePath = value.keySet().iterator().next();
+	                        ArrayList<Integer> indices = value.get(filePath); 
+//	                        System.out.println(filePath + ": " + indices);
+	                        
+	                        if (!indexMap.containsKey(key)) {
+	                        	TreeMap<String, ArrayList<Integer>> temp = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+	                        	indexMap.put(key, temp);
+	                        	indexMap.get(key).put(filePath, indices);
+	                        } else {
+	                        	indexMap.get(key).put(filePath, indices);
 	                        }
-	                        	                        
-	                        existingPositionsMap.putAll(positionsMap);
-	                    }
-	                    
+	                        
+	                    } 
+	
+
 	                }
+
+
 	            }
+
 	        });
 	    } catch (IOException e) {
 	        System.err.println("Error traversing directory: " + e.getMessage());
 	    }
 	}
+	
+//	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) {
+//	    try (Stream<Path> paths = Files.list(directory)) {
+//	        paths.forEach(path -> {
+//	            if (Files.isDirectory(path)) {
+//	                traverseDirectory(path, wordCountMap, indexMap);
+//	            } else if (Files.isRegularFile(path)) {
+//	                String pathString = path.toString();
+//	                String extension = pathString.substring(pathString.lastIndexOf('.') + 1);
+//	                
+//	                if ((extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text")) && !pathString.equalsIgnoreCase("input/text/simple/stem-in.txt")) {
+//	                    Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(pathString);
+//	                    int wordCount = res.getLeft();
+//	                    TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = res.getRight();
+//	                    
+//	                    System.out.println(index);
+//
+//	                    if (wordCount > 0) {
+//	                        wordCountMap.put(pathString, wordCount);
+//	                    }
+//
+//	                    for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : index.entrySet()) {
+//	                        String word = entry.getKey();
+//	                        TreeMap<String, ArrayList<Integer>> positionsMap = entry.getValue();
+//	                        
+//	                        TreeMap<String, ArrayList<Integer>> existingPositionsMap = indexMap.get(word);
+//
+//	                        if (indexMap.get(word) == null) {
+//	                            existingPositionsMap = new TreeMap<>();
+//	                            indexMap.put(word, positionsMap);
+//	                        }
+//	                        	                        
+//	                        existingPositionsMap.putAll(positionsMap);
+//	                    }
+//	                    
+//	                }
+//	            }
+//	        });
+//	    } catch (IOException e) {
+//	        System.err.println("Error traversing directory: " + e.getMessage());
+//	    }
+//	}
 
 	private static Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> readInput(String filePath) {
 	    int wordCount = 0;

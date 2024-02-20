@@ -371,47 +371,74 @@ public class JsonWriter {
 		}
 	}
 	
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
-	    writer.write("{");
-	    if (!wordPositionsMap.isEmpty()) {
-	        writer.write(System.lineSeparator());
-	        int counter = 0;
-	        for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : wordPositionsMap.entrySet()) {
-	            writeIndent(writer, indent + 1);
-	            writer.write("\"" + entry.getKey() + "\": ");
-	            writeObjectArrays(adaptEntrySet(entry.getValue().entrySet()), writer, indent + 1);
-
-	            if (++counter < wordPositionsMap.size()) {
-	                writer.write(",");
-	                writer.write(System.lineSeparator());
+	   public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+	        writer.write("{");
+	        if (!wordPositionsMap.isEmpty()) {
+	            writer.write(System.lineSeparator());
+	            int counter = 0;
+	            for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : wordPositionsMap.entrySet()) {
+	                writeIndent(writer, indent + 1);
+	                writer.write("\"" + entry.getKey() + "\": ");
+	                writer.write("{");
+	                if (!entry.getValue().isEmpty()) {
+	                    writer.write(System.lineSeparator());
+	                    int innerCounter = 0;
+	                    for (Map.Entry<String, ArrayList<Integer>> innerEntry : entry.getValue().entrySet()) {
+	                        writeIndent(writer, indent + 2);
+	                        writer.write("\"" + innerEntry.getKey() + "\": ");
+	                        ArrayList<Integer> indices = innerEntry.getValue();
+	                	    writer.write("[");
+	                	    if (!indices.isEmpty()) {
+	                	        writer.write(System.lineSeparator());
+	                	        Iterator<? extends Number> iterator = indices.iterator();
+	                	        while (iterator.hasNext()) {
+	                	            Number element = iterator.next();
+	                	            writeIndent(element.toString(), writer, indent + 3);
+	                	            if (iterator.hasNext()) {
+	                	                writer.write(",");
+	                	                writer.write(System.lineSeparator());
+	                	            }
+	                	        }
+	                	    }
+	                	    
+	                        writer.write(System.lineSeparator());
+	                	    writeIndent("]", writer, indent + 2);
+	                        if (++innerCounter < entry.getValue().size()) {
+	                            writer.write(",");
+	                            writer.write(System.lineSeparator());
+	                        }
+	                    }
+	                    writer.write(System.lineSeparator());
+	                }
+	                writeIndent(writer, indent + 1);
+	                writer.write("}");
+	                if (++counter < wordPositionsMap.size()) {
+	                    writer.write(",");
+	                    writer.write(System.lineSeparator());
+	                }
 	            }
+	            writer.write(System.lineSeparator());
 	        }
-	        writer.write(System.lineSeparator());
+	        writeIndent("}", writer, indent);
 	    }
-	    writeIndent("}", writer, indent);
-	}
+	   
+		public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Path path) throws IOException {
+			try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
+				writeWordPositionsMap(wordPositionsMap, writer, 0);
+			}
+		}
+		
+		public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) {
+			try {
+				StringWriter writer = new StringWriter();
+				writeWordPositionsMap(wordPositionsMap, writer, 0);
+				return writer.toString();
+			}
+			catch (IOException e) {
+				return null;
+			}
+		}
 
-
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Path path) throws IOException {
-	    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-	        writeWordPositionsMap(wordPositionsMap, writer, 0);
-	    }
-	}
-
-	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) {
-	    try {
-	        StringWriter writer = new StringWriter();
-	        writeWordPositionsMap(wordPositionsMap, writer, 0);
-	        return writer.toString();
-	    } catch (IOException e) {
-	        return null;
-	    }
-	}
-
-	private static Map<String, ? extends Collection<? extends Number>> adaptEntrySet(Set<Map.Entry<String, ArrayList<Integer>>> entrySet) {
-	    return entrySet.stream()
-	            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-	}
 	
 	/**
 	 * Demonstrates this class.
