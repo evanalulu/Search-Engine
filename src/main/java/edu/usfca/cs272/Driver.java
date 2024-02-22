@@ -64,6 +64,7 @@ public class Driver {
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
             if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
+            printFile(countOutput);
     	} else if (input == null) {
         	String wordCountMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
@@ -133,7 +134,7 @@ public class Driver {
 	    int wordCount = 0;
 	    TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap = new TreeMap<>();
 
-	    try (BufferedReader reader = new BufferedReader(new FileReader(filePath.toLowerCase()))) {
+	    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
 	        String line;
 	        int position = 1;
 	        while ((line = reader.readLine()) != null) {
