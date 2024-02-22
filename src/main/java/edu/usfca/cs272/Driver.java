@@ -64,7 +64,6 @@ public class Driver {
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
             if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
-            printFile(countOutput);
     	} else if (input == null) {
         	String wordCountMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
             if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
@@ -96,7 +95,6 @@ public class Driver {
 	                
 	                if ((extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text"))) {
 	                    Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(pathString);
-	                    System.out.println("TESTING: " + pathString);
 	                    int wordCount = res.getLeft();
 	                    if (wordCount > 0) wordCountMap.put(pathString, wordCount);
 	                    
