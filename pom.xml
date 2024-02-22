@@ -152,10 +152,5 @@
 			<artifactId>mariadb-java-client</artifactId>
 			<version>${versions.mariadb.jdbc}</version>
 		</dependency>
-		<dependency>
-			<groupId>edu.usfca.cs272</groupId>
-			<artifactId>Lectures</artifactId>
-			<version>2024-01</version>
-		</dependency>
 	</dependencies>
 </project>
