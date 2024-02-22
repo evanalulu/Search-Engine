@@ -96,6 +96,7 @@ public class Driver {
 	                
 	                if ((extension.equalsIgnoreCase("txt") || extension.equalsIgnoreCase("text"))) {
 	                    Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(pathString);
+	                    System.out.println("TESTING: " + pathString);
 	                    int wordCount = res.getLeft();
 	                    if (wordCount > 0) wordCountMap.put(pathString, wordCount);
 	                    
