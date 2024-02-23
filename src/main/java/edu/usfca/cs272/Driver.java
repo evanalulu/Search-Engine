@@ -124,7 +124,7 @@ public class Driver {
 	    TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap = new TreeMap<>();
 
 	    try (
-	    		BufferedReader reader = Files.newBufferedReader(path, UTF_8)
+	    		BufferedReader reader = Files.newBufferedReader(path, UTF_8);
 	    	) {
 	    		String line = null;
 		        int position = 1;
