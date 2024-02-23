@@ -37,7 +37,6 @@ public class FileProcessor {
 					try {
 						traverseDirectory(path, wordCountMap, indexMap);
 					} catch (IOException e) {
-						e.printStackTrace();
 					}
 				} else if (Files.isRegularFile(path) && isExtensionText(path)) {
                 	Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> maps;
