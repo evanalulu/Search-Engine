@@ -56,7 +56,6 @@ public class FileProcessor {
 	                    	)
 	                    );
 					} catch (IOException e) {
-						e.printStackTrace();
 					}
 				}
 			});
