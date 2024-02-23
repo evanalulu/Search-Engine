@@ -55,39 +55,40 @@ public class Driver {
         if (argsMap.hasFlag("-index"))
         	indexOutput = (argsMap.hasValue("-index")) ? argsMap.getString("-index") : "index.json";
                 
-    	if(input != null && Files.isDirectory(Paths.get(input))) {
-    		Map<String, Integer> wordCountMap = new TreeMap<>();
-    		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = new TreeMap<>();
-    		
-            traverseDirectory(Paths.get(input), wordCountMap, indexMap);  
-            
+        if (input == null) {
+            String emptyMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
+            if (countOutput != null) writeFile(countOutput, emptyMap_JSON);
+            if (indexOutput != null) writeFile(indexOutput, emptyMap_JSON);
+        } else if (Files.isDirectory(Paths.get(input))) {
+            Map<String, Integer> wordCountMap = new TreeMap<>();
+            TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = new TreeMap<>();
+            traverseDirectory(Paths.get(input), wordCountMap, indexMap);
+
             String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
-            if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
-            if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
-    	} else if (input == null) {
-        	String wordCountMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
-            if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
-        	String indexMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
-        	if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
-		} else {
-    		Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readFile(Path.of(input));
-    		
-            int wordCount = res.getLeft();
-            String wordCountMap = JsonWriter.writeObject(Map.of(input, wordCount));
-            if (wordCount < 1) wordCountMap =  JsonWriter.writeObject(Collections.emptyMap());
-            if (countOutput != null) writeFile(countOutput, wordCountMap);
 
-            TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = res.getRight();
-            String indexMap = JsonWriter.writeWordPositionsMap(index);
-            if (indexMap.length() == 2) indexMap = JsonWriter.writeObject(Collections.emptyMap());            
+            if (countOutput != null) writeFile(countOutput, wordCountMap_JSON);
+            if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
+        } else if (Files.isRegularFile(Path.of(input))){
+        	Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> maps = readFile(Path.of(input));
+    		
+            int wordCount = maps.getLeft();
+            String wordCountMap = (wordCount > 1) ? JsonWriter.writeObject(Map.of(input, wordCount)) :
+            										JsonWriter.writeObject(Collections.emptyMap());
+
+            TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = maps.getRight();
+            String indexMap = (index.size() > 0) ? JsonWriter.writeWordPositionsMap(index) :
+            									JsonWriter.writeObject(Collections.emptyMap());
+                        
+            if (countOutput != null) writeFile(countOutput, wordCountMap);
             if (indexOutput != null) writeFile(indexOutput, indexMap);
-    	}
+            
+        }
+
 	}
 	
 	
 	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) throws IOException{
-		
 		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
 			paths.forEach(path -> {
 				if (Files.isDirectory(path)) {
