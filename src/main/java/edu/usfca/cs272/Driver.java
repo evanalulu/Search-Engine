@@ -84,10 +84,16 @@ public class Driver {
             if (indexOutput != null) writeFile(indexOutput, indexMap);
             
         }
-
 	}
 	
-	
+	/**
+	 * Recursively traverses the specified directory, processing each file.
+	 *
+	 * @param directory   the directory to traverse
+	 * @param wordCountMap   a map to store word counts for each file
+	 * @param indexMap   a map to store word positions for each word in each file
+	 * @throws IOException if an I/O error occurs while traversing the directory or processing files
+	 */
 	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) throws IOException{
 		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
 			paths.forEach(path -> {
@@ -121,6 +127,14 @@ public class Driver {
 		}
 	}
 
+	/**
+	 * Reads the content of the file located at the specified path, processes the words, and returns
+	 * the word count along with a map of word positions.
+	 *
+	 * @param path the path to the file to be read
+	 * @return a pair containing the word count and a map of word positions
+	 * @throws IOException if an I/O error occurs while reading the file
+	 */
 	private static Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> readFile(Path path) throws IOException {
 	    int wordCount = 0;
 	    TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap = new TreeMap<>();
@@ -144,14 +158,26 @@ public class Driver {
 	    return (wordCount == 0) ? Pair.of(wordCount, new TreeMap<>()) : Pair.of(wordCount, wordPositionsMap);
 	}
 
-    private static void writeFile(String filePath, String res) {
-        try (Writer writer = new FileWriter(filePath)) {
-            writer.write(res);
+	/**
+	 * Writes the specified content to the file located at the given file path.
+	 *
+	 * @param path    the path of the file to write to
+	 * @param content the content to write to the file
+	 */
+    private static void writeFile(String path, String content) {
+        try (Writer writer = new FileWriter(path)) {
+            writer.write(content);
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
         }
     }
     
+    /**
+     * Checks if the file extension of the specified path corresponds to a text file.
+     *
+     * @param path the path of the file to check
+     * @return {@code true} if the file extension is ".txt" or ".text", {@code false} otherwise
+     */
     private static boolean isExtensionText(Path path) {
 	    String extension = path.toString().toLowerCase();
 	    return extension.endsWith(".txt") || extension.endsWith(".text");
