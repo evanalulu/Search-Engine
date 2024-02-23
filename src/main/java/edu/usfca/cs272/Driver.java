@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,8 +39,9 @@ public class Driver {
 	 * inverted index.
 	 *
 	 * @param args flag/value pairs used to start this program
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		ArgumentParser argsMap = new ArgumentParser(args);
 								        
@@ -69,7 +71,7 @@ public class Driver {
         	String indexMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
         	if (indexOutput != null) writeFile(indexOutput, indexMap_JSON);
 		} else {
-    		Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(Path.of(input));
+    		Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readFile(Path.of(input));
     		
             int wordCount = res.getLeft();
             String wordCountMap = JsonWriter.writeObject(Map.of(input, wordCount));
@@ -83,81 +85,63 @@ public class Driver {
     	}
 	}
 	
-	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) {
-		try (Stream<Path> paths = Files.list(directory)) {
-	        paths.forEach(path -> {
-	            if (Files.isDirectory(path)) {
-	                traverseDirectory(path, wordCountMap, indexMap);
-	            } else if (Files.isRegularFile(path)) {	            
-	                if (isExtensionText(path)) {
-	                    Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> res = readInput(path);
-	                    int wordCount = res.getLeft();
+	
+	private static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) throws IOException{
+		
+		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
+			paths.forEach(path -> {
+				if (Files.isDirectory(path)) {
+					try {
+						traverseDirectory(path, wordCountMap, indexMap);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				} else if (Files.isRegularFile(path) && isExtensionText(path)) {
+                	Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> maps;
+					try {
+						maps = readFile(path);
+	                    int wordCount = maps.getLeft();
 	                    if (wordCount > 0) 
 	                    	wordCountMap.put(path.toString(), wordCount);
 	                    
-	                    TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = res.getRight();
+	                    TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = maps.getRight();
 	                    
 	                    index.forEach((word, filePathToIndicesMap) ->
 	                    filePathToIndicesMap.forEach((filePath, indices) ->
 	                        indexMap.computeIfAbsent(word, k -> new TreeMap<>())
 	                                .put(filePath, new ArrayList<>(indices))
-	                    )
-	                );
-
-
-	                }
-	            }
-
-	        });
-	    } catch (IOException e) {
-	        System.err.println("Error traversing directory: " + e.getMessage());
-	    }
-	}
-	
-	private static boolean isExtensionText(Path path) {
-	    String extension = path.toString().toLowerCase();
-	    return extension.endsWith(".txt") || extension.endsWith(".text");
+	                    	)
+	                    );
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		}
 	}
 
-	private static Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> readInput(Path path) {
+	private static Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> readFile(Path path) throws IOException {
 	    int wordCount = 0;
 	    TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap = new TreeMap<>();
 
-	    try (
-	    		BufferedReader reader = Files.newBufferedReader(path, UTF_8);
-	    	) {
-	    		String line = null;
-		        int position = 1;
-		        while ((line = reader.readLine()) != null) {
-		            String[] parsed = FileStemmer.parse(line);
-		            wordCount += parsed.length;
-	
-		            for (String word : parsed) {
-		                TreeSet<String> stemmed = FileStemmer.uniqueStems(word);
-		                String stemmedWord = stemmed.first();
-		                wordPositionsMap.computeIfAbsent(stemmedWord, k -> new TreeMap<>())
-		                        .computeIfAbsent(path.toString(), k -> new ArrayList<>()).add(position);
-		                position++;
-		            }
+	    try (BufferedReader reader = Files.newBufferedReader(path, UTF_8)) {
+	        String line;
+	        int position = 1;
+	        while ((line = reader.readLine()) != null) {
+	            String[] words = FileStemmer.parse(line);
+	            wordCount += words.length;
 
+	            for (String word : words) {
+	                String stemmedWord =  FileStemmer.uniqueStems(word).first();
+	                wordPositionsMap.computeIfAbsent(stemmedWord, k -> new TreeMap<>())
+	                        .computeIfAbsent(path.toString(), k -> new ArrayList<>()).add(position);
+	                position++;
+	            }
 	        }
-	    } catch (IOException e) {
-	        System.err.println("Error reading file: " + e.getMessage());
 	    }
 
 	    return (wordCount == 0) ? Pair.of(wordCount, new TreeMap<>()) : Pair.of(wordCount, wordPositionsMap);
 	}
-	
-	/*
-	 * try (
-				BufferedReader reader = Files.newBufferedReader(input, UTF_8);
-		) {
-			String line = null;
-
-			// todo
-			}
-		}
-		*/
 
     private static void writeFile(String filePath, String res) {
         try (Writer writer = new FileWriter(filePath)) {
@@ -166,4 +150,9 @@ public class Driver {
             System.err.println("Error: " + e.getMessage());
         }
     }
+    
+    private static boolean isExtensionText(Path path) {
+	    String extension = path.toString().toLowerCase();
+	    return extension.endsWith(".txt") || extension.endsWith(".text");
+	}
 }
