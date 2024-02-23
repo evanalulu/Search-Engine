@@ -85,32 +85,11 @@ public class FileStemmer {
 	 * @see Collection#add(Object)
 	 */
 	public static void addStems(String line, Stemmer stemmer, Collection<String> stems) {
-	    String clean = clean(line);
-	    String[] split = split(clean);
-
-	    for (String element : split) {
-	        String[] parsed = parse(element);
-	        
-	        /* CITE: Derived from ChatGPT prompt 
-	         * "How to use stemmer.stem(string) when string is stemmer.stem(charSequence).toString()?
-	         * Simplified version of code:
-	         * String[] parsed = parse(element);
-	         * CharSequence charSequence = Arrays.toString(parsed);
-	         * String stemmedString = stemmer.stem(charSequence).toString();
-	         * I think that the Arrays.toString(parsed) part might be causing the problem. How can I 
-	         * properly concatenate the individual words from the parsed array into a single string 
-	         * before applying stemming?" */
-	        
-	        StringBuilder concatenated = new StringBuilder();
-	        for (String word : parsed) {
-	            concatenated.append(word);
-	        }
-
-	        stems.add(stemmer.stem(concatenated.toString()).toString());
+		for (String word : parse(line)) {
+	        stems.add(stemmer.stem(word).toString());
 	    }
 	}
 
-	
 
 	/**
 	 * Parses the line into a list of cleaned and stemmed words.
