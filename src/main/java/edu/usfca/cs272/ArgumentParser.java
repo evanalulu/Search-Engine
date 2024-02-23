@@ -11,7 +11,6 @@ import java.util.HashMap;
  * @version Spring 2024
  */
 public class ArgumentParser {
-	private static final Path Path = null;
 	/**
 	 * Stores command-line arguments in flag/value pairs.
 	 */
@@ -52,19 +51,38 @@ public class ArgumentParser {
 	 * @see Character#isWhitespace(int)
 	 */
 	public static boolean isFlag(String arg) {
-		return (arg == null || arg.length() < 2) ? false :
-			(arg.charAt(0) == '-' && arg.charAt(1) != '	' && !Character.isDigit(arg.charAt(1)));
-
+		return (arg != null && arg.length() >= 2 && 
+				arg.startsWith("-") && 
+				!Character.isWhitespace(arg.codePointAt(1)) && 
+				!Character.isDigit(arg.codePointAt(1)));
 	}
 	
+	/**
+	 * Checks if the specified string represents a text flag.
+	 *
+	 * @param arg the string to be checked
+	 * @return {@code true} if the string is a text flag ("-text"), {@code false} otherwise
+	 */
 	public static boolean isText(String arg) {
 		return (isFlag(arg) && arg.equalsIgnoreCase("-text")) ? true : false; 
 	}
 
+	/**
+	 * Checks if the specified string represents a counts flag.
+	 *
+	 * @param arg the string to be checked
+	 * @return {@code true} if the string is a counts flag ("-counts"), {@code false} otherwise
+	 */
 	public static boolean isCounts(String arg) {
 		return (isFlag(arg) && arg.equalsIgnoreCase("-counts")) ? true : false; 
 	}
 	
+	/**
+	 * Checks if the specified string represents an index flag.
+	 *
+	 * @param arg the string to be checked
+	 * @return {@code true} if the string is an index flag ("-index"), {@code false} otherwise
+	 */
 	public static boolean isIndex(String arg) {
 		return (isFlag(arg) && arg.equalsIgnoreCase("-index")) ? true : false; 
 	}
