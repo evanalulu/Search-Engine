@@ -45,40 +45,43 @@ public class FileProcessor {
 	 * @param indexMap   a map to store word positions for each word in each file
 	 * @throws IOException if an I/O error occurs while traversing the directory or processing files
 	 */
-	// TODO public static void traverseDirectory(Path directory, InvertedIndex index) throws IOException {
-	public static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) throws IOException{
-		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
-			paths.forEach(path -> { // TODO for (Path path : paths)
-				if (Files.isDirectory(path)) {
-					try { // TODO Remove try/catch entirely
-						traverseDirectory(path, wordCountMap, indexMap);
-					} catch (IOException e) {
-					}
-				} else if (Files.isRegularFile(path) && isExtensionText(path)) {
-                	Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> maps;
-					try {
-						maps = readFile(path);
-						// TODO SHould only need the readFile call here
-	                    int wordCount = maps.getLeft();
-	                    if (wordCount > 0) 
-	                    	wordCountMap.put(path.toString(), wordCount);
-	                    
-	                    TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = maps.getRight();
-	                    
-	                    // TODO Use for loop
-	                    index.forEach((word, filePathToIndicesMap) ->
-	                    filePathToIndicesMap.forEach((filePath, indices) ->
-	                        indexMap.computeIfAbsent(word, k -> new TreeMap<>())
-	                                .put(filePath, new ArrayList<>(indices))
-	                    	)
-	                    );
-					} catch (IOException e) {
-						// TODO Clue you are catching in the wrong place
-					}
-				}
-			});
-		}
+	public static void traverseDirectory(Path directory, InvertedIndex index) throws IOException {
+		
 	}
+	
+//	public static void traverseDirectory(Path directory, Map<String, Integer> wordCountMap, TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap) throws IOException{
+//		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
+//			paths.forEach(path -> { // TODO for (Path path : paths)
+//				if (Files.isDirectory(path)) {
+//					try { // TODO Remove try/catch entirely
+//						traverseDirectory(path, wordCountMap, indexMap);
+//					} catch (IOException e) {
+//					}
+//				} else if (Files.isRegularFile(path) && isExtensionText(path)) {
+//                	Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> maps;
+//					try {
+//						maps = readFile(path);
+//						// TODO SHould only need the readFile call here
+//	                    int wordCount = maps.getLeft();
+//	                    if (wordCount > 0) 
+//	                    	wordCountMap.put(path.toString(), wordCount);
+//	                    
+//	                    TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = maps.getRight();
+//	                    
+//	                    // TODO Use for loop
+//	                    index.forEach((word, filePathToIndicesMap) ->
+//	                    filePathToIndicesMap.forEach((filePath, indices) ->
+//	                        indexMap.computeIfAbsent(word, k -> new TreeMap<>())
+//	                                .put(filePath, new ArrayList<>(indices))
+//	                    	)
+//	                    );
+//					} catch (IOException e) {
+//						// TODO Clue you are catching in the wrong place
+//					}
+//				}
+//			});
+//		}
+//	}
 
 	/**
 	 * Reads the content of the file located at the specified path, processes the words, and returns
@@ -88,31 +91,31 @@ public class FileProcessor {
 	 * @return a pair containing the word count and a map of word positions
 	 * @throws IOException if an I/O error occurs while reading the file
 	 */
-	// TODO public static readFile(Path path, InvertedIndex index) throws IOException
-	public static Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> readFile(Path path) throws IOException {
-	    int wordCount = 0;
-	    TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap = new TreeMap<>();
+	public static InvertedIndex readFile(Path path, InvertedIndex index) throws IOException {
+		int wordCount = 0;
 
-	    try (BufferedReader reader = Files.newBufferedReader(path, UTF_8)) {
-	        String line;
-	        int position = 1;
-	        // TODO Stemmer stemmer = new SnowBallStemmer(...);
-	        while ((line = reader.readLine()) != null) {
-	            String[] words = FileStemmer.parse(line);
-	            wordCount += words.length;
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            String line;
+            int position = 1;
 
-	            for (String word : words) {
-	                String stemmedWord =  FileStemmer.uniqueStems(word).first(); // TODO stemmer.stem(word).toString()
-	                
-	                // TODO Move the logic here into the addWord method
-	                wordPositionsMap.computeIfAbsent(stemmedWord, k -> new TreeMap<>())
-	                        .computeIfAbsent(path.toString(), k -> new ArrayList<>()).add(position);
-	                position++;
-	            }
-	        }
-	    }
+            while ((line = reader.readLine()) != null) {
+                String[] words = FileStemmer.parse(line);
+                wordCount += words.length;
 
-	    return (wordCount == 0) ? Pair.of(wordCount, new TreeMap<>()) : Pair.of(wordCount, wordPositionsMap);
+                for (String word : words) {
+                    String stemmedWord = FileStemmer.uniqueStems(word).first(); // TODO stemmer.stem(word).toString()
+
+                    index.addWord(stemmedWord, path.toString(), position);
+                    position++;
+                }
+            }
+        }
+
+        if (wordCount == 0) {
+            return new InvertedIndex();
+        } else {
+            return index;
+        }
 	}
     
     /**
