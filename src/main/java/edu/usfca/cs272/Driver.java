@@ -28,51 +28,31 @@ public class Driver {
 	 * inverted index.
 	 *
 	 * @param args flag/value pairs used to start this program
-	 * @throws IOException
 	 */
-    public static void main(String[] args) throws IOException { // TODO Don't throw here
+    public static void main(String[] args) { // TODO Don't throw here
     	/* TODO 
-    	ArgumentParser parser = new ArgumentParser(args);
-    	InvertedIndex index = new InvertedIndex();
-    	
-    	if(parser.hasFlag("-text")) {
-    		Path path = parser.getPath("-text");
-    		
-    		try {
-    			1 line of code... calling your processor class
-    		}
-    		catch ( ) {
-    			
-    		}
-    	}
-    	
-    	if(parser.hasFlag("-counts")) {
-    		Path path = parser.getPath("-counts", Path.of("counts.json"));
-    		
-    		try {
-    			
-    		}
-    		catch {
-    			
-    		}
-    	}
-    	
+    	InvertedIndex index = new InvertedIndex();	
     	*/
 
-        ArgumentParser argsMap = new ArgumentParser(args);
+        ArgumentParser parser = new ArgumentParser(args);
+        
+        Path input;
+        Path countOutput;
+        Path indexOutput;
+        
+        if (parser.hasFlag("-text")) {
+		    input = parser.getPath("-text");
+		}
+        
+        if (parser.hasFlag("-counts")) {
+            countOutput = parser.getPath("-counts", Path.of("counts.json"));
+        }
 
-        String input = argsMap.hasFlag("-text") ? argsMap.getString("-text") : null;
-        String countOutput = null;
-        String indexOutput = null;
+    	if (parser.hasFlag("-index")) {
+		    indexOutput = parser.getPath("-index", Path.of("index.json"));
+		}
 
-        if (argsMap.hasFlag("-counts")) {
-					countOutput = argsMap.hasValue("-counts") ? argsMap.getString("-counts") : "counts.json";
-				}
-
-        if (argsMap.hasFlag("-index")) {
-					indexOutput = argsMap.hasValue("-index") ? argsMap.getString("-index") : "index.json";
-				}
-
+    	/*
         if (input == null) {
             String emptyMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
             if (countOutput != null) {
@@ -113,6 +93,7 @@ public class Driver {
 							writeFile(indexOutput, indexMap);
 						}
         }
+        */
     }
 
 	/**
@@ -129,26 +110,3 @@ public class Driver {
 	    }
 	}
 }
-
-/*
- * TODO
-Description	Resource	Path	Location	Type
-Javadoc: Description expected after this reference	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 42	Java Problem
-Javadoc: Missing comment for public declaration	ArgumentParser.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 128	Java Problem
-Javadoc: Missing comment for public declaration	JsonWriter.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 374	Java Problem
-Javadoc: Missing comment for public declaration	JsonWriter.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 425	Java Problem
-Javadoc: Missing comment for public declaration	JsonWriter.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 431	Java Problem
-The import java.io.BufferedReader is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 6	Java Problem
-The import java.io.FileReader is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 7	Java Problem
-The import java.nio.charset.StandardCharsets.UTF_8 is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 3	Java Problem
-The import java.nio.file.DirectoryStream is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 11	Java Problem
-The import java.util.Arrays is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 16	Java Problem
-The import java.util.List is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 18	Java Problem
-The import java.util.List is never used	FileStemmer.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 15	Java Problem
-The import java.util.Map.Entry is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 20	Java Problem
-The import java.util.Map.Entry is never used	JsonWriter.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 18	Java Problem
-The import java.util.Map is never used	JsonWriter.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 21	Java Problem
-The import java.util.stream.Collectors is never used	JsonWriter.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 20	Java Problem
-The import java.util.stream.Stream is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 23	Java Problem
-The import java.util.TreeSet is never used	Driver.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 22	Java Problem
-*/
