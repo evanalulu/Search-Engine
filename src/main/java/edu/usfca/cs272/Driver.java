@@ -45,28 +45,15 @@ public class Driver {
     	InvertedIndex index = new InvertedIndex();	
     	
     	if (Files.isDirectory(input)) {
-            FileProcessor.traverseDirectory(input, index);
-            
-        	String wordCountMap_JSON = JsonWriter.writeObject(index.getWordCountMap());
-            String indexMap_JSON = JsonWriter.writeWordPositionsMap(index.getIndexMap());
-
-            if (countOutput != null)
-				writeFile(countOutput, wordCountMap_JSON);
-            if (indexOutput != null)
-				writeFile(indexOutput, indexMap_JSON);
-            
-        } else {
-        	FileProcessor.readFile(input, index);
-        	
-        	String wordCountMap_JSON = JsonWriter.writeObject(index.getWordCountMap());
-            String indexMap_JSON = JsonWriter.writeWordPositionsMap(index.getIndexMap());
-        	
-        	if (countOutput != null)
-				writeFile(countOutput, wordCountMap_JSON);
-            if (indexOutput != null)
-				writeFile(indexOutput, indexMap_JSON);
-            
-        }
+    	    FileProcessor.traverseDirectory(input, index);
+    	    if (countOutput != null) JsonWriter.writeObject(index.getWordCountMap(), countOutput);
+    	    if (indexOutput != null) JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+    	} else {
+    	    FileProcessor.readFile(input, index);
+    	    if (countOutput != null) JsonWriter.writeObject(index.getWordCountMap(), countOutput);
+    	    System.out.println(index.getIndexMap());
+    	    if (indexOutput != null) JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+    	}
     }
 
 	/**
