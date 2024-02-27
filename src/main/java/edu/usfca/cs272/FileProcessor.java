@@ -89,8 +89,7 @@ public class FileProcessor {
                 wordCount += words.length;
 
                 for (String word : words) {
-                    String stemmedWord = stemmer.stem(word).toString();
-
+                    String stemmedWord = FileStemmer.findStem(word, stemmer);
                     index.addWord(stemmedWord, path.toString(), position);
                     position++;
                 }
