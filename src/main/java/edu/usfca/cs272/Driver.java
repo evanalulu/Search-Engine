@@ -5,13 +5,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.apache.commons.lang3.tuple.Pair; // TODO Try to remove
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -41,9 +34,9 @@ public class Driver {
 		    input = parser.getPath("-text");
 		}
         
-//        if (parser.hasFlag("-counts")) {
-//            countOutput = parser.getPath("-counts", Path.of("counts.json"));
-//        }
+        if (parser.hasFlag("-counts")) {
+            countOutput = parser.getPath("-counts", Path.of("counts.json"));
+        }
 
     	if (parser.hasFlag("-index")) {
 		    indexOutput = parser.getPath("-index", Path.of("index.json"));
@@ -53,22 +46,26 @@ public class Driver {
     	
     	if (Files.isDirectory(input)) {
             FileProcessor.traverseDirectory(input, index);
-
-//            String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
+            
+        	String wordCountMap_JSON = JsonWriter.writeObject(index.getWordCountMap());
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(index.getIndexMap());
 
-//            if (countOutput != null) {
-//							writeFile(countOutput, wordCountMap_JSON);
-//						}
-            if (indexOutput != null) {
-							writeFile(indexOutput, indexMap_JSON);
-						}
+            if (countOutput != null)
+				writeFile(countOutput, wordCountMap_JSON);
+            if (indexOutput != null)
+				writeFile(indexOutput, indexMap_JSON);
+            
         } else {
         	FileProcessor.readFile(input, index);
-//        	String wordCountMap_JSON = JsonWriter.writeObject(index.getWordCountMap());
-//        	writeFile(countOutput, wordCountMap_JSON);
+        	
+        	String wordCountMap_JSON = JsonWriter.writeObject(index.getWordCountMap());
             String indexMap_JSON = JsonWriter.writeWordPositionsMap(index.getIndexMap());
-        	writeFile(indexOutput, indexMap_JSON);
+        	
+        	if (countOutput != null)
+				writeFile(countOutput, wordCountMap_JSON);
+            if (indexOutput != null)
+				writeFile(indexOutput, indexMap_JSON);
+            
         }
     }
 
