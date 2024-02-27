@@ -71,6 +71,10 @@ public class FileStemmer {
 	public static String[] parse(String text) {
 		return split(clean(text));
 	}
+	
+	public static String findStem(String word, Stemmer stemmer) {
+        return stemmer.stem(word).toString();
+	}
 
 	/**
 	 * Parses the line into cleaned and stemmed words and adds them to the provided
