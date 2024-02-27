@@ -55,18 +55,4 @@ public class Driver {
     	    if (indexOutput != null) JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
     	}
     }
-
-	/**
-	 * Writes the specified content to the file located at the given file path.
-	 *
-	 * @param path    the path of the file to write to
-	 * @param content the content to write to the file
-	 */
-	private static void writeFile(Path path, String content) {
-	    try (Writer writer = new FileWriter(path.toString())) {
-	        writer.write(content);
-	    } catch (IOException e) {
-	        System.err.println("Error: " + e.getMessage());
-	    }
-	}
 }
