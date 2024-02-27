@@ -161,24 +161,31 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 */
 	public static void writeObject(Map<String, ? extends Number> elements, Writer writer, int indent) throws IOException {
-	    writer.write("{");
-	    if (!elements.isEmpty()) {
-	        writer.write(System.lineSeparator());
-	        Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
-	        while (iterator.hasNext()) {
-	            Map.Entry<String, ? extends Number> entry = iterator.next();
-	            String key = entry.getKey();
-	            Number value = entry.getValue();
-	            writeIndent('"' + key + "\": " + value.toString(), writer, indent + 1);
-	            
-	            if (iterator.hasNext()) {
-	                writer.write(",");
-	                writer.write(System.lineSeparator());
-	            }
-	        }
-	    }
-        writer.write(System.lineSeparator());
-        writeIndent("}", writer, indent);
+		if (elements.size() == 1 && elements.containsValue(0)) {
+            writer.write("{");
+            writer.write(System.lineSeparator());
+            writer.write("}");
+        } else {
+            writer.write("{");
+            writer.write(System.lineSeparator());
+            Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ? extends Number> entry = iterator.next();
+                String key = entry.getKey();
+                Number value = entry.getValue();
+                
+                if (value.intValue() == 0) continue;
+                
+                writeIndent('"' + key + "\": " + value.toString(), writer, indent + 1);
+
+                if (iterator.hasNext()) {
+                    writer.write(",");
+                    writer.write(System.lineSeparator());
+                }
+            }
+            writer.write(System.lineSeparator());
+            writeIndent("}", writer, indent);
+        }
 	}
 
 	/**
