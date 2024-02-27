@@ -37,7 +37,7 @@ public class FileProcessor {
                     InvertedIndex maps;
                     try {
                         readFile(path, index);
-                        int wordCount = index.getWordCountMap().get(path);
+//                        int wordCount = index.getWordCountMap().get(path);
                         
                         TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 

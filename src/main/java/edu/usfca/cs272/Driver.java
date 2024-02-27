@@ -28,72 +28,48 @@ public class Driver {
 	 * inverted index.
 	 *
 	 * @param args flag/value pairs used to start this program
+	 * @throws IOException 
 	 */
-    public static void main(String[] args) { // TODO Don't throw here
-    	/* TODO 
-    	InvertedIndex index = new InvertedIndex();	
-    	*/
-
+    public static void main(String[] args) throws IOException {
         ArgumentParser parser = new ArgumentParser(args);
         
-        Path input;
-        Path countOutput;
-        Path indexOutput;
+        Path input = null;
+        Path countOutput = null;
+        Path indexOutput = null;
         
         if (parser.hasFlag("-text")) {
 		    input = parser.getPath("-text");
 		}
         
-        if (parser.hasFlag("-counts")) {
-            countOutput = parser.getPath("-counts", Path.of("counts.json"));
-        }
+//        if (parser.hasFlag("-counts")) {
+//            countOutput = parser.getPath("-counts", Path.of("counts.json"));
+//        }
 
     	if (parser.hasFlag("-index")) {
 		    indexOutput = parser.getPath("-index", Path.of("index.json"));
 		}
 
-    	/*
-        if (input == null) {
-            String emptyMap_JSON = JsonWriter.writeObject(Collections.emptyMap());
-            if (countOutput != null) {
-							writeFile(countOutput, emptyMap_JSON);
-						}
-            if (indexOutput != null) {
-							writeFile(indexOutput, emptyMap_JSON);
-						}
-        } else if (Files.isDirectory(Paths.get(input))) {
-            Map<String, Integer> wordCountMap = new TreeMap<>();
-            TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = new TreeMap<>();
-            FileProcessor.traverseDirectory(Paths.get(input), wordCountMap, indexMap);
+    	InvertedIndex index = new InvertedIndex();	
+    	
+    	if (Files.isDirectory(input)) {
+            FileProcessor.traverseDirectory(input, index);
 
-            String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
-            String indexMap_JSON = JsonWriter.writeWordPositionsMap(indexMap);
+//            String wordCountMap_JSON = JsonWriter.writeObject(wordCountMap);
+            String indexMap_JSON = JsonWriter.writeWordPositionsMap(index.getIndexMap());
 
-            if (countOutput != null) {
-							writeFile(countOutput, wordCountMap_JSON);
-						}
+//            if (countOutput != null) {
+//							writeFile(countOutput, wordCountMap_JSON);
+//						}
             if (indexOutput != null) {
 							writeFile(indexOutput, indexMap_JSON);
 						}
-        } else if (Files.isRegularFile(Path.of(input))) {
-            Pair<Integer, TreeMap<String, TreeMap<String, ArrayList<Integer>>>> maps = FileProcessor.readFile(Path.of(input)); // TODO Should only need 1 map here?
-
-            int wordCount = maps.getLeft();
-            String wordCountMap = wordCount > 1 ? JsonWriter.writeObject(Map.of(input, wordCount)) :
-                    JsonWriter.writeObject(Collections.emptyMap());
-
-            TreeMap<String, TreeMap<String, ArrayList<Integer>>> index = maps.getRight();
-            String indexMap = index.size() > 0 ? JsonWriter.writeWordPositionsMap(index) :
-                    JsonWriter.writeObject(Collections.emptyMap());
-
-            if (countOutput != null) {
-							writeFile(countOutput, wordCountMap);
-						}
-            if (indexOutput != null) {
-							writeFile(indexOutput, indexMap);
-						}
+        } else {
+        	FileProcessor.readFile(input, index);
+//        	String wordCountMap_JSON = JsonWriter.writeObject(index.getWordCountMap());
+//        	writeFile(countOutput, wordCountMap_JSON);
+            String indexMap_JSON = JsonWriter.writeWordPositionsMap(index.getIndexMap());
+        	writeFile(indexOutput, indexMap_JSON);
         }
-        */
     }
 
 	/**
@@ -102,8 +78,8 @@ public class Driver {
 	 * @param path    the path of the file to write to
 	 * @param content the content to write to the file
 	 */
-	private static void writeFile(String path, String content) {
-	    try (Writer writer = new FileWriter(path)) {
+	private static void writeFile(Path path, String content) {
+	    try (Writer writer = new FileWriter(path.toString())) {
 	        writer.write(content);
 	    } catch (IOException e) {
 	        System.err.println("Error: " + e.getMessage());
