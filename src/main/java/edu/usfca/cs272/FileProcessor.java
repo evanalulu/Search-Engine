@@ -1,6 +1,6 @@
 package edu.usfca.cs272;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,6 +10,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
  * Class responsible for processing files and directories.
@@ -34,11 +37,12 @@ public class FileProcessor {
                 if (Files.isDirectory(path)) {
                     traverseDirectory(path, index);
                 } else if (Files.isRegularFile(path) && isExtensionText(path)) {
-                    InvertedIndex maps;
                     try {
                         readFile(path, index);
-//                        int wordCount = index.getWordCountMap().get(path);
-                        
+                        Map<String, Integer> wordCountMap = index.getWordCountMap();
+                        int wordCount = wordCountMap.get(path.toString());
+	                    if (wordCount > 0) index.addCount(path.toString(), wordCount);
+	                    
                         TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 
                         for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : indexMap.entrySet()) { 
@@ -79,13 +83,13 @@ public class FileProcessor {
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             String line;
             int position = 1;
-	        // TODO Stemmer stemmer = new SnowBallStemmer(...);
+    		Stemmer stemmer = new SnowballStemmer(ENGLISH);
             while ((line = reader.readLine()) != null) {
                 String[] words = FileStemmer.parse(line);
                 wordCount += words.length;
 
                 for (String word : words) {
-                    String stemmedWord = FileStemmer.uniqueStems(word).first(); // TODO stemmer.stem(word).toString()
+                    String stemmedWord = stemmer.stem(word).toString();
 
                     index.addWord(stemmedWord, path.toString(), position);
                     position++;
