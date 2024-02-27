@@ -7,12 +7,12 @@ import java.util.TreeMap;
 
 public class InvertedIndex {
 
-	private Map<String, Integer> wordCountMap;
+	private TreeMap<String, Integer> wordCountMap;
 
     private TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap;
 
     public InvertedIndex() {
-        wordCountMap = new HashMap<>();
+        wordCountMap = new TreeMap<>();
         indexMap = new TreeMap<>();
     }
 
