@@ -53,7 +53,8 @@ public class InvertedIndex {
      * Returns the word count map.
      *
      * @return the word count map
-     */    public Map<String, Integer> getWordCountMap() {
+     */    
+    public Map<String, Integer> getWordCountMap() {
         return wordCountMap;
     }
 
