@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
@@ -111,4 +112,45 @@ public class FileProcessor {
 	    String extension = path.toString().toLowerCase();
 	    return extension.endsWith(".txt") || extension.endsWith(".text");
 	}
+	
+	public static ArrayList<IndexSearcher> readQuery(Path path, InvertedIndex index) throws IOException {
+		ArrayList<IndexSearcher> res = new ArrayList<>();
+
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+            	IndexSearcher search = new IndexSearcher(null, 0, 0, null);
+                String[] words = FileStemmer.parse(line);
+                TreeSet<String> stems = FileStemmer.uniqueStems(line);
+                String stemsString = treeSetToString(stems);
+                performSearch(stemsString, index, search);
+                res.add(search);
+            }
+        }
+        
+        return res;
+	}
+	
+    private static void performSearch(String queryTerm, InvertedIndex index, IndexSearcher searcher) {
+    	int count = 0;
+    	TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
+    	if (indexMap.containsKey(queryTerm)) {
+    		searcher.setQuery(queryTerm);
+    		searcher.setCount(++count);
+//    		searcher.setScore(queryTerm);
+    		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
+    		searcher.setWhere(Path.of(innerMap.firstKey()));
+    	}
+    }
+    
+    private static String treeSetToString(TreeSet<String> treeSet) {
+        StringBuilder sb = new StringBuilder();
+        for (String element : treeSet) {
+            sb.append(element).append(" ");
+        }
+        if (!treeSet.isEmpty()) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        return sb.toString();
+    }
 }

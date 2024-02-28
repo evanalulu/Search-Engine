@@ -26,7 +26,7 @@ public class Driver {
     public static void main(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
     	InvertedIndex index = new InvertedIndex();	
-    	IndexSearcher searcher = new IndexSearcher(null, 0, 0, null);
+    	IndexSearcher search = new IndexSearcher(null, 0, 0, null);
     	
     	/** No arguments passed */
         if (parser.empty()) {
@@ -38,7 +38,7 @@ public class Driver {
         Path countOutput = null;
         Path indexOutput = null;
         Path query = null;
-        TreeSet<String> processedQuery = new TreeSet<>();
+        ArrayList<IndexSearcher> res = new ArrayList<>();
         
         if (parser.hasFlag("-text")) {
         	if (!parser.hasValue("-text")) {
@@ -80,16 +80,6 @@ public class Driver {
 				}
 		    }
 		}
-    	
-    	if (parser.hasFlag("-query")) {
-		    query = parser.getPath("-query");
-		    try {
-				processedQuery = FileStemmer.uniqueStems(query);
-				System.out.println(processedQuery);
-			} catch (IOException e) {
-				System.err.println(e.toString());
-			}
-		}
     	    	
     	if (Files.isDirectory(input)) {
     	    try {
@@ -105,10 +95,15 @@ public class Driver {
 			}
     	} 
     	
-    	for (String queryTerm : processedQuery) {
-        	performSearch(queryTerm, index, searcher);
-    	}
-    	System.out.println(searcher.toString());
+    	if (parser.hasFlag("-query")) {
+		    query = parser.getPath("-query");
+		    try {
+		    	res = FileProcessor.readQuery(query, index);
+			} catch (IOException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+    	System.out.println(res);
 
     	
 	    if (countOutput != null)
@@ -123,18 +118,6 @@ public class Driver {
 			} catch (IOException e) {
 				System.out.println(e.toString());
 			}
-    }
-    
-    private static void performSearch(String queryTerm, InvertedIndex index, IndexSearcher searcher) {
-    	int count = 0;
-    	TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
-    	if (indexMap.containsKey(queryTerm)) {
-    		searcher.setQuery(queryTerm);
-    		searcher.setCount(++count);
-//    		searcher.setScore(queryTerm);
-    		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
-    		searcher.setWhere(Path.of(innerMap.firstKey()));
-    	}
     }
     
 }
