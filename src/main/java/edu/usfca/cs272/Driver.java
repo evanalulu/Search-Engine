@@ -3,6 +3,7 @@ package edu.usfca.cs272;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.TreeSet;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -33,6 +34,8 @@ public class Driver {
         Path input = null;
         Path countOutput = null;
         Path indexOutput = null;
+        Path query = null;
+        TreeSet<String> processedQuery;
         
         if (parser.hasFlag("-text")) {
         	if (!parser.hasValue("-text")) {
@@ -74,6 +77,16 @@ public class Driver {
 				}
 		    }
 		}
+    	
+    	if (parser.hasFlag("-query")) {
+		    query = parser.getPath("-query");
+		    try {
+				processedQuery = FileStemmer.uniqueStems(query);
+				System.out.println(processedQuery);
+			} catch (IOException e) {
+				System.err.println(e.toString());
+			}
+		}
     	    	
     	if (Files.isDirectory(input)) {
     	    try {
@@ -88,6 +101,10 @@ public class Driver {
 				System.out.println(e.toString());
 			}
     	} 
+    	
+    	System.out.println(index.getIndexMap());
+    	System.out.println(index.getWordCountMap());
+
     	
 	    if (countOutput != null)
 			try {
