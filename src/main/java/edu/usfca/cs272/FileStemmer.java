@@ -12,7 +12,6 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
@@ -72,6 +71,13 @@ public class FileStemmer {
 		return split(clean(text));
 	}
 	
+	/**
+	 * Finds the stem of the given word using the specified stemmer.
+	 *
+	 * @param word the word to find the stem for
+	 * @param stemmer the stemmer to use
+	 * @return the stem of the word
+	 */
 	public static String findStem(String word, Stemmer stemmer) {
         return stemmer.stem(word).toString();
 	}

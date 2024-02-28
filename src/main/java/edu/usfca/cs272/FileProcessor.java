@@ -24,12 +24,13 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  */
 public class FileProcessor {
 	/**
-	 * Recursively traverses the specified directory, processing each file.
+	 * Recursively traverses the specified directory and processes each file.
+	 * For each regular file with a ".txt" extension, it reads the file and updates the inverted index.
+	 * If a file path is already present in the inverted index, it updates the word count and index information.
 	 *
-	 * @param directory   the directory to traverse
-	 * @param wordCountMap   a map to store word counts for each file
-	 * @param indexMap   a map to store word positions for each word in each file
-	 * @throws IOException if an I/O error occurs while traversing the directory or processing files
+	 * @param directory the directory to traverse
+	 * @param index the inverted index to update
+	 * @throws IOException if an I/O error occurs while traversing the directory or reading files
 	 */
 	public static void traverseDirectory(Path directory, InvertedIndex index) throws IOException {
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
@@ -70,11 +71,12 @@ public class FileProcessor {
     }
 
 	/**
-	 * Reads the content of the file located at the specified path, processes the words, and returns
-	 * the word count along with a map of word positions.
+	 * Reads the content of the specified file, parses it line by line, and updates the inverted index.
+	 * For each line, it extracts words, stems them, and adds them to the inverted index along with their positions.
+	 * It also updates the word count for the file in the inverted index.
 	 *
-	 * @param path the path to the file to be read
-	 * @return a pair containing the word count and a map of word positions
+	 * @param path the path to the file to read
+	 * @param index the inverted index to update
 	 * @throws IOException if an I/O error occurs while reading the file
 	 */
 	public static void readFile(Path path, InvertedIndex index) throws IOException {
