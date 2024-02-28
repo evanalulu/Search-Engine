@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 /**
@@ -23,36 +24,92 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 * @throws IOException 
 	 */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
+    	InvertedIndex index = new InvertedIndex();	
         
         Path input = null;
         Path countOutput = null;
         Path indexOutput = null;
         
         if (parser.hasFlag("-text")) {
-		    input = parser.getPath("-text");
-		}
+        	if (!parser.hasValue("-text")) {
+        		System.out.println("Input path -text not provided");
+        		return;
+        	} else if (Files.exists(parser.getPath("-text"))) {
+        		input = parser.getPath("-text");
+        		System.out.println(input);
+        	} else {
+        		System.out.println("Invalid path");
+        		return;
+        	}
+        }
         
         if (parser.hasFlag("-counts")) {
             countOutput = parser.getPath("-counts", Path.of("counts.json"));
+		    if (countOutput != null && !parser.hasFlag("-text")) {
+		    	try {
+					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
+					return;
+				} catch (IOException e) {
+
+				}
+		    }
         }
 
     	if (parser.hasFlag("-index")) {
 		    indexOutput = parser.getPath("-index", Path.of("index.json"));
-		}
+		    if (indexOutput != null && !parser.hasFlag("-text")) {
+		    	try {
+					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+					return;
+				} catch (IOException e) {
 
-    	InvertedIndex index = new InvertedIndex();	
+				}
+		    }
+		}
     	
+        if (parser.empty()) {
+        	System.out.println("No arguments provided");
+        	return;
+        }
+    	    	
     	if (Files.isDirectory(input)) {
-    	    FileProcessor.traverseDirectory(input, index);
-    	    if (countOutput != null) JsonWriter.writeObject(index.getWordCountMap(), countOutput);
-    	    if (indexOutput != null) JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+    	    try {
+				FileProcessor.traverseDirectory(input, index);
+			} catch (IOException e) {
+
+			}
+    	    if (countOutput != null)
+				try {
+					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
+				} catch (IOException e) {
+
+				}
+    	    if (indexOutput != null)
+				try {
+					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+				} catch (IOException e) {
+
+				}
     	} else {
-    	    FileProcessor.readFile(input, index);
-    	    if (countOutput != null) JsonWriter.writeObject(index.getWordCountMap(), countOutput);
-    	    System.out.println(index.getIndexMap());
-    	    if (indexOutput != null) JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+    	    try {
+				FileProcessor.readFile(input, index);
+			} catch (IOException e) {
+
+			}
+    	    if (countOutput != null)
+				try {
+					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
+				} catch (IOException e) {
+
+				}
+    	    if (indexOutput != null)
+				try {
+					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+				} catch (IOException e) {
+
+				}
     	}
     }
 }
