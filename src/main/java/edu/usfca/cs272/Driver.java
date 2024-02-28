@@ -3,6 +3,8 @@ package edu.usfca.cs272;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -24,6 +26,7 @@ public class Driver {
     public static void main(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
     	InvertedIndex index = new InvertedIndex();	
+    	IndexSearcher searcher = new IndexSearcher(null, 0, 0, null);
     	
     	/** No arguments passed */
         if (parser.empty()) {
@@ -35,7 +38,7 @@ public class Driver {
         Path countOutput = null;
         Path indexOutput = null;
         Path query = null;
-        TreeSet<String> processedQuery;
+        TreeSet<String> processedQuery = new TreeSet<>();
         
         if (parser.hasFlag("-text")) {
         	if (!parser.hasValue("-text")) {
@@ -102,8 +105,10 @@ public class Driver {
 			}
     	} 
     	
-    	System.out.println(index.getIndexMap());
-    	System.out.println(index.getWordCountMap());
+    	for (String queryTerm : processedQuery) {
+        	performSearch(queryTerm, index, searcher);
+    	}
+    	System.out.println(searcher.toString());
 
     	
 	    if (countOutput != null)
@@ -119,4 +124,19 @@ public class Driver {
 				System.out.println(e.toString());
 			}
     }
+    
+    private static void performSearch(String queryTerm, InvertedIndex index, IndexSearcher searcher) {
+    	int count = 0;
+    	TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
+    	if (indexMap.containsKey(queryTerm)) {
+    		searcher.setQuery(queryTerm);
+    		searcher.setCount(++count);
+//    		searcher.setScore(queryTerm);
+    		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
+    		searcher.setWhere(Path.of(innerMap.firstKey()));
+    	}
+    }
+    
 }
+
+
