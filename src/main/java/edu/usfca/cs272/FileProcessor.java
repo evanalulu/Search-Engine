@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
@@ -142,17 +143,22 @@ public class FileProcessor {
         String queryString = treeSetToString(query);
 
     	for (String queryTerm : query) {
+        	int count = 0;
         	if (indexMap.containsKey(queryTerm)) {
-            	int count = 0;
-            	IndexSearcher searcher = new IndexSearcher(0, 0, null);
+            	IndexSearcher searcher = new IndexSearcher(0, null, null);
         		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
         		
                 for (var entry : innerMap.entrySet()) {
-                    String key = entry.getKey();
+                    String path = entry.getKey();
                     ArrayList<Integer> value = entry.getValue();
-            		searcher.addCount(value.size());
-//            		searcher.setScore(queryTerm);
-            		searcher.setWhere(Path.of(key));
+                    
+                    int totalMatches = value.size();
+            		searcher.addCount(totalMatches);
+            		
+            		String score = calculateScore(index, path, totalMatches);
+            		searcher.setScore(score);
+            		
+            		searcher.setWhere(Path.of(path));
                 }
                 innerList.add(searcher);
                 
@@ -172,5 +178,26 @@ public class FileProcessor {
             sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
+    }
+    
+    private static String calculateScore(InvertedIndex index, String path, int totalMatches) {
+    	DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+    	
+    	int totalWords = findTotalWords(index, path);
+    	double score = (double) totalMatches/totalWords;
+        String formattedScore = FORMATTER.format(score);
+        return formattedScore;
+    	
+    }
+    
+    private static int findTotalWords(InvertedIndex index, String queryTerm) {
+    	Map<String, Integer> wordCountMap = index.getWordCountMap();
+		System.out.println("TESTING: " +  queryTerm);
+
+    	if (wordCountMap.containsKey(queryTerm)) {
+    		System.out.println("TESTING: " +  wordCountMap.get(queryTerm));
+    		return wordCountMap.get(queryTerm);
+    	}
+    	return -1;
     }
 }

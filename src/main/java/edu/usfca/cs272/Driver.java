@@ -26,7 +26,7 @@ public class Driver {
     public static void main(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
     	InvertedIndex index = new InvertedIndex();	
-    	IndexSearcher search = new IndexSearcher(0, 0, null);
+    	IndexSearcher search = new IndexSearcher(0, null, null);
     	
     	/** No arguments passed */
         if (parser.empty()) {
@@ -106,6 +106,8 @@ public class Driver {
 			}
 		}
     	
+    	
+    	System.out.println(JsonWriter.writeObject(index.getWordCountMap()));
     	printTreeMap(result);
     	
 	    if (countOutput != null)

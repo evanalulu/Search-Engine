@@ -4,11 +4,11 @@ import java.nio.file.Path;
 
 public class IndexSearcher implements Comparable<IndexSearcher>{
     private int count;
-    private double score;
+    private String score;
     private Path where;
 
     // Constructor
-    public IndexSearcher(int count, double score, Path where) {
+    public IndexSearcher(int count, String score, Path where) {
         this.count = count;
         this.score = score;
         this.where = where;
@@ -21,8 +21,8 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
     public void addCount(int c) {
     	this.count += c;
     }
-
-    public double getScore() {
+    
+    public String getScore() {
         return score;
     }
 
@@ -34,7 +34,7 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
 		this.count = count;
 	}
 
-	public void setScore(double score) {
+	public void setScore(String score) {
 		this.score = score;
 	}
 
@@ -45,11 +45,11 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
 
 
 
-    // Implementing Comparable interface for sorting
-    @Override
-    public int compareTo(IndexSearcher other) {
-        return Double.compare(other.score, this.score);
-    }
+//    // Implementing Comparable interface for sorting
+//    @Override
+//    public int compareTo(IndexSearcher other) {
+//        return Double.compare(other.score, this.score);
+//    }
 
     @Override
     public String toString() {
