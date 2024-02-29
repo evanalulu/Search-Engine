@@ -103,7 +103,9 @@ public class Driver {
 				System.err.println(e.getMessage());
 			}
 		}
-    	System.out.println(res);
+    	for (IndexSearcher r : res) {
+        	System.out.println(r);
+    	}
 
     	
 	    if (countOutput != null)

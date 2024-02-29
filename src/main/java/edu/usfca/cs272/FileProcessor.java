@@ -119,11 +119,24 @@ public class FileProcessor {
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             String line;
             while ((line = reader.readLine()) != null) {
+            	if (line.trim().isEmpty()) {
+                    continue;
+                }
+            	
             	IndexSearcher search = new IndexSearcher(null, 0, 0, null);
+            	
                 String[] words = FileStemmer.parse(line);
-                TreeSet<String> stems = FileStemmer.uniqueStems(line);
+                String wordsString = String.join(" ", words);
+                
+                TreeSet<String> stems = FileStemmer.uniqueStems(wordsString);
                 String stemsString = treeSetToString(stems);
-                performSearch(stemsString, index, search);
+                
+                System.out.println("STEMS: " + stems);
+                System.out.println("STEMS STRING: " + stemsString);
+                
+                for (String stem : stems) {
+                	performSearch(stem, index, search);
+                }
                 res.add(search);
             }
         }
