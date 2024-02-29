@@ -113,8 +113,8 @@ public class FileProcessor {
 	    return extension.endsWith(".txt") || extension.endsWith(".text");
 	}
 	
-	public static ArrayList<IndexSearcher> readQuery(Path path, InvertedIndex index) throws IOException {
-		ArrayList<IndexSearcher> res = new ArrayList<>();
+	public static TreeMap<String, ArrayList<IndexSearcher>> readQuery(Path path, InvertedIndex index) throws IOException {
+		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             String line;
@@ -123,36 +123,43 @@ public class FileProcessor {
                     continue;
                 }
             	
-            	IndexSearcher search = new IndexSearcher(null, 0, 0, null);
             	
                 String[] words = FileStemmer.parse(line);
                 String wordsString = String.join(" ", words);
                 
                 TreeSet<String> stems = FileStemmer.uniqueStems(wordsString);
-                String stemsString = treeSetToString(stems);
                 
-                System.out.println("STEMS: " + stems);
-                System.out.println("STEMS STRING: " + stemsString);
-                
-                for (String stem : stems) {
-                	performSearch(stem, index, search);
-                }
-                res.add(search);
+                performSearch(stems, index, result);
             }
         }
         
-        return res;
+        return result;
 	}
 	
-    private static void performSearch(String queryTerm, InvertedIndex index, IndexSearcher searcher) {
-    	int count = 0;
+    private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
     	TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
-    	if (indexMap.containsKey(queryTerm)) {
-    		searcher.setQuery(queryTerm);
-    		searcher.setCount(++count);
-//    		searcher.setScore(queryTerm);
-    		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
-    		searcher.setWhere(Path.of(innerMap.firstKey()));
+		ArrayList<IndexSearcher> innerList = new ArrayList<>();
+        String queryString = treeSetToString(query);
+
+    	for (String queryTerm : query) {
+        	if (indexMap.containsKey(queryTerm)) {
+            	int count = 0;
+            	IndexSearcher searcher = new IndexSearcher(0, 0, null);
+        		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
+        		
+                for (var entry : innerMap.entrySet()) {
+                    String key = entry.getKey();
+                    ArrayList<Integer> value = entry.getValue();
+            		searcher.addCount(value.size());
+//            		searcher.setScore(queryTerm);
+            		searcher.setWhere(Path.of(key));
+                }
+                innerList.add(searcher);
+                
+                
+         	}
+        	
+        	result.put(queryString, innerList);
     	}
     }
     

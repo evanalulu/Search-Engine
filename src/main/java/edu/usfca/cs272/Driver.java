@@ -26,7 +26,7 @@ public class Driver {
     public static void main(String[] args) {
         ArgumentParser parser = new ArgumentParser(args);
     	InvertedIndex index = new InvertedIndex();	
-    	IndexSearcher search = new IndexSearcher(null, 0, 0, null);
+    	IndexSearcher search = new IndexSearcher(0, 0, null);
     	
     	/** No arguments passed */
         if (parser.empty()) {
@@ -39,6 +39,8 @@ public class Driver {
         Path indexOutput = null;
         Path query = null;
         ArrayList<IndexSearcher> res = new ArrayList<>();
+        
+        TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
         
         if (parser.hasFlag("-text")) {
         	if (!parser.hasValue("-text")) {
@@ -98,15 +100,13 @@ public class Driver {
     	if (parser.hasFlag("-query")) {
 		    query = parser.getPath("-query");
 		    try {
-		    	res = FileProcessor.readQuery(query, index);
+		    	result = FileProcessor.readQuery(query, index);
 			} catch (IOException e) {
 				System.err.println(e.getMessage());
 			}
 		}
-    	for (IndexSearcher r : res) {
-        	System.out.println(r);
-    	}
-
+    	
+    	printTreeMap(result);
     	
 	    if (countOutput != null)
 			try {
@@ -120,6 +120,28 @@ public class Driver {
 			} catch (IOException e) {
 				System.out.println(e.toString());
 			}
+    }
+    
+    public static void printTreeMap(TreeMap<String, ArrayList<IndexSearcher>> result) {
+        System.out.println("{");
+        for (var entry : result.entrySet()) {
+            System.out.println("  \"" + entry.getKey() + "\": [");
+            ArrayList<IndexSearcher> searchers = entry.getValue();
+            for (int i = 0; i < searchers.size(); i++) {
+                IndexSearcher searcher = searchers.get(i);
+                System.out.println("    {");
+                System.out.println("      \"count\": " + searcher.getCount() + ",");
+                System.out.println("      \"score\": " + searcher.getScore() + ",");
+                System.out.println("      \"where\": \"" + searcher.getWhere() + "\"");
+                if (i == searchers.size() - 1) {
+                    System.out.println("    }");
+                } else {
+                    System.out.println("    },");
+                }
+            }
+            System.out.println("  ],");
+        }
+        System.out.println("}");
     }
     
 }

@@ -3,26 +3,23 @@ package edu.usfca.cs272;
 import java.nio.file.Path;
 
 public class IndexSearcher implements Comparable<IndexSearcher>{
-	private String query;
     private int count;
     private double score;
     private Path where;
 
     // Constructor
-    public IndexSearcher(String query, int count, double score, Path where) {
-        this.query = query;
+    public IndexSearcher(int count, double score, Path where) {
         this.count = count;
         this.score = score;
         this.where = where;
     }
-    
-    // Getters
-    public String getQuery() {
-        return query;
-    }
 
     public int getCount() {
         return count;
+    }
+    
+    public void addCount(int c) {
+    	this.count += c;
     }
 
     public double getScore() {
@@ -32,10 +29,6 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
     public Path getWhere() {
         return where;
     }
-
-	public void setQuery(String query) {
-		this.query = query;
-	}
 
 	public void setCount(int count) {
 		this.count = count;
@@ -61,12 +54,9 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
     @Override
     public String toString() {
         return "{" +
-                "\"" + query + "\":" +
-                " {" +
                 "\"count\":" + count +
                 ", \"score\":" + score +
                 ", \"where\":\"" + where + "\"" +
-                " }" +
                 "}";
     }
 
