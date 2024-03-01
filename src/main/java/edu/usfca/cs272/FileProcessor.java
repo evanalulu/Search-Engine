@@ -10,7 +10,9 @@ import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -97,9 +99,10 @@ public class FileProcessor {
 	    String extension = path.toString().toLowerCase();
 	    return extension.endsWith(".txt") || extension.endsWith(".text");
 	}
-	
+		
 	public static TreeMap<String, ArrayList<IndexSearcher>> readQuery(Path path, InvertedIndex index) throws IOException {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+        Set<TreeSet<String>> query = new HashSet<>();
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             String line;
@@ -109,11 +112,13 @@ public class FileProcessor {
                 }
                 String[] words = FileStemmer.parse(line);
                 String wordsString = String.join(" ", words);
-                
-                TreeSet<String> query = FileStemmer.uniqueStems(wordsString);
-                
-                performSearch(query, index, result);
+                if (!wordsString.isEmpty())
+                	query.add(FileStemmer.uniqueStems(wordsString));
             }
+        }
+        
+        for (TreeSet<String> querySet : query) {
+        	performSearch(querySet, index, result);
         }
         
         return result;
@@ -166,7 +171,9 @@ public class FileProcessor {
 			} else {
 				result.put(queryString, innerList);
 			}
-			System.out.println(result);
+			
+			System.out.println("––––––––––––––––" + queryTerm + "––––––––––––––––––––");
+			Driver.printTreeMap(result);
 		}
 	}
 	
