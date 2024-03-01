@@ -138,15 +138,15 @@ public class FileProcessor {
 
 						while (iterator.hasNext()) {
 						    IndexSearcher currentSearcher = iterator.next();
-						    
-						    int totalMatches = value.size();
-                			currentSearcher.addCount(totalMatches);
-            		        
-            		        String score = calculateScore(index, path, currentSearcher.getCount());
-            		        currentSearcher.setScore(score);
-            		        
-            		        innerList.add(currentSearcher);
-            		        iterator.remove();
+						    if (filePathMatch(currentSearcher, path)) {
+						    	int totalMatches = value.size();
+	                			currentSearcher.addCount(totalMatches);
+	            		        
+	            		        String score = calculateScore(index, path, currentSearcher.getCount());
+	            		        currentSearcher.setScore(score);
+	            		        
+	            		        innerList.add(currentSearcher);
+						    }
 						}
 					} else {
 	                	IndexSearcher searcher = new IndexSearcher(0, null, null);
@@ -161,11 +161,12 @@ public class FileProcessor {
 		        		
 		                innerList.add(searcher);
 					}
+					result.put(queryString, innerList);
 				}
-				result.put(queryString, innerList);
 			} else {
 				result.put(queryString, innerList);
 			}
+			System.out.println(result);
 		}
 	}
 	
@@ -179,6 +180,11 @@ public class FileProcessor {
 		    	return true;
 		}
 		return false;
+	}
+	
+	
+	private static boolean filePathMatch(IndexSearcher searcher, String path) {
+		return (searcher.getWhere().toString().equalsIgnoreCase(path));
 	}
 	
     private static String treeSetToString(TreeSet<String> treeSet) {
