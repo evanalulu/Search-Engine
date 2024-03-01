@@ -102,6 +102,16 @@ public class FileProcessor {
 		
 	public static TreeMap<String, ArrayList<IndexSearcher>> readQuery(Path path, InvertedIndex index) throws IOException {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+		
+        Set<TreeSet<String>> query = getQuery(path);
+        for (TreeSet<String> querySet : query) {
+        	performSearch(querySet, index, result);
+        }
+        
+        return result;
+	}
+	
+	public static Set<TreeSet<String>> getQuery(Path path) throws IOException {
         Set<TreeSet<String>> query = new HashSet<>();
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
@@ -116,12 +126,7 @@ public class FileProcessor {
                 	query.add(FileStemmer.uniqueStems(wordsString));
             }
         }
-        
-        for (TreeSet<String> querySet : query) {
-        	performSearch(querySet, index, result);
-        }
-        
-        return result;
+        return query;
 	}
 
 	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
