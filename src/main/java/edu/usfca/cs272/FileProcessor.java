@@ -123,10 +123,10 @@ public class FileProcessor {
 
     	for (String queryTerm : query) {
         	if (indexMap.containsKey(queryTerm)) {
-            	IndexSearcher searcher = new IndexSearcher(0, null, null);
         		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
         		
                 for (var entry : innerMap.entrySet()) {
+                	IndexSearcher searcher = new IndexSearcher(0, null, null);
                     String path = entry.getKey();
                     ArrayList<Integer> value = entry.getValue();
                     
@@ -134,32 +134,41 @@ public class FileProcessor {
                     if (result.containsKey(queryString)) {
                     	ArrayList<IndexSearcher> check = result.get(queryString);
                     	for (IndexSearcher c : check) {
-                    		if (c.getWhere().toString().equalsIgnoreCase(queryString)) {
+                    		// TODO: Find a way to modify IndexSearcher c
+                    		if (c.getWhere().toString().equalsIgnoreCase(path)) {
                                 int totalMatches = value.size();
-                        		searcher.addCount(c.getCount() + totalMatches);
+                        		c.addCount(totalMatches);
         	            		String score = calculateScore(index, path, searcher.getCount());
-        	            		searcher.setScore(score);
-        	            		searcher.setWhere(Path.of(path));
+        	            		c.setScore(score);
                     		} else {
                     			int totalMatches = value.size();
-        	            		searcher.addCount(totalMatches);
+        	            		searcher.setCount(totalMatches);
         	            		String score = calculateScore(index, path, totalMatches);
         	            		searcher.setScore(score);
         	            		searcher.setWhere(Path.of(path));
+        	            		
+        	                    innerList.add(searcher);
+        	                	result.put(queryString, innerList);
                     		}
                     	}
                     } else {
 	                    int totalMatches = value.size();
-	            		searcher.addCount(totalMatches);
+	            		searcher.setCount(totalMatches);
 	            		String score = calculateScore(index, path, totalMatches);
 	            		searcher.setScore(score);
 	            		searcher.setWhere(Path.of(path));
+	            		
+	                    innerList.add(searcher);
+	                	result.put(queryString, innerList);
                     }
-                    innerList.add(searcher);
                 }
+         	} else {
+         		result.put(queryString, innerList);
          	}
-        	result.put(queryString, innerList);
     	}
+    	
+//    	Driver.printTreeMap(result);
+//    	System.out.println("-----------------------------------------");
     }
     
     private static String treeSetToString(TreeSet<String> treeSet) {

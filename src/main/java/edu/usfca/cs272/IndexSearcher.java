@@ -3,9 +3,9 @@ package edu.usfca.cs272;
 import java.nio.file.Path;
 
 public class IndexSearcher implements Comparable<IndexSearcher>{
-    private int count;
-    private String score;
-    private Path where;
+    public int count;
+    public String score;
+    public Path where;
 
     // Constructor
     public IndexSearcher(int count, String score, Path where) {
@@ -22,6 +22,10 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
     	this.count += c;
     }
     
+    public void setCount(int c) {
+    	this.count = c;
+    }
+    
     public String getScore() {
         return score;
     }
@@ -29,10 +33,6 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
     public Path getWhere() {
         return where;
     }
-
-	public void setCount(int count) {
-		this.count = count;
-	}
 
 	public void setScore(String score) {
 		this.score = score;
