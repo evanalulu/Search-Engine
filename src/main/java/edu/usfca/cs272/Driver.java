@@ -105,10 +105,9 @@ public class Driver {
 				System.err.println(e.getMessage());
 			}
 		}
-    	
-    	
-    	System.out.println(JsonWriter.writeObject(index.getWordCountMap()));
+
     	printTreeMap(result);
+
     	
 	    if (countOutput != null)
 			try {
@@ -147,5 +146,3 @@ public class Driver {
     }
     
 }
-
-

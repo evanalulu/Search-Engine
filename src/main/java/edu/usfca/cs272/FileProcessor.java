@@ -45,25 +45,6 @@ public class FileProcessor {
                         Map<String, Integer> wordCountMap = index.getWordCountMap();
                         int wordCount = wordCountMap.get(path.toString());
 	                    if (wordCount > 0) index.addCount(path.toString(), wordCount);
-	                    
-                        TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
-
-                        for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : indexMap.entrySet()) { 
-	                        String key = entry.getKey();
-	                        TreeMap<String, ArrayList<Integer>> value = entry.getValue();
-	                        
-	                        String filePath = value.keySet().iterator().next();
-	                        ArrayList<Integer> indices = value.get(filePath); 
-	                        
-	                        if (!indexMap.containsKey(key)) {
-	                        	TreeMap<String, ArrayList<Integer>> temp = new TreeMap<>();
-	                        	indexMap.put(key, temp);
-	                        	indexMap.get(key).put(filePath, indices);
-	                        } else {
-	                        	indexMap.get(key).put(filePath, indices);
-	                        }
-	                        
-	                    } 
                     } catch (IOException e) {
                         // 
                     }
@@ -123,14 +104,12 @@ public class FileProcessor {
             	if (line.trim().isEmpty()) {
                     continue;
                 }
-            	
-            	
                 String[] words = FileStemmer.parse(line);
                 String wordsString = String.join(" ", words);
                 
-                TreeSet<String> stems = FileStemmer.uniqueStems(wordsString);
+                TreeSet<String> query = FileStemmer.uniqueStems(wordsString);
                 
-                performSearch(stems, index, result);
+                performSearch(query, index, result);
             }
         }
         
@@ -143,7 +122,6 @@ public class FileProcessor {
         String queryString = treeSetToString(query);
 
     	for (String queryTerm : query) {
-        	int count = 0;
         	if (indexMap.containsKey(queryTerm)) {
             	IndexSearcher searcher = new IndexSearcher(0, null, null);
         		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
@@ -152,19 +130,34 @@ public class FileProcessor {
                     String path = entry.getKey();
                     ArrayList<Integer> value = entry.getValue();
                     
-                    int totalMatches = value.size();
-            		searcher.addCount(totalMatches);
-            		
-            		String score = calculateScore(index, path, totalMatches);
-            		searcher.setScore(score);
-            		
-            		searcher.setWhere(Path.of(path));
+                   // Checking if file path is same
+                    if (result.containsKey(queryString)) {
+                    	ArrayList<IndexSearcher> check = result.get(queryString);
+                    	for (IndexSearcher c : check) {
+                    		if (c.getWhere().toString().equalsIgnoreCase(queryString)) {
+                                int totalMatches = value.size();
+                        		searcher.addCount(c.getCount() + totalMatches);
+        	            		String score = calculateScore(index, path, searcher.getCount());
+        	            		searcher.setScore(score);
+        	            		searcher.setWhere(Path.of(path));
+                    		} else {
+                    			int totalMatches = value.size();
+        	            		searcher.addCount(totalMatches);
+        	            		String score = calculateScore(index, path, totalMatches);
+        	            		searcher.setScore(score);
+        	            		searcher.setWhere(Path.of(path));
+                    		}
+                    	}
+                    } else {
+	                    int totalMatches = value.size();
+	            		searcher.addCount(totalMatches);
+	            		String score = calculateScore(index, path, totalMatches);
+	            		searcher.setScore(score);
+	            		searcher.setWhere(Path.of(path));
+                    }
+                    innerList.add(searcher);
                 }
-                innerList.add(searcher);
-                
-                
          	}
-        	
         	result.put(queryString, innerList);
     	}
     }
@@ -192,10 +185,8 @@ public class FileProcessor {
     
     private static int findTotalWords(InvertedIndex index, String queryTerm) {
     	Map<String, Integer> wordCountMap = index.getWordCountMap();
-		System.out.println("TESTING: " +  queryTerm);
 
     	if (wordCountMap.containsKey(queryTerm)) {
-    		System.out.println("TESTING: " +  wordCountMap.get(queryTerm));
     		return wordCountMap.get(queryTerm);
     	}
     	return -1;

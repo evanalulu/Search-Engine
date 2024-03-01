@@ -45,11 +45,12 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
 
 
 
-//    // Implementing Comparable interface for sorting
-//    @Override
-//    public int compareTo(IndexSearcher other) {
-//        return Double.compare(other.score, this.score);
-//    }
+    // Implementing Comparable interface for sorting
+    @Override
+    public int compareTo(IndexSearcher other) {
+        return Double.compare(Double.parseDouble(other.score), Double.parseDouble(this.score));
+
+    }
 
     @Override
     public String toString() {
