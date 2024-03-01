@@ -9,9 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import javax.swing.text.html.HTMLDocument.Iterator;
 
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
@@ -115,62 +118,69 @@ public class FileProcessor {
         
         return result;
 	}
-	
-    private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
-    	TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
-		ArrayList<IndexSearcher> innerList = new ArrayList<>();
-        String queryString = treeSetToString(query);
 
-    	for (String queryTerm : query) {
-        	if (indexMap.containsKey(queryTerm)) {
-        		TreeMap<String, ArrayList<Integer>> innerMap = indexMap.get(queryTerm);
-        		
-                for (var entry : innerMap.entrySet()) {
-                	IndexSearcher searcher = new IndexSearcher(0, null, null);
-                    String path = entry.getKey();
-                    ArrayList<Integer> value = entry.getValue();
-                    
-                   // Checking if file path is same
-                    if (result.containsKey(queryString)) {
-                    	ArrayList<IndexSearcher> check = result.get(queryString);
-                    	for (IndexSearcher c : check) {
-                    		// TODO: Find a way to modify IndexSearcher c
-                    		if (c.getWhere().toString().equalsIgnoreCase(path)) {
-                                int totalMatches = value.size();
-                        		c.addCount(totalMatches);
-        	            		String score = calculateScore(index, path, searcher.getCount());
-        	            		c.setScore(score);
-                    		} else {
-                    			int totalMatches = value.size();
-        	            		searcher.setCount(totalMatches);
-        	            		String score = calculateScore(index, path, totalMatches);
-        	            		searcher.setScore(score);
-        	            		searcher.setWhere(Path.of(path));
-        	            		
-        	                    innerList.add(searcher);
-        	                	result.put(queryString, innerList);
-                    		}
-                    	}
-                    } else {
-	                    int totalMatches = value.size();
-	            		searcher.setCount(totalMatches);
-	            		String score = calculateScore(index, path, totalMatches);
-	            		searcher.setScore(score);
-	            		searcher.setWhere(Path.of(path));
-	            		
-	                    innerList.add(searcher);
-	                	result.put(queryString, innerList);
-                    }
-                }
-         	} else {
-         		result.put(queryString, innerList);
-         	}
-    	}
-    	
-//    	Driver.printTreeMap(result);
-//    	System.out.println("-----------------------------------------");
-    }
-    
+	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
+		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
+
+		for (String queryTerm : query) {
+			String queryString = treeSetToString(query);
+			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+			if (indexMap.containsKey(queryTerm)) {
+				TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
+				for (var entry : innerIndexMap.entrySet()) {
+					String path = entry.getKey();
+					ArrayList<Integer> value = entry.getValue();
+										
+					if (result.containsKey(queryString) && filePathMatch(queryString, path, result)) {
+						ArrayList<IndexSearcher> check = result.get(queryString);
+						
+						java.util.Iterator<IndexSearcher> iterator = check.iterator();
+
+						while (iterator.hasNext()) {
+						    IndexSearcher currentSearcher = iterator.next();
+						    
+						    int totalMatches = value.size();
+                			currentSearcher.addCount(totalMatches);
+            		        
+            		        String score = calculateScore(index, path, currentSearcher.getCount());
+            		        currentSearcher.setScore(score);
+            		        
+            		        innerList.add(currentSearcher);
+            		        iterator.remove();
+						}
+					} else {
+	                	IndexSearcher searcher = new IndexSearcher(0, null, null);
+	                	
+						int totalMatches = value.size();
+		        		searcher.setCount(totalMatches);
+		        		
+		        		String score = calculateScore(index, path, totalMatches);
+		        		searcher.setScore(score);
+		        		
+		        		searcher.setWhere(Path.of(path));
+		        		
+		                innerList.add(searcher);
+					}
+				}
+				result.put(queryString, innerList);
+			} else {
+				result.put(queryString, innerList);
+			}
+		}
+	}
+	
+	private static boolean filePathMatch(String queryString, String path, TreeMap<String, ArrayList<IndexSearcher>> result) {
+		ArrayList<IndexSearcher> check = result.get(queryString);
+		java.util.Iterator<IndexSearcher> iterator = check.iterator();
+		
+		while (iterator.hasNext()) {
+		    IndexSearcher currentSearcher = iterator.next();
+		    if (currentSearcher.getWhere().toString().equalsIgnoreCase(path))
+		    	return true;
+		}
+		return false;
+	}
+	
     private static String treeSetToString(TreeSet<String> treeSet) {
         StringBuilder sb = new StringBuilder();
         for (String element : treeSet) {
