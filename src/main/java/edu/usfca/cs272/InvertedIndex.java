@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class InvertedIndex {
+	// TODO Make both of these final
 
 	private TreeMap<String, Integer> wordCountMap;
 
@@ -17,6 +18,7 @@ public class InvertedIndex {
     }
 
     public void addCount(String location, Integer count) {
+    	// TODO if count > 0
         wordCountMap.put(location, count);
     }
 
@@ -36,4 +38,10 @@ public class InvertedIndex {
     public TreeMap<String, TreeMap<String, ArrayList<Integer>>> getIndexMap() {
         return indexMap;
     }
+    
+    /*
+     * TODO Add more generally useful data structure methods
+     * 
+     * Start trying to create safer get methods
+     */
 }

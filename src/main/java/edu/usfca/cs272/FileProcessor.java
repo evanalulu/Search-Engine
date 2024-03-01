@@ -23,6 +23,17 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  * @version Spring 2024
  */
 public class FileProcessor {
+	
+	/* TODO Call this in Driver
+	public static void processPath(Path path, InvertedIndex index) {
+		if directory
+		
+		else if file
+		  readFile
+		
+	}
+	*/
+	
 	/**
 	 * Recursively traverses the specified directory and processes each file.
 	 * For each regular file with a ".txt" extension, it reads the file and updates the inverted index.
@@ -38,8 +49,10 @@ public class FileProcessor {
                 if (Files.isDirectory(path)) {
                     traverseDirectory(path, index);
                 } else if (Files.isRegularFile(path) && isExtensionText(path)) {
-                    try {
+                    try { // TODO Remove
                         readFile(path, index);
+                        
+                        // TODO SHould only need readFile? Remove everything below
                         Map<String, Integer> wordCountMap = index.getWordCountMap();
                         int wordCount = wordCountMap.get(path.toString());
 	                    if (wordCount > 0) index.addCount(path.toString(), wordCount);
@@ -62,7 +75,7 @@ public class FileProcessor {
 	                        }
 	                        
 	                    } 
-                    } catch (IOException e) {
+                    } catch (IOException e) { // TODO Remove the catch
                         // 
                     }
                 }
@@ -86,12 +99,13 @@ public class FileProcessor {
             String line;
             int position = 1;
     		Stemmer stemmer = new SnowballStemmer(ENGLISH);
+    		// TODO path.toString() save as a variable and reuse below
             while ((line = reader.readLine()) != null) {
                 String[] words = FileStemmer.parse(line);
                 wordCount += words.length;
 
                 for (String word : words) {
-                    String stemmedWord = FileStemmer.findStem(word, stemmer);
+                    String stemmedWord = FileStemmer.findStem(word, stemmer); // TODO stemmer.stem(word).toString();
                     index.addWord(stemmedWord, path.toString(), position);
                     position++;
                 }

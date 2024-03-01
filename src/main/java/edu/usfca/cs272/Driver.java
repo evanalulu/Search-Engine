@@ -12,7 +12,7 @@ import java.nio.file.Path;
  * @author CS 272 Software Development (University of San Francisco)
  * @version Spring 2024
  */
-public class Driver {
+public class Driver { // TODO Mix of tabs and spaces
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -21,8 +21,26 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 */
     public static void main(String[] args) {
-        ArgumentParser parser = new ArgumentParser(args);
-    	InvertedIndex index = new InvertedIndex();	
+	ArgumentParser parser = new ArgumentParser(args);
+	InvertedIndex index = new InvertedIndex();
+
+	/* TODO 
+	if (parser.hasFlag("-text")) {
+		Path input = parser.getPath("-text");
+		
+		try {
+			if (Files.isDirectory(input)) {
+				FileProcessor.traverseDirectory(input, index);
+			} else {
+				FileProcessor.readFile(input, index);
+			}
+		} catch (IOException e) {
+			System.out.println("Unable to build the inverted index from path: " + input);
+		}
+	}
+	*/
+    	
+    	
     	
     	/** No arguments passed */
         if (parser.empty()) {
@@ -103,3 +121,18 @@ public class Driver {
 			}
     }
 }
+
+/*
+TODO 
+Description	Resource	Path	Location	Type
+Javadoc: Missing comment for private declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 10	Java Problem
+Javadoc: Missing comment for private declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 12	Java Problem
+Javadoc: Missing comment for public declaration	ArgumentParser.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 128	Java Problem
+Javadoc: Missing comment for public declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 8	Java Problem
+Javadoc: Missing comment for public declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 14	Java Problem
+Javadoc: Missing comment for public declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 19	Java Problem
+Javadoc: Missing comment for public declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 23	Java Problem
+Javadoc: Missing comment for public declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 32	Java Problem
+Javadoc: Missing comment for public declaration	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 36	Java Problem
+The import java.util.HashMap is never used	InvertedIndex.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 4	Java Problem
+*/
