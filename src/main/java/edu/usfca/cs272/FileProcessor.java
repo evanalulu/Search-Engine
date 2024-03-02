@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -104,7 +105,6 @@ public class FileProcessor {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 		
         Set<TreeSet<String>> query = getQuery(path);
-        System.out.println(query);
         for (TreeSet<String> querySet : query) {
         	performSearch(querySet, index, result);
         }
@@ -133,7 +133,6 @@ public class FileProcessor {
 	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 		String queryString = treeSetToString(query);
-		System.out.print(queryString + ": " + query.size());
 
 		for (String queryTerm : query) {
 			boolean filePathPassed = false;
@@ -177,12 +176,17 @@ public class FileProcessor {
 		            }
 		        }
 		    }
+            
 		    if (result.containsKey(queryString) && !filePathPassed) {
 		        ArrayList<IndexSearcher> existingSearchers = result.get(queryString);
 		        existingSearchers.addAll(innerList);
 		    } else {
+	            Collections.sort(innerList);
 		        result.put(queryString, innerList);
 		    }
+		    
+	        ArrayList<IndexSearcher> sorting = result.get(queryString);
+            Collections.sort(sorting);	
 		}
 	}
 	
