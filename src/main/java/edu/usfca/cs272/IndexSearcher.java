@@ -1,8 +1,9 @@
 package edu.usfca.cs272;
 
 import java.nio.file.Path;
+import java.util.Comparator;
 
-public class IndexSearcher implements Comparable<IndexSearcher>{
+public class IndexSearcher implements Comparable<IndexSearcher> {
     public int count;
     public String score;
     public Path where;
@@ -42,20 +43,17 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
 		this.where = where;
 	}
     
-    public int compare(IndexSearcher first, IndexSearcher second) {
-    	double firstScore = Double.parseDouble(first.getScore());
-        double secondScore = Double.parseDouble(second.getScore());
-        
-        int scoreComparison = Double.compare(secondScore, firstScore);
-        if (scoreComparison != 0) {
+    @Override
+    public int compareTo(IndexSearcher other) {
+        int scoreComparison = Double.compare(Double.parseDouble(other.getScore()), Double.parseDouble(this.getScore()));
+        if (scoreComparison != 0)
             return scoreComparison;
-        }
         
-        int countComparison = Integer.compare(second.getCount(), first.getCount());
+        int countComparison = Integer.compare(other.getCount(), this.getCount());
         if (countComparison != 0)
             return countComparison;
         
-        return first.getWhere().toString().compareToIgnoreCase(second.getWhere().toString());
+        return this.getWhere().toString().compareToIgnoreCase(other.getWhere().toString());
     }
 
     @Override
