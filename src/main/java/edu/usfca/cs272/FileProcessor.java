@@ -104,6 +104,7 @@ public class FileProcessor {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 		
         Set<TreeSet<String>> query = getQuery(path);
+        System.out.println(query);
         for (TreeSet<String> querySet : query) {
         	performSearch(querySet, index, result);
         }
@@ -131,54 +132,57 @@ public class FileProcessor {
 
 	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
+		String queryString = treeSetToString(query);
+		System.out.print(queryString + ": " + query.size());
 
 		for (String queryTerm : query) {
-			String queryString = treeSetToString(query);
-			ArrayList<IndexSearcher> innerList = new ArrayList<>();
-			if (indexMap.containsKey(queryTerm)) {
-				TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
-				for (var entry : innerIndexMap.entrySet()) {
-					String path = entry.getKey();
-					ArrayList<Integer> value = entry.getValue();
-										
-					if (result.containsKey(queryString) && filePathMatch(queryString, path, result)) {
-						ArrayList<IndexSearcher> check = result.get(queryString);
-						
-						java.util.Iterator<IndexSearcher> iterator = check.iterator();
+			boolean filePathPassed = false;
+		    ArrayList<IndexSearcher> innerList = new ArrayList<>();
+		    if (indexMap.containsKey(queryTerm)) {
+		        TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
+		        for (var entry : innerIndexMap.entrySet()) {
+		            String path = entry.getKey();
+		            ArrayList<Integer> value = entry.getValue();
+		                                
+		            if (result.containsKey(queryString) && filePathMatch(queryString, path, result)) {
+		                ArrayList<IndexSearcher> check = result.get(queryString);
+		                filePathPassed = true;
+		                
+		                java.util.Iterator<IndexSearcher> iterator = check.iterator();
 
-						while (iterator.hasNext()) {
-						    IndexSearcher currentSearcher = iterator.next();
-						    if (filePathMatch(currentSearcher, path)) {
-						    	int totalMatches = value.size();
-	                			currentSearcher.addCount(totalMatches);
-	            		        
-	            		        String score = calculateScore(index, path, currentSearcher.getCount());
-	            		        currentSearcher.setScore(score);
-	            		        
-	            		        innerList.add(currentSearcher);
-						    }
-						}
-					} else {
-	                	IndexSearcher searcher = new IndexSearcher(0, null, null);
-	                	
-						int totalMatches = value.size();
-		        		searcher.setCount(totalMatches);
-		        		
-		        		String score = calculateScore(index, path, totalMatches);
-		        		searcher.setScore(score);
-		        		
-		        		searcher.setWhere(Path.of(path));
-		        		
+		                while (iterator.hasNext()) {
+		                    IndexSearcher currentSearcher = iterator.next();
+		                    if (filePathMatch(currentSearcher, path)) {
+		                        int totalMatches = value.size();
+		                        currentSearcher.addCount(totalMatches);
+		                        
+		                        String score = calculateScore(index, path, currentSearcher.getCount());
+		                        currentSearcher.setScore(score);
+		                        
+		                        innerList.add(currentSearcher);
+		                    }
+		                }
+		            } else {
+		                IndexSearcher searcher = new IndexSearcher(0, null, null);
+		                
+		                int totalMatches = value.size();
+		                searcher.setCount(totalMatches);
+		                
+		                String score = calculateScore(index, path, totalMatches);
+		                searcher.setScore(score);
+		                
+		                searcher.setWhere(Path.of(path));
+		                
 		                innerList.add(searcher);
-					}
-					result.put(queryString, innerList);
-				}
-			} else {
-				result.put(queryString, innerList);
-			}
-			
-			System.out.println("––––––––––––––––" + queryTerm + "––––––––––––––––––––");
-			Driver.printTreeMap(result);
+		            }
+		        }
+		    }
+		    if (result.containsKey(queryString) && !filePathPassed) {
+		        ArrayList<IndexSearcher> existingSearchers = result.get(queryString);
+		        existingSearchers.addAll(innerList);
+		    } else {
+		        result.put(queryString, innerList);
+		    }
 		}
 	}
 	
