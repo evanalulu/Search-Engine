@@ -42,14 +42,20 @@ public class IndexSearcher implements Comparable<IndexSearcher>{
 		this.where = where;
 	}
     
-
-
-
-    // Implementing Comparable interface for sorting
-    @Override
-    public int compareTo(IndexSearcher other) {
-        return Double.compare(Double.parseDouble(other.score), Double.parseDouble(this.score));
-
+    public int compare(IndexSearcher first, IndexSearcher second) {
+    	double firstScore = Double.parseDouble(first.getScore());
+        double secondScore = Double.parseDouble(second.getScore());
+        
+        int scoreComparison = Double.compare(secondScore, firstScore);
+        if (scoreComparison != 0) {
+            return scoreComparison;
+        }
+        
+        int countComparison = Integer.compare(second.getCount(), first.getCount());
+        if (countComparison != 0)
+            return countComparison;
+        
+        return first.getWhere().toString().compareToIgnoreCase(second.getWhere().toString());
     }
 
     @Override
