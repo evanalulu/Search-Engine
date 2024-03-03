@@ -471,7 +471,67 @@ public class JsonWriter {
 			return null;
 		}
 	}
+	
+	public static void writeExactSearch(TreeMap<String, ArrayList<IndexSearcher>> elements, Writer writer, int indent) throws IOException {
+	    writer.write("{");
+	    writer.write(System.lineSeparator());
 
+	    int entryCount = 0;
+	    for (var entry : elements.entrySet()) {
+	        writer.write("  \"" + entry.getKey() + "\": [");
+	        writer.write(System.lineSeparator());
+
+	        ArrayList<IndexSearcher> searchers = entry.getValue();
+	        for (int i = 0; i < searchers.size(); i++) {
+	            IndexSearcher searcher = searchers.get(i);
+	            writer.write("    {");
+	            writer.write(System.lineSeparator());
+
+	            writer.write("      \"count\": " + searcher.getCount() + ",");
+	            writer.write(System.lineSeparator());
+
+	            writer.write("      \"score\": " + searcher.getScore() + ",");
+	            writer.write(System.lineSeparator());
+
+	            writer.write("      \"where\": \"" + searcher.getWhere() + "\"");
+	            writer.write(System.lineSeparator());
+
+	            writer.write("    }");
+	            if (i < searchers.size() - 1) {
+	                writer.write(",");
+	            }
+	            writer.write(System.lineSeparator());
+	        }
+
+	        writer.write("  ]");
+	        if (entryCount < elements.size() - 1) {
+	            writer.write(",");
+	        }
+	        writer.write(System.lineSeparator());
+
+	        entryCount++;
+	    }
+
+	    writer.write("}");
+	}
+
+	
+	public static void writeExactSearch(TreeMap<String, ArrayList<IndexSearcher>> elements, Path path) throws IOException {
+		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
+			writeExactSearch(elements, writer, 0);
+		}
+	}
+	
+	public static String writeExactSearch(TreeMap<String, ArrayList<IndexSearcher>> elements) {
+		try {
+			StringWriter writer = new StringWriter();
+			writeExactSearch(elements, writer, 0);
+			return writer.toString();
+		}
+		catch (IOException e) {
+			return null;
+		}
+	}
 	
 	/**
 	 * Demonstrates this class.
