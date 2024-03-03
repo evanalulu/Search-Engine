@@ -1,5 +1,7 @@
 package edu.usfca.cs272;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -99,14 +101,15 @@ public class Driver {
     	
     	if (parser.hasFlag("-query")) {
 		    query = parser.getPath("-query");
+		    Path exactSearch = parser.getPath("-results");
 		    try {
 		    	result = FileProcessor.readQuery(query, index);
+		    	JsonWriter.writeExactSearch(result, exactSearch);
+		    	printFile(exactSearch);
 			} catch (IOException e) {
 				System.err.println(e.getMessage());
 			}
 		}
-
-    	printTreeMap(result);
 
     	
 	    if (countOutput != null)
@@ -145,4 +148,15 @@ public class Driver {
         System.out.println("}");
     }
     
+    private static void printFile(Path filePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath.toString()))) {
+            String line;
+            System.out.println(filePath);
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+        }
+    }
 }
