@@ -9,8 +9,7 @@ import java.util.TreeMap;
  * The index maintains counts of words in documents and the positions of words in each document.
  */
 public class InvertedIndex {
-	
-    /** A map that stores the count of words in each document. */
+
 	private TreeMap<String, Integer> wordCountMap;
 
     /** A nested map that stores the positions of words in each document. */
@@ -31,6 +30,7 @@ public class InvertedIndex {
      * @param count the count of the word in the document
      */
     public void addCount(String location, Integer count) {
+    	// TODO if count > 0
         wordCountMap.put(location, count);
     }
 
@@ -65,4 +65,10 @@ public class InvertedIndex {
     public TreeMap<String, TreeMap<String, ArrayList<Integer>>> getIndexMap() {
         return indexMap;
     }
+    
+    /*
+     * TODO Add more generally useful data structure methods
+     * 
+     * Start trying to create safer get methods
+     */
 }
