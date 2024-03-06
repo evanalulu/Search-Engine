@@ -107,7 +107,7 @@ public class ArgumentParser {
 	public void parse(String[] args) {
 		for (int i = 0; i < args.length; i++) {
 		    String flag = args[i], value = (i + 1 < args.length) ? args[i + 1] : null;
-			if (isText(flag) || isCounts(flag) || isIndex(flag)) {
+			if (isFlag(flag)) {
 				if (isValue(value))
 					map.put(flag.substring(1), value);
 				else
