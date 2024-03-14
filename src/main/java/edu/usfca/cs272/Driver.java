@@ -80,7 +80,6 @@ public class Driver {
 					return;
 				} catch (IOException e) {
 					System.out.println(e.toString());
-
 				}
 		    }
 		}
@@ -105,7 +104,7 @@ public class Driver {
 		    try {
 		    	result = FileProcessor.readQuery(query, index);
 		    	JsonWriter.writeExactSearch(result, exactSearch);
-		    	printFile(exactSearch);
+//		    	printFile(exactSearch);
 			} catch (IOException e) {
 				System.err.println(e.getMessage());
 			}
@@ -124,7 +123,18 @@ public class Driver {
 			} catch (IOException e) {
 				System.out.println(e.toString());
 			}
+	    
+	    
+
+	    String text = new String("pine");
+	    testMutability(text);
+	    System.out.println(text);
     }
+    
+    public static void testMutability(String text) {
+        text.concat("apple");
+    }
+
     
     public static void printTreeMap(TreeMap<String, ArrayList<IndexSearcher>> result) {
         System.out.println("{");
