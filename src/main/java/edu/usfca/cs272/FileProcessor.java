@@ -185,8 +185,9 @@ public class FileProcessor {
 		        result.put(queryString, innerList);
 		    }
 		    
-	        ArrayList<IndexSearcher> sorting = result.get(queryString);
-            Collections.sort(sorting);	
+            Collections.sort(result.get(queryString));
+            
+//            Driver.printTreeMap(result);
 		}
 	}
 	
