@@ -20,86 +20,73 @@ public class Driver {
 	 *
 	 * @param args flag/value pairs used to start this program
 	 */
-    public static void main(String[] args) {
-        ArgumentParser parser = new ArgumentParser(args);
-    	InvertedIndex index = new InvertedIndex();	
-    	
-    	/** No arguments passed */
-        if (parser.empty()) {
-        	System.err.println("No arguments provided");
-        	return;
-        }
-        
-        Path input = null;
-        Path countOutput = null;
-        Path indexOutput = null;
-        
-        if (parser.hasFlag("-text")) {
-        	if (!parser.hasValue("-text")) {
-        		System.err.println("Input path -text not provided");
-        		return;
-        	}
-        	
-        	if (Files.exists(parser.getPath("-text"))) {
-        		input = parser.getPath("-text");
-        	} else {
-        		System.err.println("Invalid -text path");
-        		return;
-        	}
-        }
-        
-        if (parser.hasFlag("-counts")) {
-            countOutput = parser.getPath("-counts", Path.of("counts.json"));
-		    /** Only -counts with no path passed */
-		    if (countOutput != null && !parser.hasFlag("-text")) {
-		    	try {
-					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
-					return;
-				} catch (IOException e) {
-					System.out.println(e.toString());
-				}
-		    }
-        }
+	public static void main(String[] args) {
 
-    	if (parser.hasFlag("-index")) {
-		    indexOutput = parser.getPath("-index", Path.of("index.json"));
-		    /** Only -index with no path passed */
-		    if (indexOutput != null && !parser.hasFlag("-text")) {
-		    	try {
-					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
-					return;
-				} catch (IOException e) {
-					System.out.println(e.toString());
+	ArgumentParser parser = new ArgumentParser(args);
+	InvertedIndex index = new InvertedIndex();
 
-				}
-		    }
+	if (parser.hasFlag("-text")) {
+		Path input = parser.getPath("-text");
+		
+		if (input == null) {
+			System.out.println("Error: Input path is null. Please provide a valid input path.");
+			return;
 		}
-    	    	
-    	if (Files.isDirectory(input)) {
-    	    try {
+		
+		try {
+			if (Files.isDirectory(input)) {
 				FileProcessor.traverseDirectory(input, index);
-			} catch (IOException e) {
-
-			}
-    	} else {
-    	    try {
+			} else {
 				FileProcessor.readFile(input, index);
+			}
+		} catch (IOException e) {
+			System.out.println("Unable to build the inverted index from path: " + input);
+		}
+	}
+
+	Path countOutput = null;
+	Path indexOutput = null;
+	
+	if (parser.hasFlag("-counts")) {
+		countOutput = parser.getPath("-counts", Path.of("counts.json"));
+		/** Only -counts with no path passed */
+		if (countOutput != null && !parser.hasFlag("-text")) {
+			try {
+				JsonWriter.writeObject(index.getWordCountMap(), countOutput);
+				return;
 			} catch (IOException e) {
 				System.out.println(e.toString());
 			}
-    	} 
-    	
-	    if (countOutput != null)
+	    }
+	}
+
+	if (parser.hasFlag("-index")) {
+		indexOutput = parser.getPath("-index", Path.of("index.json"));
+		/** Only -index with no path passed */
+		if (indexOutput != null && !parser.hasFlag("-text")) {
+			try {
+				JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+				return;
+			} catch (IOException e) {
+				System.out.println(e.toString());
+
+			}
+		}
+	}
+
+	if (countOutput != null)
 			try {
 				JsonWriter.writeObject(index.getWordCountMap(), countOutput);
 			} catch (IOException e) {
-				System.out.println(e.toString());
+				System.out.println("Error writing word count data: " + e.getMessage());
 			}
-	    if (indexOutput != null)
-			try {
-				JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
-			} catch (IOException e) {
-				System.out.println(e.toString());
-			}
+	
+	if (indexOutput != null)
+		try {
+			JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
+		} catch (IOException e) {
+			System.out.println("Error writing index data: " + e.getMessage());
+		}
+
     }
 }

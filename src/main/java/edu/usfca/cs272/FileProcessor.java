@@ -7,10 +7,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
-
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
@@ -33,42 +29,16 @@ public class FileProcessor {
 	 * @throws IOException if an I/O error occurs while traversing the directory or reading files
 	 */
 	public static void traverseDirectory(Path directory, InvertedIndex index) throws IOException {
-        try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
-            for (Path path : paths) {
-                if (Files.isDirectory(path)) {
-                    traverseDirectory(path, index);
-                } else if (Files.isRegularFile(path) && isExtensionText(path)) {
-                    try {
-                        readFile(path, index);
-                        Map<String, Integer> wordCountMap = index.getWordCountMap();
-                        int wordCount = wordCountMap.get(path.toString());
-	                    if (wordCount > 0) index.addCount(path.toString(), wordCount);
-	                    
-                        TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
-
-                        for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : indexMap.entrySet()) { 
-	                        String key = entry.getKey();
-	                        TreeMap<String, ArrayList<Integer>> value = entry.getValue();
-	                        
-	                        String filePath = value.keySet().iterator().next();
-	                        ArrayList<Integer> indices = value.get(filePath); 
-	                        
-	                        if (!indexMap.containsKey(key)) {
-	                        	TreeMap<String, ArrayList<Integer>> temp = new TreeMap<>();
-	                        	indexMap.put(key, temp);
-	                        	indexMap.get(key).put(filePath, indices);
-	                        } else {
-	                        	indexMap.get(key).put(filePath, indices);
-	                        }
-	                        
-	                    } 
-                    } catch (IOException e) {
-                        // 
-                    }
-                }
-            }
-        }
-    }
+		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
+			for (Path path : paths) {
+				if (Files.isDirectory(path)) {
+					traverseDirectory(path, index);
+				} else if (Files.isRegularFile(path) && isExtensionText(path)) {
+					readFile(path, index);
+				}
+			}
+		}
+	}
 
 	/**
 	 * Reads the content of the specified file, parses it line by line, and updates the inverted index.
@@ -82,33 +52,35 @@ public class FileProcessor {
 	public static void readFile(Path path, InvertedIndex index) throws IOException {
 		int wordCount = 0;
 
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
-            String line;
-            int position = 1;
-    		Stemmer stemmer = new SnowballStemmer(ENGLISH);
-            while ((line = reader.readLine()) != null) {
-                String[] words = FileStemmer.parse(line);
-                wordCount += words.length;
+		try (BufferedReader reader = Files.newBufferedReader(path)) {
+			String line;
+			int position = 1;
+			String pathStr = path.toString();
+			Stemmer stemmer = new SnowballStemmer(ENGLISH);
+			
+			while ((line = reader.readLine()) != null) {
+				String[] words = FileStemmer.parse(line);
+				wordCount += words.length;
+				
+				for (String word : words) {
+					String stemmedWord = stemmer.stem(word).toString();
+					index.addWord(stemmedWord, pathStr, position);
+					position++;
+				}
+			}
+			
+			index.addCount(pathStr, wordCount);
+		}
+	}
 
-                for (String word : words) {
-                    String stemmedWord = FileStemmer.findStem(word, stemmer);
-                    index.addWord(stemmedWord, path.toString(), position);
-                    position++;
-                }
-            }
-            index.addCount(path.toString(), wordCount);
-        }
-   	}
-	
-    
-    /**
-     * Checks if the file extension of the specified path corresponds to a text file.
-     *
-     * @param path the path of the file to check
-     * @return {@code true} if the file extension is ".txt" or ".text", {@code false} otherwise
-     */
+	/**
+	 * Checks if the file extension of the specified path corresponds to a text file.
+	 *
+	 * @param path the path of the file to check
+	 * @return {@code true} if the file extension is ".txt" or ".text", {@code false} otherwise
+	 */
 	public static boolean isExtensionText(Path path) {
-	    String extension = path.toString().toLowerCase();
-	    return extension.endsWith(".txt") || extension.endsWith(".text");
+		String extension = path.toString().toLowerCase();
+		return extension.endsWith(".txt") || extension.endsWith(".text");
 	}
 }
