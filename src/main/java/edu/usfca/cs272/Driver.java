@@ -87,6 +87,6 @@ public class Driver {
 		} catch (IOException e) {
 			System.out.println("Error writing index data: " + e.getMessage());
 		}
-
-    }
+	
+	}
 }
