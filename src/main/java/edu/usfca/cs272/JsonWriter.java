@@ -72,6 +72,8 @@ public class JsonWriter {
 		writer.write(element);
 		writer.write('"');
 	}
+	
+	// TODO Look at the recording from the Thursday lecture last week
 
 	/**
 	 * Writes the elements as a pretty JSON array.
