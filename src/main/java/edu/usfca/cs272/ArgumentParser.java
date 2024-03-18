@@ -72,6 +72,14 @@ public class ArgumentParser {
 	 * @return {@code true} if the string is a text flag ("-text"), {@code false} otherwise
 	 */
 	public static boolean isText(String arg) {
+		/*
+		 * TODO Any of the ternary return statements that only choose between true and
+		 * false can be replaced with just the return itself. For example:
+		 * 
+		 * return isFlag(arg) && arg.equalsIgnoreCase("-text");
+		 * 
+		 * Fix this issue here and everywhere!
+		 */
 		return (isFlag(arg) && arg.equalsIgnoreCase("-text")) ? true : false; 
 	}
 
