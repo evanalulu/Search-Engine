@@ -98,6 +98,17 @@ public class JsonWriter {
 		 * class to reduce the number of code review rounds needed!
 		 */
 
+		// TODO I already gave you this comment: https://github.com/usf-cs272-spring2024/project-evanalulu/blob/f3d67b6ffd5e14909abd2d5f8fb373e9c85049c5/src/main/java/edu/usfca/cs272/JsonWriter.java#L76
+		
+		/*
+		 * TODO At this point, given the warning, formatting issues, and incomplete
+		 * TODO comments from last time (and some from your Bundle 1 review), I am
+		 * discontinuing to review any additional code this time around.
+		 * 
+		 * Please do not request code review until you have addressed past comments
+		 * and finished a cleanup pass of your code!
+		 */
+		
 		writer.write("[");
 		if (!elements.isEmpty()) {
 			writer.write(System.lineSeparator());
