@@ -19,6 +19,8 @@ import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
 
+// TODO Fix the mix of tabs and spaces in all your classes---I won't keep commenting on it
+
 /**
  * Utility class for parsing, cleaning, and stemming text and text files into
  * collections of processed words.
