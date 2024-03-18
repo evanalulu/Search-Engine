@@ -57,6 +57,14 @@ public class ArgumentParser {
 				!Character.isDigit(arg.codePointAt(1)));
 	}
 	
+	/*
+	 * TODO I recommend removing these new isText, etc. static methods from here.
+	 * Those are specific to the project, and do not belong in a general class like
+	 * the ArgumentParser.
+	 * 
+	 * Instead, put them in Driver, where we place the other project-specific code.
+	 */
+	
 	/**
 	 * Checks if the specified string represents a text flag.
 	 *
