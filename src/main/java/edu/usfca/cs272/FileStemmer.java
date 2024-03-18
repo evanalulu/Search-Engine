@@ -158,6 +158,24 @@ public class FileStemmer {
 		) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
+				/*
+				 * TODO Make this more efficient!
+				 * 
+				 * This approach has great code reuse, but poor efficiency. This is a common
+				 * issue, reuse and efficiency often conflict with each other. In this case, it
+				 * can be fixed. Sometimes, that is not true.
+				 * 
+				 * First, the efficiency issue. Think about a file that has 1,000 lines in it.
+				 * Every call to listStems is going to create a new list instance. That means
+				 * 1,000 lists! Then, the for loop must be called 1,000 times to copy stems from
+				 * a little list into a big list. That is a lot of extra instances and copy
+				 * operations.
+				 * 
+				 * Now, the fix. We can actually solve this problem with only 1 list, 1 stemmer,
+				 * and 0 inner for loops by taking advantage of mutability. We can add the stems
+				 * directly to the larger list by reusing addStems here instead!
+				 */
+
 				ArrayList<String> temp = listStems(line);
 				for (String element: temp) 
 					stems.add(element);
@@ -179,6 +197,10 @@ public class FileStemmer {
 	 * @see #addStems(String, Stemmer, Collection)
 	 */
 	public static TreeSet<String> uniqueStems(String line, Stemmer stemmer) {
+		/*
+		 * TODO Inefficient. Can you think of a better way that reuses code and
+		 * doesn't convert and copy between data structure types? 
+		 */
 		ArrayList<String> stems = listStems(line, stemmer);
 		TreeSet<String> uniques = new TreeSet<>();
 		uniques.addAll(stems);
@@ -216,6 +238,9 @@ public class FileStemmer {
 	 * @see #uniqueStems(String, Stemmer)
 	 */
 	public static TreeSet<String> uniqueStems(Path input) throws IOException {
+		/*
+		 * TODO Make this more efficient too.
+		 */
 		ArrayList<String> stems = listStems(input);
 		TreeSet<String> uniques = new TreeSet<>();
 		uniques.addAll(stems);
@@ -245,7 +270,7 @@ public class FileStemmer {
 		) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
-				TreeSet<String> uniques = uniqueStems(line);
+				TreeSet<String> uniques = uniqueStems(line); // TODO Reuse a stemmer object to make more efficient
 				uniqueStems.add(uniques);
 			}
 		}
@@ -260,7 +285,7 @@ public class FileStemmer {
 	 * @param args unused
 	 * @throws IOException if an I/O error occurs
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException { // TODO Remove
 		// demonstrates how to use split, clean, and parse
 		System.out.println("____PARSING DEMO____");
 		System.out.println();
