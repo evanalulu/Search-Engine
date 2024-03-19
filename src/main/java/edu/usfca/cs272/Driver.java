@@ -26,10 +26,6 @@ public class Driver {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		
-		Path countOutput = null;
-		Path indexOutput = null;
-		Path query = null;
-		
 		if (parser.hasFlag("-text")) {
 			Path input = parser.getPath("-text");
 			
@@ -50,7 +46,7 @@ public class Driver {
 		}
 		
 		if (parser.hasFlag("-counts")) {
-			countOutput = parser.getPath("-counts", Path.of("counts.json"));
+			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 			/** Only -counts with no path passed */
 			if (countOutput != null) {
 				try {
@@ -63,7 +59,7 @@ public class Driver {
 		}
 	
 		if (parser.hasFlag("-index")) {
-			indexOutput = parser.getPath("-index", Path.of("index.json"));
+			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
 			/** Only -index with no path passed */
 			if (indexOutput != null) {
 				try {
@@ -77,7 +73,7 @@ public class Driver {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 		
 		if (parser.hasFlag("-query")) {
-			query = parser.getPath("-query");
+			Path query = parser.getPath("-query");
 			try {
 				result = FileProcessor.readQuery(query, index);
 			} catch (IOException e) {
