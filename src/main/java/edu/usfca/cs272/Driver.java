@@ -75,7 +75,10 @@ public class Driver {
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
 			try {
-				result = FileProcessor.readQuery(query, index);
+				if (parser.hasFlag("-partial"))
+					result = FileProcessor.readQuery(query, index, true);
+				else
+					result = FileProcessor.readQuery(query, index, false);
 			} catch (IOException e) {
 				System.err.println("Error getting search results: " + e.getMessage());
 			}
@@ -91,5 +94,6 @@ public class Driver {
 				}
 			}
 		}
+
 	}
 }
