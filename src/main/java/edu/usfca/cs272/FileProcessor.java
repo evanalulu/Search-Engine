@@ -145,7 +145,7 @@ public class FileProcessor {
 	}
 	
 	/**
-	 * Performs search based on the provided query, updating the result map with search results.
+	 * Performs exact search based on the provided query, updating the result map with search results.
 	 *
 	 * @param query The query terms to search for.
 	 * @param index The inverted index to search within.
@@ -204,6 +204,13 @@ public class FileProcessor {
 		}
 	}
 	
+	/**
+	 * Performs partial search based on the provided query, updating the result map with search results.
+	 *
+	 * @param query The query terms to search for.
+	 * @param index The inverted index to search within.
+	 * @param result The map to store the search results, where each query term maps to a list of IndexSearchers.
+	 */
 	private static void partialSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 		String queryString = treeSetToString(query);
@@ -240,7 +247,14 @@ public class FileProcessor {
 			mergeResults(result.get(queryString), termResults, index);
 		}
 	}
-
+	
+	 /**
+     * Merges the results of query term searches into main results and sorts them.
+     *
+     * @param mainResults  The main list of search results.
+     * @param termResults  The list of search results from a term search.
+     * @param index        The InvertedIndex containing the indexed data.
+     */
 	private static void mergeResults(ArrayList<IndexSearcher> mainResults, ArrayList<IndexSearcher> termResults, InvertedIndex index) {
 		for (IndexSearcher termSearcher : termResults) {
 			boolean found = false;
@@ -258,7 +272,6 @@ public class FileProcessor {
 		}
 		Collections.sort(mainResults);
 	}
-
 	
 	/**
 	 * Checks if the file path in the given IndexSearcher matches the specified path.
