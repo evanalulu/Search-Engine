@@ -209,59 +209,56 @@ public class FileProcessor {
 		String queryString = treeSetToString(query);
 		
 		for (String queryTerm : query) {
-			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+			ArrayList<IndexSearcher> termResults = new ArrayList<>();
 			for (String key : indexMap.keySet()) {
 				if (key.startsWith(queryTerm)) {
-					TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(key);
-					
-					for (var entry : innerIndexMap.entrySet()) {
+					TreeMap<String, ArrayList<Integer>> termIndexMap = indexMap.get(key);
+					for (Map.Entry<String, ArrayList<Integer>> entry : termIndexMap.entrySet()) {
 						String path = entry.getKey();
 						ArrayList<Integer> value = entry.getValue();
+						IndexSearcher newSearcher = new IndexSearcher(value.size(), calculateScore(index, path, value.size()), Path.of(path));
 						
-						boolean matched = false;
-						if (result.containsKey(queryString)) {
-							ArrayList<IndexSearcher> searchers = result.get(queryString);
-							
-							for (IndexSearcher searcher : searchers) {
-								/* Same file path exists within results */
-								if (filePathMatch(searcher, path)) {
-									System.out.println("Match found for path: " + path);
-									int totalMatches = value.size();
-									System.out.println("Before update: " + searcher);
-									searcher.addCount(totalMatches);
-									String score = calculateScore(index, path, searcher.getCount());
-									searcher.setScore(score);
-									System.out.println("After update: " + searcher);
-									matched = true;
-									break;
-								}
+						boolean exists = false;
+						for (IndexSearcher searcher : termResults) {
+							if (searcher.getWhere().equals(path)) {
+								searcher.addCount(value.size());
+								searcher.setScore(calculateScore(index, path, searcher.getCount()));
+								exists = true;
+								break;
 							}
 						}
-						
-						/* Same file path doesn't exist within results */
-						if (!matched) {
-							int totalMatches = value.size();
-							String score = calculateScore(index, path, totalMatches);
-							IndexSearcher searcher = new IndexSearcher(totalMatches, score, Path.of(path));
-							innerList.add(searcher);
+						if (!exists) {
+							termResults.add(newSearcher);
 						}
 					}
 				}
 			}
 			
-			if (result.containsKey(queryString)) {
-				if (!innerList.isEmpty())
-					result.get(queryString).addAll(innerList);
-			} else {
-				Collections.sort(innerList);
-				result.put(queryString, innerList);
+			if (!result.containsKey(queryString)) {
+				result.put(queryString, new ArrayList<>());
 			}
-			System.out.println(result);
-			
-			Collections.sort(result.get(queryString));
+			mergeResults(result.get(queryString), termResults, index);
 		}
 	}
-	
+
+	private static void mergeResults(ArrayList<IndexSearcher> mainResults, ArrayList<IndexSearcher> termResults, InvertedIndex index) {
+		for (IndexSearcher termSearcher : termResults) {
+			boolean found = false;
+			for (IndexSearcher mainSearcher : mainResults) {
+				if (mainSearcher.getWhere().equals(termSearcher.getWhere())) {
+					mainSearcher.addCount(termSearcher.getCount());
+					mainSearcher.setScore(calculateScore(index, termSearcher.getWhere().toString(), mainSearcher.getCount()));
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				mainResults.add(termSearcher);
+			}
+		}
+		Collections.sort(mainResults);
+	}
+
 	
 	/**
 	 * Checks if the file path in the given IndexSearcher matches the specified path.
