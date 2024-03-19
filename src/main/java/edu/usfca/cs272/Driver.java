@@ -90,7 +90,7 @@ public class Driver {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			if (resultsOutput != null) {
 				try {
-					JsonWriter.writeExactSearch(result, resultsOutput);
+					JsonWriter.writeSearchResults(result, resultsOutput);
 				} catch (IOException e) {
 					System.err.println(e.getMessage());
 				}
