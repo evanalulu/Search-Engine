@@ -201,26 +201,6 @@ public class FileProcessor {
 	}
 	
 	/**
-	 * Checks if the given file path matches any file path in the search results for the specified query.
-	 *
-	 * @param queryString The query string representing the search query.
-	 * @param path The file path to compare against the search results.
-	 * @param result The map containing search results where each query string maps to a list of IndexSearchers.
-	 * @return {@code true} if a matching file path is found in the search results, {@code false} otherwise.
-	 */
-	private static boolean filePathMatch(String queryString, String path, TreeMap<String, ArrayList<IndexSearcher>> result) {
-		ArrayList<IndexSearcher> check = result.get(queryString);
-		java.util.Iterator<IndexSearcher> iterator = check.iterator();
-		
-		while (iterator.hasNext()) {
-			IndexSearcher currentSearcher = iterator.next();
-			if (currentSearcher.getWhere().toString().equalsIgnoreCase(path))
-				return true;
-		}
-		return false;
-	}
-	
-	/**
 	 * Checks if the file path in the given IndexSearcher matches the specified path.
 	 *
 	 * @param searcher The IndexSearcher object containing the file path to compare.
