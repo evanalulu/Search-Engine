@@ -116,6 +116,13 @@ public class FileProcessor {
 		return result;
 	}
 	
+	/**
+	 * Retrieves query terms from a file and returns a set of unique stemmed query terms.
+	 *
+	 * @param path The path to the file containing queries.
+	 * @return A set of unique stemmed query terms, where each query is represented as a sorted set of terms.
+	 * @throws IOException If an I/O error occurs while reading the query file.
+	 */
 	public static Set<TreeSet<String>> getQuery(Path path) throws IOException {
 		Set<TreeSet<String>> query = new HashSet<>();
 
@@ -132,7 +139,14 @@ public class FileProcessor {
 		}
 		return query;
 	}
-
+	
+	/**
+	 * Performs search based on the provided query, updating the result map with search results.
+	 *
+	 * @param query The query terms to search for.
+	 * @param index The inverted index to search within.
+	 * @param result The map to store the search results, where each query term maps to a list of IndexSearchers.
+	 */
 	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 		String queryString = treeSetToString(query);
@@ -186,6 +200,14 @@ public class FileProcessor {
 		}
 	}
 	
+	/**
+	 * Checks if the given file path matches any file path in the search results for the specified query.
+	 *
+	 * @param queryString The query string representing the search query.
+	 * @param path The file path to compare against the search results.
+	 * @param result The map containing search results where each query string maps to a list of IndexSearchers.
+	 * @return {@code true} if a matching file path is found in the search results, {@code false} otherwise.
+	 */
 	private static boolean filePathMatch(String queryString, String path, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		ArrayList<IndexSearcher> check = result.get(queryString);
 		java.util.Iterator<IndexSearcher> iterator = check.iterator();
@@ -198,10 +220,23 @@ public class FileProcessor {
 		return false;
 	}
 	
+	/**
+	 * Checks if the file path in the given IndexSearcher matches the specified path.
+	 *
+	 * @param searcher The IndexSearcher object containing the file path to compare.
+	 * @param path The file path to compare against.
+	 * @return {@code true} if the file path in the IndexSearcher matches the specified path, {@code false} otherwise.
+	 */
 	private static boolean filePathMatch(IndexSearcher searcher, String path) {
 		return (searcher.getWhere().toString().equalsIgnoreCase(path));
 	}
 	
+	/**
+	 * Converts the elements of a TreeSet into a single string using {@link StringBuilder}.
+	 *
+	 * @param treeSet The TreeSet to convert into a string.
+	 * @return A string representation of the TreeSet elements.
+	 */
 	private static String treeSetToString(TreeSet<String> treeSet) {
 		StringBuilder sb = new StringBuilder();
 		for (String element : treeSet) {
@@ -213,6 +248,14 @@ public class FileProcessor {
 		return sb.toString();
 	}
 	
+	/**
+	 * Calculates the score for a given search result based on the total number of matches and total words in the document.
+	 *
+	 * @param index The inverted index containing word count information.
+	 * @param path The path of the document to calculate the score for.
+	 * @param totalMatches The total number of matches for the query term in the document.
+	 * @return The calculated score as a formatted string.
+	 */
 	private static String calculateScore(InvertedIndex index, String path, int totalMatches) {
 		DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
 		
@@ -222,6 +265,13 @@ public class FileProcessor {
 		return formattedScore;
 	}
 	
+	/**
+	 * Finds the total number of words in a document based on the given query term.
+	 *
+	 * @param index The inverted index containing word count information.
+	 * @param queryTerm The query term for which the total word count is required.
+	 * @return The total number of words in the document containing the query term.
+	 */
 	private static int findTotalWords(InvertedIndex index, String queryTerm) {
 		Map<String, Integer> wordCountMap = index.getWordCountMap();
 	
