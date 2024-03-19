@@ -78,13 +78,21 @@ public class Driver {
 		
 		if (parser.hasFlag("-query")) {
 			query = parser.getPath("-query");
-			Path exactSearch = parser.getPath("-results");
-			System.out.println(exactSearch);
 			try {
 				result = FileProcessor.readQuery(query, index);
-				JsonWriter.writeExactSearch(result, exactSearch);
 			} catch (IOException e) {
-				System.err.println(e.getMessage());
+				System.err.println("Error getting search results: " + e.getMessage());
+			}
+		}
+		
+		if (parser.hasFlag("-results")) {
+			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
+			if (resultsOutput != null) {
+				try {
+					JsonWriter.writeExactSearch(result, resultsOutput);
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+				}
 			}
 		}
 	}
