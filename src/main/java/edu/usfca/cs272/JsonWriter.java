@@ -88,6 +88,27 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 */
 	public static void writeArray(Collection<? extends Number> elements, Writer writer, int indent) throws IOException {
+		/*
+		 * TODO Refactor your approach based on the discussion from the Feb 22nd remote
+		 * lecture. Start with writeArray then when that is working, use that approach
+		 * in all of the other relevant methods. See post #229 on Piazza for a link to
+		 * the lecture (the post can be found under the homework/jsonwriter folder).
+		 * 
+		 * Try not to wait until code review to practice the refactoring discussed in
+		 * class to reduce the number of code review rounds needed!
+		 */
+
+		// TODO I already gave you this comment: https://github.com/usf-cs272-spring2024/project-evanalulu/blob/f3d67b6ffd5e14909abd2d5f8fb373e9c85049c5/src/main/java/edu/usfca/cs272/JsonWriter.java#L76
+		
+		/*
+		 * TODO At this point, given the warning, formatting issues, and incomplete
+		 * TODO comments from last time (and some from your Bundle 1 review), I am
+		 * discontinuing to review any additional code this time around.
+		 * 
+		 * Please do not request code review until you have addressed past comments
+		 * and finished a cleanup pass of your code!
+		 */
+		
 		writer.write("[");
 		if (!elements.isEmpty()) {
 			writer.write(System.lineSeparator());
@@ -384,6 +405,17 @@ public class JsonWriter {
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
 	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+		/*
+		 * TODO Try to make this type more generic (here and in other methods in this
+		 * class) so that it works with any type of map and collection and number. Use
+		 * the other methods as a clue of how to make this work. The ? extends syntax is
+		 * important for nested types! Reach out on Piazza if you run into issues---it
+		 * is a really hard generic type to get just right!
+		 */
+
+		/*
+		 * TODO So much duplicate code! What JsoNWriter method could you reuse here for the inner treemap?
+		 */
 		if (wordPositionsMap.isEmpty()) {
 			writer.write("{");
 			writer.write(System.lineSeparator());
@@ -477,7 +509,7 @@ public class JsonWriter {
 	 *
 	 * @param args unused
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) { // TODO Remove
 		Set<Integer> empty = Collections.emptySet();
 		Set<Integer> single = Set.of(42);
 		List<Integer> simple = List.of(65, 66, 67);

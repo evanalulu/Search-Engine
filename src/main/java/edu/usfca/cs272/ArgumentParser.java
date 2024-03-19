@@ -57,6 +57,14 @@ public class ArgumentParser {
 				!Character.isDigit(arg.codePointAt(1)));
 	}
 	
+	/*
+	 * TODO I recommend removing these new isText, etc. static methods from here.
+	 * Those are specific to the project, and do not belong in a general class like
+	 * the ArgumentParser.
+	 * 
+	 * Instead, put them in Driver, where we place the other project-specific code.
+	 */
+	
 	/**
 	 * Checks if the specified string represents a text flag.
 	 *
@@ -64,6 +72,14 @@ public class ArgumentParser {
 	 * @return {@code true} if the string is a text flag ("-text"), {@code false} otherwise
 	 */
 	public static boolean isText(String arg) {
+		/*
+		 * TODO Any of the ternary return statements that only choose between true and
+		 * false can be replaced with just the return itself. For example:
+		 * 
+		 * return isFlag(arg) && arg.equalsIgnoreCase("-text");
+		 * 
+		 * Fix this issue here and everywhere!
+		 */
 		return (isFlag(arg) && arg.equalsIgnoreCase("-text")) ? true : false; 
 	}
 
@@ -106,10 +122,17 @@ public class ArgumentParser {
 	 */
 	public void parse(String[] args) {
 		for (int i = 0; i < args.length; i++) {
-		    String flag = args[i], value = (i + 1 < args.length) ? args[i + 1] : null;
+		    String flag = args[i], value = (i + 1 < args.length) ? args[i + 1] : null; // TODO Mix of tabs and spaces
 			if (isFlag(flag)) {
 				if (isValue(value))
-					map.put(flag.substring(1), value);
+					/*
+					 * TODO Do not use the substring, go ahead and store the - dash. This will
+					 * improve efficiency, so that you don't need the substring in all of the other
+					 * methods as well. We do not have so many flags that it will cause memory
+					 * issues storing the extra character. But, any kind of String manipulation
+					 * can result in more memory and time spent in the code!
+					 */
+					map.put(flag.substring(1), value); 
 				else
 					map.put(flag.substring(1), null);
 			}
@@ -171,6 +194,7 @@ public class ArgumentParser {
 	 *   there is no mapping
 	 */
 	public String getString(String flag) {
+		// TODO Simplify, just need return map.get(flag.substring(1));
 		return (hasValue(flag)) ? map.get(flag.substring(1)) : null;
 	}
 
@@ -189,6 +213,10 @@ public class ArgumentParser {
 	 * @see Path#of(String, String...)
 	 */
 	public Path getPath(String flag, Path backup) {
+		/*
+		 * TODO Does not account for the InvalidPathException thrown by Path.of.
+		 * Use an approach similar to getInteger instead.
+		 */
 		String pathString = getString(flag, null);
         return (pathString != null) ? java.nio.file.Path.of(pathString) : backup;
 	}
@@ -207,8 +235,9 @@ public class ArgumentParser {
 	 * @see #getPath(String, Path)
 	 */
 	public Path getPath(String flag) {
+		// TODO Try to reuse the other getPath here instead to avoid the duplicate logic.
 		String pathString = getString(flag, null);
-        return (pathString != null) ? java.nio.file.Path.of(pathString) : null;
+        return (pathString != null) ? java.nio.file.Path.of(pathString) : null; // TODO Mix of tabs and spaces in a few places in this class!
 	}
 
 	/**
@@ -226,7 +255,7 @@ public class ArgumentParser {
 	public int getInteger(String flag, int backup) {
 	    try {
 	        return Integer.parseInt(getString(flag));
-	    } catch (NumberFormatException ignored) {
+	    } catch (NumberFormatException ignored) { // TODO catch (NumberFormatException | NullPointerException ignored) { (in case getString returns null)
 	        return backup;
 	    }
 	}
@@ -242,7 +271,7 @@ public class ArgumentParser {
 	 *
 	 * @see #getInteger(String, int)
 	 */
-	public int getInteger(String flag) {
+	public int getInteger(String flag) { // TODO Reuse getInteger(String, int) here instead
 	    try {
 	        return Integer.parseInt(getString(flag));
 	    } catch (NumberFormatException ignored) {
@@ -260,7 +289,7 @@ public class ArgumentParser {
 	 *
 	 * @param args the arguments to test
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) { // TODO Can delete these old main methods used for debugging at this point!
 
 		if (args.length < 1) {
 			args = new String[] {"-text", "world", "-counts"};

@@ -73,3 +73,33 @@ public class Driver {
 		}
 	}
 }
+
+/*
+ * TODO Fix the Javadoc warnings in the code.
+ * 
+ * Other developers will *not* use poorly unprofessionally documented code
+ * regardless of whether the code itself is well designed! It is a tedious but
+ * critical step to the final steps of refactoring. The "Configuring Eclipse"
+ * guide on the course website shows how to setup Eclipse to see the Javadoc
+ * warnings. (Open the "View Screenshot" section.)
+ * 
+ * As announced on Piazza, when conducting asynchronous reviews, I will no
+ * longer review code with warnings or major formatting issues in it. That is a
+ * sign you still need to do a cleanup pass of your code. Please do a complete
+ * pass of your code for these issues before requesting code review. See the
+ * "Project Review" guide for details.
+ * 
+ * For reference, direct links to the guides and the warnings found are included
+ * below.
+ * 
+ * Because this is only ONE warning, I'll move forward with the review this time.
+ * I will not do that again in the future!
+ */
+
+// Configuring Eclipse: https://usf-cs272-spring2024.notion.site/Configuring-Eclipse-4f735d746e004dbdbc34af6ad2d988cd#1a1a870909bb45f2a92ef5fc51038635
+// Project Review: https://usf-cs272-spring2024.notion.site/Project-Review-c04d5128395a4eb499e30f6fbd0c0352
+
+/*-
+Description	Resource	Path	Location	Type
+Javadoc: Missing comment for public declaration	ArgumentParser.java	/SearchEngine/src/main/java/edu/usfca/cs272	line 128	Java Problem
+*/
