@@ -9,15 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import javax.swing.text.html.HTMLDocument.Iterator;
 
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
@@ -41,23 +38,23 @@ public class FileProcessor {
 	 * @throws IOException if an I/O error occurs while traversing the directory or reading files
 	 */
 	public static void traverseDirectory(Path directory, InvertedIndex index) throws IOException {
-        try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
-            for (Path path : paths) {
-                if (Files.isDirectory(path)) {
-                    traverseDirectory(path, index);
-                } else if (Files.isRegularFile(path) && isExtensionText(path)) {
-                    try {
-                        readFile(path, index);
-                        Map<String, Integer> wordCountMap = index.getWordCountMap();
-                        int wordCount = wordCountMap.get(path.toString());
-	                    if (wordCount > 0) index.addCount(path.toString(), wordCount);
-                    } catch (IOException e) {
-                        // 
-                    }
-                }
-            }
-        }
-    }
+		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
+			for (Path path : paths) {
+				if (Files.isDirectory(path)) {
+					traverseDirectory(path, index);
+				} else if (Files.isRegularFile(path) && isExtensionText(path)) {
+					try {
+						readFile(path, index);
+						Map<String, Integer> wordCountMap = index.getWordCountMap();
+						int wordCount = wordCountMap.get(path.toString());
+						if (wordCount > 0) index.addCount(path.toString(), wordCount);
+					} catch (IOException e) {
+						
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Reads the content of the specified file, parses it line by line, and updates the inverted index.
@@ -71,123 +68,121 @@ public class FileProcessor {
 	public static void readFile(Path path, InvertedIndex index) throws IOException {
 		int wordCount = 0;
 
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
-            String line;
-            int position = 1;
-    		Stemmer stemmer = new SnowballStemmer(ENGLISH);
-            while ((line = reader.readLine()) != null) {
-                String[] words = FileStemmer.parse(line);
-                wordCount += words.length;
-
-                for (String word : words) {
-                    String stemmedWord = FileStemmer.findStem(word, stemmer);
-                    index.addWord(stemmedWord, path.toString(), position);
-                    position++;
-                }
-            }
-            index.addCount(path.toString(), wordCount);
-        }
-   	}
-	
-    
-    /**
-     * Checks if the file extension of the specified path corresponds to a text file.
-     *
-     * @param path the path of the file to check
-     * @return {@code true} if the file extension is ".txt" or ".text", {@code false} otherwise
-     */
-	public static boolean isExtensionText(Path path) {
-	    String extension = path.toString().toLowerCase();
-	    return extension.endsWith(".txt") || extension.endsWith(".text");
+		try (BufferedReader reader = Files.newBufferedReader(path)) {
+			String line;
+			int position = 1;
+			Stemmer stemmer = new SnowballStemmer(ENGLISH);
+			while ((line = reader.readLine()) != null) {
+				String[] words = FileStemmer.parse(line);
+				wordCount += words.length;
+				
+				for (String word : words) {
+					String stemmedWord = FileStemmer.findStem(word, stemmer);
+					index.addWord(stemmedWord, path.toString(), position);
+					position++;
+				}
+			}
+			index.addCount(path.toString(), wordCount);
+		}
 	}
-		
+
+	/**
+	 * Checks if the file extension of the specified path corresponds to a text file.
+	 *
+	 * @param path the path of the file to check
+	 * @return {@code true} if the file extension is ".txt" or ".text", {@code false} otherwise
+	 */
+	public static boolean isExtensionText(Path path) {
+		String extension = path.toString().toLowerCase();
+		return extension.endsWith(".txt") || extension.endsWith(".text");
+	}
+
+	/**
+	 * Reads queries from a file and performs search on an inverted index.
+	 * 
+	 * @param path The path to the file containing queries.
+	 * @param index The inverted index to perform searches on.
+	 * @return A TreeMap where each query term maps to a list of IndexSearchers containing search results.
+	 * @throws IOException If an I/O error occurs while reading the query file.
+	 */
 	public static TreeMap<String, ArrayList<IndexSearcher>> readQuery(Path path, InvertedIndex index) throws IOException {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 		
-        Set<TreeSet<String>> query = getQuery(path);
-        for (TreeSet<String> querySet : query) {
-        	performSearch(querySet, index, result);
-        }
-        
-        return result;
+		Set<TreeSet<String>> query = getQuery(path);
+		for (TreeSet<String> querySet : query) {
+			performSearch(querySet, index, result);
+		}
+
+		return result;
 	}
 	
 	public static Set<TreeSet<String>> getQuery(Path path) throws IOException {
-        Set<TreeSet<String>> query = new HashSet<>();
+		Set<TreeSet<String>> query = new HashSet<>();
 
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-            	if (line.trim().isEmpty()) {
-                    continue;
-                }
-                String[] words = FileStemmer.parse(line);
-                String wordsString = String.join(" ", words);
-                if (!wordsString.isEmpty())
-                	query.add(FileStemmer.uniqueStems(wordsString));
-            }
-        }
-        return query;
+		try (BufferedReader reader = Files.newBufferedReader(path)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.trim().isEmpty()) continue;
+				
+				String[] words = FileStemmer.parse(line);
+				String wordsString = String.join(" ", words);
+				if (!wordsString.isEmpty())
+					query.add(FileStemmer.uniqueStems(wordsString));
+			}
+		}
+		return query;
 	}
 
 	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 		String queryString = treeSetToString(query);
-
+		
 		for (String queryTerm : query) {
-			boolean filePathPassed = false;
-		    ArrayList<IndexSearcher> innerList = new ArrayList<>();
-		    if (indexMap.containsKey(queryTerm)) {
-		        TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
-		        for (var entry : innerIndexMap.entrySet()) {
-		            String path = entry.getKey();
-		            ArrayList<Integer> value = entry.getValue();
-		                                
-		            if (result.containsKey(queryString) && filePathMatch(queryString, path, result)) {
-		                ArrayList<IndexSearcher> check = result.get(queryString);
-		                filePathPassed = true;
-		                
-		                java.util.Iterator<IndexSearcher> iterator = check.iterator();
-
-		                while (iterator.hasNext()) {
-		                    IndexSearcher currentSearcher = iterator.next();
-		                    if (filePathMatch(currentSearcher, path)) {
-		                        int totalMatches = value.size();
-		                        currentSearcher.addCount(totalMatches);
-		                        
-		                        String score = calculateScore(index, path, currentSearcher.getCount());
-		                        currentSearcher.setScore(score);
-		                        
-		                        innerList.add(currentSearcher);
-		                    }
-		                }
-		            } else {
-		                IndexSearcher searcher = new IndexSearcher(0, null, null);
-		                
-		                int totalMatches = value.size();
-		                searcher.setCount(totalMatches);
-		                
-		                String score = calculateScore(index, path, totalMatches);
-		                searcher.setScore(score);
-		                
-		                searcher.setWhere(Path.of(path));
-		                
-		                innerList.add(searcher);
-		            }
-		        }
-		    }
-            
-		    if (result.containsKey(queryString) && !filePathPassed) {
-		        ArrayList<IndexSearcher> existingSearchers = result.get(queryString);
-		        existingSearchers.addAll(innerList);
-		    } else {
-	            Collections.sort(innerList);
-		        result.put(queryString, innerList);
-		    }
-		    
-            Collections.sort(result.get(queryString));
-            
-//            Driver.printTreeMap(result);
+			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+			if (indexMap.containsKey(queryTerm)) {
+				TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
+				for (var entry : innerIndexMap.entrySet()) {
+					String path = entry.getKey();
+					ArrayList<Integer> value = entry.getValue();
+					
+					boolean matched = false;
+					if (result.containsKey(queryString)) {
+						ArrayList<IndexSearcher> searchers = result.get(queryString);
+						
+						for (IndexSearcher searcher : searchers) {
+							/* Same file path exists within results */
+							if (filePathMatch(searcher, path)) {
+								int totalMatches = value.size();
+								searcher.addCount(totalMatches);
+								
+								String score = calculateScore(index, path, searcher.getCount());
+								searcher.setScore(score);
+								
+								matched = true;
+								break;
+							}
+						}
+					}
+					
+					/* Same file path doesn't exist within results */
+					if (!matched) {
+						int totalMatches = value.size();
+						String score = calculateScore(index, path, totalMatches);
+						IndexSearcher searcher = new IndexSearcher(totalMatches, score, Path.of(path));
+						innerList.add(searcher);
+					}
+				}
+			}
+			
+			if (result.containsKey(queryString)) {
+				if (!innerList.isEmpty())
+					result.get(queryString).addAll(innerList);
+			} else {
+				Collections.sort(innerList);
+				result.put(queryString, innerList);
+			}
+			
+			Collections.sort(result.get(queryString));
 		}
 	}
 	
@@ -196,45 +191,43 @@ public class FileProcessor {
 		java.util.Iterator<IndexSearcher> iterator = check.iterator();
 		
 		while (iterator.hasNext()) {
-		    IndexSearcher currentSearcher = iterator.next();
-		    if (currentSearcher.getWhere().toString().equalsIgnoreCase(path))
-		    	return true;
+			IndexSearcher currentSearcher = iterator.next();
+			if (currentSearcher.getWhere().toString().equalsIgnoreCase(path))
+				return true;
 		}
 		return false;
 	}
-	
 	
 	private static boolean filePathMatch(IndexSearcher searcher, String path) {
 		return (searcher.getWhere().toString().equalsIgnoreCase(path));
 	}
 	
-    private static String treeSetToString(TreeSet<String> treeSet) {
-        StringBuilder sb = new StringBuilder();
-        for (String element : treeSet) {
-            sb.append(element).append(" ");
-        }
-        if (!treeSet.isEmpty()) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        return sb.toString();
-    }
-    
-    private static String calculateScore(InvertedIndex index, String path, int totalMatches) {
-    	DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
-    	
-    	int totalWords = findTotalWords(index, path);
-    	double score = (double) totalMatches/totalWords;
-        String formattedScore = FORMATTER.format(score);
-        return formattedScore;
-    	
-    }
-    
-    private static int findTotalWords(InvertedIndex index, String queryTerm) {
-    	Map<String, Integer> wordCountMap = index.getWordCountMap();
-
-    	if (wordCountMap.containsKey(queryTerm)) {
-    		return wordCountMap.get(queryTerm);
-    	}
-    	return -1;
-    }
+	private static String treeSetToString(TreeSet<String> treeSet) {
+		StringBuilder sb = new StringBuilder();
+		for (String element : treeSet) {
+			sb.append(element).append(" ");
+		}
+		if (!treeSet.isEmpty()) {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb.toString();
+	}
+	
+	private static String calculateScore(InvertedIndex index, String path, int totalMatches) {
+		DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+		
+		int totalWords = findTotalWords(index, path);
+		double score = (double) totalMatches/totalWords;
+		String formattedScore = FORMATTER.format(score);
+		return formattedScore;
+	}
+	
+	private static int findTotalWords(InvertedIndex index, String queryTerm) {
+		Map<String, Integer> wordCountMap = index.getWordCountMap();
+	
+		if (wordCountMap.containsKey(queryTerm)) {
+			return wordCountMap.get(queryTerm);
+		}
+		return -1;
+	}
 }
