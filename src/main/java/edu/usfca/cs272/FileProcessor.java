@@ -110,7 +110,7 @@ public class FileProcessor {
 		
 		Set<TreeSet<String>> query = getQuery(path);
 		for (TreeSet<String> querySet : query) {
-			performSearch(querySet, index, result);
+			partialSearch(querySet, index, result);
 		}
 
 		return result;
@@ -147,7 +147,7 @@ public class FileProcessor {
 	 * @param index The inverted index to search within.
 	 * @param result The map to store the search results, where each query term maps to a list of IndexSearchers.
 	 */
-	private static void performSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
+	private static void exactSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
 		String queryString = treeSetToString(query);
 		
@@ -199,6 +199,71 @@ public class FileProcessor {
 			Collections.sort(result.get(queryString));
 		}
 	}
+	
+	private static void partialSearch(TreeSet<String> query, InvertedIndex index, TreeMap<String, ArrayList<IndexSearcher>> result) {
+		TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap = index.getIndexMap();
+		String queryString = treeSetToString(query);
+		
+		for (String queryTerm : query) {
+			for (String key : indexMap.keySet()) {
+			    if (key.startsWith(queryTerm)) {
+			    	TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(key);
+			    	System.out.println(innerIndexMap);
+			    }
+			}
+		
+			
+//			
+//			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+//			if (indexMap.containsKey(queryTerm)) {
+//				TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
+//				System.out.println(innerIndexMap);
+//
+//				for (var entry : innerIndexMap.entrySet()) {					
+//					String path = entry.getKey();
+//					ArrayList<Integer> value = entry.getValue();
+//					
+//					boolean matched = false;
+//					if (result.containsKey(queryString)) {
+//						ArrayList<IndexSearcher> searchers = result.get(queryString);
+//						
+//						for (IndexSearcher searcher : searchers) {
+//							/* Same file path exists within results */
+//							if (filePathMatch(searcher, path)) {
+//								int totalMatches = value.size();
+//								searcher.addCount(totalMatches);
+//								
+//								String score = calculateScore(index, path, searcher.getCount());
+//								searcher.setScore(score);
+//								
+//								matched = true;
+//								break;
+//							}
+//						}
+//					}
+//					
+//					/* Same file path doesn't exist within results */
+//					if (!matched) {
+//						int totalMatches = value.size();
+//						String score = calculateScore(index, path, totalMatches);
+//						IndexSearcher searcher = new IndexSearcher(totalMatches, score, Path.of(path));
+//						innerList.add(searcher);
+//					}
+//				}
+//			}
+//			
+//			if (result.containsKey(queryString)) {
+//				if (!innerList.isEmpty())
+//					result.get(queryString).addAll(innerList);
+//			} else {
+//				Collections.sort(innerList);
+//				result.put(queryString, innerList);
+//			}
+//			
+//			Collections.sort(result.get(queryString));
+		}
+	}
+	
 	
 	/**
 	 * Checks if the file path in the given IndexSearcher matches the specified path.
