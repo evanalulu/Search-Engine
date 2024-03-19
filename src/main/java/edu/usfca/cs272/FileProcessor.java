@@ -102,15 +102,19 @@ public class FileProcessor {
 	 * 
 	 * @param path The path to the file containing queries.
 	 * @param index The inverted index to perform searches on.
+	 * @param isPartial If -partial search is requested
 	 * @return A TreeMap where each query term maps to a list of IndexSearchers containing search results.
 	 * @throws IOException If an I/O error occurs while reading the query file.
 	 */
-	public static TreeMap<String, ArrayList<IndexSearcher>> readQuery(Path path, InvertedIndex index) throws IOException {
+	public static TreeMap<String, ArrayList<IndexSearcher>> readQuery(Path path, InvertedIndex index, Boolean isPartial) throws IOException {
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 		
 		Set<TreeSet<String>> query = getQuery(path);
 		for (TreeSet<String> querySet : query) {
-			partialSearch(querySet, index, result);
+			if (isPartial)
+				partialSearch(querySet, index, result);
+			else
+				exactSearch(querySet, index, result);
 		}
 
 		return result;
@@ -205,62 +209,54 @@ public class FileProcessor {
 		String queryString = treeSetToString(query);
 		
 		for (String queryTerm : query) {
+			ArrayList<IndexSearcher> innerList = new ArrayList<>();
 			for (String key : indexMap.keySet()) {
-			    if (key.startsWith(queryTerm)) {
-			    	TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(key);
-			    	System.out.println(innerIndexMap);
-			    }
+				if (key.startsWith(queryTerm)) {
+					TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(key);
+					
+					for (var entry : innerIndexMap.entrySet()) {
+						String path = entry.getKey();
+						ArrayList<Integer> value = entry.getValue();
+						
+						boolean matched = false;
+						if (result.containsKey(queryString)) {
+							ArrayList<IndexSearcher> searchers = result.get(queryString);
+							
+							for (IndexSearcher searcher : searchers) {
+								/* Same file path exists within results */
+								if (filePathMatch(searcher, path)) {
+									int totalMatches = value.size();
+									searcher.addCount(totalMatches);
+									
+									String score = calculateScore(index, path, searcher.getCount());
+									searcher.setScore(score);
+									
+									matched = true;
+									break;
+								}
+							}
+						}
+						
+						/* Same file path doesn't exist within results */
+						if (!matched) {
+							int totalMatches = value.size();
+							String score = calculateScore(index, path, totalMatches);
+							IndexSearcher searcher = new IndexSearcher(totalMatches, score, Path.of(path));
+							innerList.add(searcher);
+						}
+					}
+				}
 			}
-		
+
+			if (result.containsKey(queryString)) {
+				if (!innerList.isEmpty())
+					result.get(queryString).addAll(innerList);
+			} else {
+				Collections.sort(innerList);
+				result.put(queryString, innerList);
+			}
 			
-//			
-//			ArrayList<IndexSearcher> innerList = new ArrayList<>();
-//			if (indexMap.containsKey(queryTerm)) {
-//				TreeMap<String, ArrayList<Integer>> innerIndexMap = indexMap.get(queryTerm);
-//				System.out.println(innerIndexMap);
-//
-//				for (var entry : innerIndexMap.entrySet()) {					
-//					String path = entry.getKey();
-//					ArrayList<Integer> value = entry.getValue();
-//					
-//					boolean matched = false;
-//					if (result.containsKey(queryString)) {
-//						ArrayList<IndexSearcher> searchers = result.get(queryString);
-//						
-//						for (IndexSearcher searcher : searchers) {
-//							/* Same file path exists within results */
-//							if (filePathMatch(searcher, path)) {
-//								int totalMatches = value.size();
-//								searcher.addCount(totalMatches);
-//								
-//								String score = calculateScore(index, path, searcher.getCount());
-//								searcher.setScore(score);
-//								
-//								matched = true;
-//								break;
-//							}
-//						}
-//					}
-//					
-//					/* Same file path doesn't exist within results */
-//					if (!matched) {
-//						int totalMatches = value.size();
-//						String score = calculateScore(index, path, totalMatches);
-//						IndexSearcher searcher = new IndexSearcher(totalMatches, score, Path.of(path));
-//						innerList.add(searcher);
-//					}
-//				}
-//			}
-//			
-//			if (result.containsKey(queryString)) {
-//				if (!innerList.isEmpty())
-//					result.get(queryString).addAll(innerList);
-//			} else {
-//				Collections.sort(innerList);
-//				result.put(queryString, innerList);
-//			}
-//			
-//			Collections.sort(result.get(queryString));
+			Collections.sort(result.get(queryString));
 		}
 	}
 	
