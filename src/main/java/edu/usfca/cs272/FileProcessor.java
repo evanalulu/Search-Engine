@@ -225,12 +225,13 @@ public class FileProcessor {
 							for (IndexSearcher searcher : searchers) {
 								/* Same file path exists within results */
 								if (filePathMatch(searcher, path)) {
+									System.out.println("Match found for path: " + path);
 									int totalMatches = value.size();
+									System.out.println("Before update: " + searcher);
 									searcher.addCount(totalMatches);
-									
 									String score = calculateScore(index, path, searcher.getCount());
 									searcher.setScore(score);
-									
+									System.out.println("After update: " + searcher);
 									matched = true;
 									break;
 								}
@@ -247,7 +248,7 @@ public class FileProcessor {
 					}
 				}
 			}
-
+			
 			if (result.containsKey(queryString)) {
 				if (!innerList.isEmpty())
 					result.get(queryString).addAll(innerList);
@@ -255,6 +256,7 @@ public class FileProcessor {
 				Collections.sort(innerList);
 				result.put(queryString, innerList);
 			}
+			System.out.println(result);
 			
 			Collections.sort(result.get(queryString));
 		}
