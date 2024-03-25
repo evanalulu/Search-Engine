@@ -72,7 +72,7 @@ public class JsonWriter {
 		writer.write(element);
 		writer.write('"');
 	}
-	
+
 	/**
 	 * Writes the elements as a pretty JSON array.
 	 *
@@ -89,19 +89,20 @@ public class JsonWriter {
 	 */
 	public static void writeArray(Collection<? extends Number> elements, Writer writer, int indent) throws IOException {
 		writer.write("[");
+
+		var iterator = elements.iterator();
+
 		if (!elements.isEmpty()) {
-			writer.write(System.lineSeparator());
-			Iterator<? extends Number> iterator = elements.iterator();
+			writer.write("\n");
+
+			writeIndent(iterator.next().toString(), writer, indent + 1);
+
 			while (iterator.hasNext()) {
-				Number element = iterator.next();
-				writeIndent(element.toString(), writer, indent + 1);
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+				writer.write(",\n");
+				writeIndent(iterator.next().toString(), writer, indent + 1);
 			}
 		}
-		writer.write(System.lineSeparator());
+		writer.write("\n");
 		writeIndent("]", writer, indent);
 	}
 
@@ -157,31 +158,28 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 */
 	public static void writeObject(Map<String, ? extends Number> elements, Writer writer, int indent) throws IOException {
-		if (elements.size() == 0) {
-			writer.write("{");
-			writer.write(System.lineSeparator());
-			writer.write("}");
-		} else {
-			writer.write("{");
-			writer.write(System.lineSeparator());
-			Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
+		writer.write("{");
+
+		Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
+
+		if (!elements.isEmpty()) {
+			writer.write("\n");
+			if (iterator.hasNext()) {
+				Map.Entry<String, ? extends Number> firstEntry = iterator.next();
+				writeIndent('"' + firstEntry.getKey() + "\": " + firstEntry.getValue(), writer, indent + 1);
+			}
+
 			while (iterator.hasNext()) {
 				Map.Entry<String, ? extends Number> entry = iterator.next();
 				String key = entry.getKey();
 				Number value = entry.getValue();
-				
-				if (value.intValue() == 0) continue;
-				
+
+				writer.write(",\n");
 				writeIndent('"' + key + "\": " + value.toString(), writer, indent + 1);
-		
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
 			}
-			writer.write(System.lineSeparator());
-			writeIndent("}", writer, indent);
 		}
+		writer.write("\n");
+		writeIndent("}", writer, indent);
 	}
 
 	/**
@@ -238,29 +236,31 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 * @see #writeArray(Collection)
 	 */
-	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Writer writer, int indent) throws IOException {
+	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Writer writer,
+			int indent) throws IOException {
 		writer.write("{");
-	    if (!elements.isEmpty()) {
-	        writer.write(System.lineSeparator());
-	        Iterator<? extends Map.Entry<String, ? extends Collection<? extends Number>>> iterator = elements.entrySet().iterator();
-	        while (iterator.hasNext()) {
-	            Map.Entry<String, ? extends Collection<? extends Number>> entry = iterator.next();
-	            String key = entry.getKey();
-	            Collection<? extends Number> values = entry.getValue();
+		if (!elements.isEmpty()) {
+			writer.write(System.lineSeparator());
+			Iterator<? extends Map.Entry<String, ? extends Collection<? extends Number>>> iterator = elements.entrySet()
+					.iterator();
+			while (iterator.hasNext()) {
+				Map.Entry<String, ? extends Collection<? extends Number>> entry = iterator.next();
+				String key = entry.getKey();
+				Collection<? extends Number> values = entry.getValue();
 
-	            writeIndent('"' + key + "\": ", writer, indent + 1);
-	            writeArray(values, writer, indent + 1);
+				writeIndent('"' + key + "\": ", writer, indent + 1);
+				writeArray(values, writer, indent + 1);
 
-	            if (iterator.hasNext()) {
-	                writer.write(",");
-	                writer.write(System.lineSeparator());
-	            }
-	        }
-	    } 
+				if (iterator.hasNext()) {
+					writer.write(",");
+					writer.write(System.lineSeparator());
+				}
+			}
+		}
 
-        writer.write(System.lineSeparator());
-        writeIndent("}", writer, indent);
-		 
+		writer.write(System.lineSeparator());
+		writeIndent("}", writer, indent);
+
 	}
 
 	/**
@@ -274,7 +274,8 @@ public class JsonWriter {
 	 * @see StandardCharsets#UTF_8
 	 * @see #writeObjectArrays(Map, Writer, int)
 	 */
-	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Path path) throws IOException {
+	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeObjectArrays(elements, writer, 0);
 		}
@@ -317,7 +318,8 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 * @see #writeObject(Map)
 	 */
-	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Writer writer, int indent) throws IOException {
+	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Writer writer,
+			int indent) throws IOException {
 		writer.write("[");
 		if (!elements.isEmpty()) {
 			writer.write(System.lineSeparator());
@@ -326,7 +328,7 @@ public class JsonWriter {
 				Map<String, ? extends Number> element = iterator.next();
 				writeIndent(writer, indent + 1);
 				writeObject(element, writer, indent + 1);
-				
+
 				if (iterator.hasNext()) {
 					writer.write(",");
 					writer.write(System.lineSeparator());
@@ -348,7 +350,8 @@ public class JsonWriter {
 	 * @see StandardCharsets#UTF_8
 	 * @see #writeArrayObjects(Collection)
 	 */
-	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Path path) throws IOException {
+	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeArrayObjects(elements, writer, 0);
 		}
@@ -373,22 +376,37 @@ public class JsonWriter {
 			return null;
 		}
 	}
-	
+
 	/**
-	 * Writes the contents of the word positions map to the specified writer in JSON format with the given indentation level.
-	 * If the word positions map is empty, it writes an empty JSON object.
+	 * Writes the contents of the word positions map to the specified writer in JSON
+	 * format with the given indentation level. If the word positions map is empty,
+	 * it writes an empty JSON object.
 	 *
 	 * @param wordPositionsMap the word positions map to write
 	 * @param writer the writer to write the JSON content to
 	 * @param indent the indentation level for formatting the JSON
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap,
+			Writer writer, int indent) throws IOException {
+		/*
+		 * TODO Try to make this type more generic (here and in other methods in this
+		 * class) so that it works with any type of map and collection and number. Use
+		 * the other methods as a clue of how to make this work. The ? extends syntax is
+		 * important for nested types! Reach out on Piazza if you run into issues---it
+		 * is a really hard generic type to get just right!
+		 */
+
+		/*
+		 * TODO So much duplicate code! What JsoNWriter method could you reuse here for
+		 * the inner treemap?
+		 */
 		if (wordPositionsMap.isEmpty()) {
 			writer.write("{");
 			writer.write(System.lineSeparator());
 			writer.write("}");
-		} else {
+		}
+		else {
 			writer.write("{");
 			if (!wordPositionsMap.isEmpty()) {
 				writer.write(System.lineSeparator());
@@ -417,7 +435,7 @@ public class JsonWriter {
 									}
 								}
 							}
-		
+
 							writer.write(System.lineSeparator());
 							writeIndent("]", writer, indent + 2);
 							if (++innerCounter < entry.getValue().size()) {
@@ -441,19 +459,21 @@ public class JsonWriter {
 	}
 
 	/**
-	 * Writes the contents of the word positions map to the specified file path in JSON format.
-	 * If the word positions map is empty, it writes an empty JSON object.
+	 * Writes the contents of the word positions map to the specified file path in
+	 * JSON format. If the word positions map is empty, it writes an empty JSON
+	 * object.
 	 *
 	 * @param wordPositionsMap the word positions map to write
 	 * @param path the path to the file to write the JSON content to
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Path path) throws IOException {
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap,
+			Path path) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeWordPositionsMap(wordPositionsMap, writer, 0);
 		}
 	}
-	
+
 	/**
 	 * Writes the contents of the word positions map to a JSON string.
 	 *
@@ -471,13 +491,12 @@ public class JsonWriter {
 		}
 	}
 
-	
 	/**
 	 * Demonstrates this class.
 	 *
 	 * @param args unused
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) { // TODO Remove
 		Set<Integer> empty = Collections.emptySet();
 		Set<Integer> single = Set.of(42);
 		List<Integer> simple = List.of(65, 66, 67);
