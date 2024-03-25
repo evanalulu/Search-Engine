@@ -1,5 +1,6 @@
 package edu.usfca.cs272;
 
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.HashMap;
 
@@ -51,56 +52,8 @@ public class ArgumentParser {
 	 * @see Character#isWhitespace(int)
 	 */
 	public static boolean isFlag(String arg) {
-		return (arg != null && arg.length() >= 2 && 
-				arg.startsWith("-") && 
-				!Character.isWhitespace(arg.codePointAt(1)) && 
-				!Character.isDigit(arg.codePointAt(1)));
-	}
-	
-	/*
-	 * TODO I recommend removing these new isText, etc. static methods from here.
-	 * Those are specific to the project, and do not belong in a general class like
-	 * the ArgumentParser.
-	 * 
-	 * Instead, put them in Driver, where we place the other project-specific code.
-	 */
-	
-	/**
-	 * Checks if the specified string represents a text flag.
-	 *
-	 * @param arg the string to be checked
-	 * @return {@code true} if the string is a text flag ("-text"), {@code false} otherwise
-	 */
-	public static boolean isText(String arg) {
-		/*
-		 * TODO Any of the ternary return statements that only choose between true and
-		 * false can be replaced with just the return itself. For example:
-		 * 
-		 * return isFlag(arg) && arg.equalsIgnoreCase("-text");
-		 * 
-		 * Fix this issue here and everywhere!
-		 */
-		return (isFlag(arg) && arg.equalsIgnoreCase("-text")) ? true : false; 
-	}
-
-	/**
-	 * Checks if the specified string represents a counts flag.
-	 *
-	 * @param arg the string to be checked
-	 * @return {@code true} if the string is a counts flag ("-counts"), {@code false} otherwise
-	 */
-	public static boolean isCounts(String arg) {
-		return (isFlag(arg) && arg.equalsIgnoreCase("-counts")) ? true : false; 
-	}
-	
-	/**
-	 * Checks if the specified string represents an index flag.
-	 *
-	 * @param arg the string to be checked
-	 * @return {@code true} if the string is an index flag ("-index"), {@code false} otherwise
-	 */
-	public static boolean isIndex(String arg) {
-		return (isFlag(arg) && arg.equalsIgnoreCase("-index")) ? true : false; 
+		return (arg != null && arg.length() >= 2 && arg.startsWith("-") && !Character.isWhitespace(arg.codePointAt(1))
+				&& !Character.isDigit(arg.codePointAt(1)));
 	}
 
 	/**
@@ -113,7 +66,7 @@ public class ArgumentParser {
 	public static boolean isValue(String arg) {
 		return !isFlag(arg);
 	}
-	
+
 	/**
 	 * Parses the arguments into flag/value pairs where possible. Some flags may not
 	 * have associated values. If a flag is repeated, its value will be overwritten.
@@ -122,19 +75,14 @@ public class ArgumentParser {
 	 */
 	public void parse(String[] args) {
 		for (int i = 0; i < args.length; i++) {
-		    String flag = args[i], value = (i + 1 < args.length) ? args[i + 1] : null; // TODO Mix of tabs and spaces
+			String flag = args[i], value = (i + 1 < args.length) ? args[i + 1] : null;
 			if (isFlag(flag)) {
-				if (isValue(value))
-					/*
-					 * TODO Do not use the substring, go ahead and store the - dash. This will
-					 * improve efficiency, so that you don't need the substring in all of the other
-					 * methods as well. We do not have so many flags that it will cause memory
-					 * issues storing the extra character. But, any kind of String manipulation
-					 * can result in more memory and time spent in the code!
-					 */
-					map.put(flag.substring(1), value); 
-				else
-					map.put(flag.substring(1), null);
+				if (isValue(value)) {
+					map.put(flag, value);
+				}
+				else {
+					map.put(flag, null);
+				}
 			}
 		}
 	}
@@ -147,9 +95,14 @@ public class ArgumentParser {
 	public int numFlags() {
 		return map.size();
 	}
-	
+
+	/**
+	 * Returns if the parsed map is empty.
+	 * 
+	 * @return {@code true} if parsed map is empty
+	 */
 	public boolean empty() {
-		return (map.size() < 1) ? true : false;
+		return (map.size() < 1);
 	}
 
 	/**
@@ -159,7 +112,7 @@ public class ArgumentParser {
 	 * @return {@code true} if the flag exists
 	 */
 	public boolean hasFlag(String flag) {
-		return map.containsKey(flag.substring(1));
+		return map.containsKey(flag);
 	}
 
 	/**
@@ -169,7 +122,7 @@ public class ArgumentParser {
 	 * @return {@code true} if the flag is mapped to a non-null value
 	 */
 	public boolean hasValue(String flag) {
-		return (map.get(flag.substring(1)) != null) ? true : false;
+		return (map.get(flag) != null) ? true : false;
 	}
 
 	/**
@@ -182,7 +135,7 @@ public class ArgumentParser {
 	 *   if there is no mapping
 	 */
 	public String getString(String flag, String backup) {
-		return (hasValue(flag)) ? map.get(flag.substring(1)) : backup;
+		return (hasValue(flag)) ? map.get(flag) : backup;
 	}
 
 	/**
@@ -194,8 +147,7 @@ public class ArgumentParser {
 	 *   there is no mapping
 	 */
 	public String getString(String flag) {
-		// TODO Simplify, just need return map.get(flag.substring(1));
-		return (hasValue(flag)) ? map.get(flag.substring(1)) : null;
+		return (map.get(flag));
 	}
 
 	/**
@@ -213,12 +165,16 @@ public class ArgumentParser {
 	 * @see Path#of(String, String...)
 	 */
 	public Path getPath(String flag, Path backup) {
-		/*
-		 * TODO Does not account for the InvalidPathException thrown by Path.of.
-		 * Use an approach similar to getInteger instead.
-		 */
-		String pathString = getString(flag, null);
-        return (pathString != null) ? java.nio.file.Path.of(pathString) : backup;
+		try {
+			String pathString = getString(flag, null);
+			if (pathString != null) {
+				return java.nio.file.Path.of(pathString);
+			}
+		}
+		catch (InvalidPathException ignored) {
+			// Ignored exceptions; return the backup value
+		}
+		return backup;
 	}
 
 	/**
@@ -235,9 +191,7 @@ public class ArgumentParser {
 	 * @see #getPath(String, Path)
 	 */
 	public Path getPath(String flag) {
-		// TODO Try to reuse the other getPath here instead to avoid the duplicate logic.
-		String pathString = getString(flag, null);
-        return (pathString != null) ? java.nio.file.Path.of(pathString) : null; // TODO Mix of tabs and spaces in a few places in this class!
+		return getPath(flag, null);
 	}
 
 	/**
@@ -253,11 +207,16 @@ public class ArgumentParser {
 	 * @see Integer#parseInt(String)
 	 */
 	public int getInteger(String flag, int backup) {
-	    try {
-	        return Integer.parseInt(getString(flag));
-	    } catch (NumberFormatException ignored) { // TODO catch (NumberFormatException | NullPointerException ignored) { (in case getString returns null)
-	        return backup;
-	    }
+		try {
+			String stringValue = getString(flag);
+			if (stringValue != null) {
+				return Integer.parseInt(stringValue);
+			}
+		}
+		catch (NumberFormatException | NullPointerException ignored) {
+			// Ignored exceptions; return the backup value
+		}
+		return backup;
 	}
 
 	/**
@@ -271,31 +230,12 @@ public class ArgumentParser {
 	 *
 	 * @see #getInteger(String, int)
 	 */
-	public int getInteger(String flag) { // TODO Reuse getInteger(String, int) here instead
-	    try {
-	        return Integer.parseInt(getString(flag));
-	    } catch (NumberFormatException ignored) {
-	        return 0;
-	    }
+	public int getInteger(String flag) {
+		return getInteger(flag, 0);
 	}
 
 	@Override
 	public String toString() {
 		return this.map.toString();
-	}
-
-	/**
-	 * Demonstrates this class.
-	 *
-	 * @param args the arguments to test
-	 */
-	public static void main(String[] args) { // TODO Can delete these old main methods used for debugging at this point!
-
-		if (args.length < 1) {
-			args = new String[] {"-text", "world", "-counts"};
-		}
-		
-		ArgumentParser map = new ArgumentParser(args);
-		System.out.println(map);
 	}
 }
