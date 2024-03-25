@@ -239,10 +239,12 @@ public class FileStemmer {
 	public static ArrayList<TreeSet<String>> listUniqueStems(Path input) throws IOException {
 		ArrayList<TreeSet<String>> uniqueStems = new ArrayList<>();
 
+		Stemmer stemmer = new SnowballStemmer(ENGLISH);
+
 		try (BufferedReader reader = Files.newBufferedReader(input, UTF_8);) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
-				uniqueStems.add(uniqueStems(line));
+				uniqueStems.add(uniqueStems(line, stemmer));
 			}
 		}
 
