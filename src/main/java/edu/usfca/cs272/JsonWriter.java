@@ -407,38 +407,46 @@ public class JsonWriter {
 	public static void writeWordPositionsMap(
 			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Writer writer,
 			int indent) throws IOException {
+
 		writer.write("{");
 
 		if (!wordPositionsMap.isEmpty()) {
 			writer.write(System.lineSeparator());
-			int counter = 0;
+			boolean isFirstOuterEntry = true;
+
 			for (Map.Entry<String, ? extends Map<String, ? extends Collection<? extends Number>>> outerEntry : wordPositionsMap
 					.entrySet()) {
-				writeIndent("\"" + outerEntry.getKey() + "\": {", writer, indent + 1);
-				if (!outerEntry.getValue().isEmpty()) {
+				if (!isFirstOuterEntry) {
+					writer.write(",");
 					writer.write(System.lineSeparator());
-					int innerCounter = 0;
-					for (Map.Entry<String, ? extends Collection<? extends Number>> entry : outerEntry.getValue().entrySet()) {
-						writeIndent(writer, indent + 2);
-						writeObjectCollection(entry, writer, indent + 2);
-						if (++innerCounter < outerEntry.getValue().size()) {
+				}
+
+				writeIndent("\"" + outerEntry.getKey() + "\": {", writer, indent + 1);
+
+				Map<String, ? extends Collection<? extends Number>> innerMap = outerEntry.getValue();
+				if (!innerMap.isEmpty()) {
+					writer.write(System.lineSeparator());
+					boolean isFirstInnerEntry = true;
+
+					for (Map.Entry<String, ? extends Collection<? extends Number>> innerEntry : innerMap.entrySet()) {
+						if (!isFirstInnerEntry) {
 							writer.write(",");
+							writer.write(System.lineSeparator());
 						}
-						writer.write(System.lineSeparator());
+						writeIndent("\"" + innerEntry.getKey() + "\": ", writer, indent + 2);
+						writeArray(innerEntry.getValue(), writer, indent + 2);
+						isFirstInnerEntry = false;
 					}
 				}
-				writeIndent("}", writer, indent + 1);
-				if (++counter < wordPositionsMap.size()) {
-					writer.write(",");
-				}
+
 				writer.write(System.lineSeparator());
+				writeIndent("}", writer, indent + 1);
+				isFirstOuterEntry = false;
 			}
-			writeIndent("}", writer, indent);
 		}
-		else {
-			writer.write(System.lineSeparator());
-			writeIndent("}", writer, indent);
-		}
+
+		writer.write(System.lineSeparator());
+		writer.write("}");
 	}
 
 	/**
