@@ -85,6 +85,27 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 */
 	public static void writeArray(Collection<? extends Number> elements, Writer writer, int indent) throws IOException {
+		/*
+		 * TODO Refactor your approach based on the discussion from the Feb 22nd remote
+		 * lecture. Start with writeArray then when that is working, use that approach
+		 * in all of the other relevant methods. See post #229 on Piazza for a link to
+		 * the lecture (the post can be found under the homework/jsonwriter folder).
+		 * 
+		 * Try not to wait until code review to practice the refactoring discussed in
+		 * class to reduce the number of code review rounds needed!
+		 */
+
+		// TODO I already gave you this comment: https://github.com/usf-cs272-spring2024/project-evanalulu/blob/f3d67b6ffd5e14909abd2d5f8fb373e9c85049c5/src/main/java/edu/usfca/cs272/JsonWriter.java#L76
+		
+		/*
+		 * TODO At this point, given the warning, formatting issues, and incomplete
+		 * TODO comments from last time (and some from your Bundle 1 review), I am
+		 * discontinuing to review any additional code this time around.
+		 * 
+		 * Please do not request code review until you have addressed past comments
+		 * and finished a cleanup pass of your code!
+		 */
+		
 		writer.write("[");
 
 		var iterator = elements.iterator();
@@ -404,12 +425,29 @@ public class JsonWriter {
 	 * @param indent the indentation level for formatting the JSON
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
+<<<<<<< HEAD
 	public static void writeWordPositionsMap(
 			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Writer writer,
 			int indent) throws IOException {
 		writer.write("{");
 
 		if (!wordPositionsMap.isEmpty()) {
+=======
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
+		/*
+		 * TODO Try to make this type more generic (here and in other methods in this
+		 * class) so that it works with any type of map and collection and number. Use
+		 * the other methods as a clue of how to make this work. The ? extends syntax is
+		 * important for nested types! Reach out on Piazza if you run into issues---it
+		 * is a really hard generic type to get just right!
+		 */
+
+		/*
+		 * TODO So much duplicate code! What JsoNWriter method could you reuse here for the inner treemap?
+		 */
+		if (wordPositionsMap.isEmpty()) {
+			writer.write("{");
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 			writer.write(System.lineSeparator());
 			int counter = 0;
 			for (Map.Entry<String, ? extends Map<String, ? extends Collection<? extends Number>>> outerEntry : wordPositionsMap
@@ -474,6 +512,41 @@ public class JsonWriter {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	
+	/**
+	 * Demonstrates this class.
+	 *
+	 * @param args unused
+	 */
+	public static void main(String[] args) { // TODO Remove
+		Set<Integer> empty = Collections.emptySet();
+		Set<Integer> single = Set.of(42);
+		List<Integer> simple = List.of(65, 66, 67);
+
+		System.out.println("\nArrays:");
+		System.out.println(writeArray(empty));
+		System.out.println(writeArray(single));
+		System.out.println(writeArray(simple));
+
+		System.out.println("\nObjects:");
+		System.out.println(writeObject(Collections.emptyMap()));
+		System.out.println(writeObject(Map.of("hello", 42)));
+		System.out.println(writeObject(Map.of("hello", 42, "world", 67)));
+
+		System.out.println("\nNested Arrays:");
+		System.out.println(writeObjectArrays(Collections.emptyMap()));
+		System.out.println(writeObjectArrays(Map.of("hello", single)));
+		System.out.println(writeObjectArrays(Map.of("hello", single, "world", simple)));
+
+		System.out.println("\nNested Objects:");
+		System.out.println(writeArrayObjects(Collections.emptyList()));
+		System.out.println(writeArrayObjects(Set.of(Map.of("hello", 3.12))));
+		System.out.println(writeArrayObjects(Set.of(Map.of("hello", 3.12, "world", 2.04), Map.of("apple", 0.04))));
+	}
+
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 	/** Prevent instantiating this class of static methods. */
 	private JsonWriter() {
 	}

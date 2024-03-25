@@ -18,6 +18,8 @@ import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
 
+// TODO Fix the mix of tabs and spaces in all your classes---I won't keep commenting on it
+
 /**
  * Utility class for parsing, cleaning, and stemming text and text files into
  * collections of processed words.
@@ -154,7 +156,31 @@ public class FileStemmer {
 		try (BufferedReader reader = Files.newBufferedReader(input, UTF_8);) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
+<<<<<<< HEAD
 				addStems(line, stemmer, stems);
+=======
+				/*
+				 * TODO Make this more efficient!
+				 * 
+				 * This approach has great code reuse, but poor efficiency. This is a common
+				 * issue, reuse and efficiency often conflict with each other. In this case, it
+				 * can be fixed. Sometimes, that is not true.
+				 * 
+				 * First, the efficiency issue. Think about a file that has 1,000 lines in it.
+				 * Every call to listStems is going to create a new list instance. That means
+				 * 1,000 lists! Then, the for loop must be called 1,000 times to copy stems from
+				 * a little list into a big list. That is a lot of extra instances and copy
+				 * operations.
+				 * 
+				 * Now, the fix. We can actually solve this problem with only 1 list, 1 stemmer,
+				 * and 0 inner for loops by taking advantage of mutability. We can add the stems
+				 * directly to the larger list by reusing addStems here instead!
+				 */
+
+				ArrayList<String> temp = listStems(line);
+				for (String element: temp) 
+					stems.add(element);
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 			}
 		}
 
@@ -173,6 +199,14 @@ public class FileStemmer {
 	 * @see #addStems(String, Stemmer, Collection)
 	 */
 	public static TreeSet<String> uniqueStems(String line, Stemmer stemmer) {
+<<<<<<< HEAD
+=======
+		/*
+		 * TODO Inefficient. Can you think of a better way that reuses code and
+		 * doesn't convert and copy between data structure types? 
+		 */
+		ArrayList<String> stems = listStems(line, stemmer);
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 		TreeSet<String> uniques = new TreeSet<>();
 		addStems(line, stemmer, uniques);
 		return uniques;
@@ -208,6 +242,13 @@ public class FileStemmer {
 	 * @see #uniqueStems(String, Stemmer)
 	 */
 	public static TreeSet<String> uniqueStems(Path input) throws IOException {
+<<<<<<< HEAD
+=======
+		/*
+		 * TODO Make this more efficient too.
+		 */
+		ArrayList<String> stems = listStems(input);
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 		TreeSet<String> uniques = new TreeSet<>();
 		Stemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
 
@@ -242,13 +283,103 @@ public class FileStemmer {
 		try (BufferedReader reader = Files.newBufferedReader(input, UTF_8);) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
+<<<<<<< HEAD
 				uniqueStems.add(uniqueStems(line));
+=======
+				TreeSet<String> uniques = uniqueStems(line); // TODO Reuse a stemmer object to make more efficient
+				uniqueStems.add(uniques);
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 			}
 		}
 
 		return uniqueStems;
 	}
 
+<<<<<<< HEAD
+=======
+	/**
+	 * Demonstrates this class.
+	 *
+	 * @param args unused
+	 * @throws IOException if an I/O error occurs
+	 */
+	public static void main(String[] args) throws IOException { // TODO Remove
+		// demonstrates how to use split, clean, and parse
+		System.out.println("____PARSING DEMO____");
+		System.out.println();
+
+		String sally = """
+				Sally Sue...\t sells 76 sea-shells
+				at THE sEa_shorE soirée!""";
+
+		System.out.println("Original:");
+		System.out.println(sally);
+		System.out.println();
+
+		System.out.println("Cleaned:");
+		System.out.println(clean(sally));
+		System.out.println();
+
+		System.out.println(" Split: " + Arrays.toString(split(sally)));
+		System.out.println("Parsed: " + Arrays.toString(parse(sally)));
+		System.out.println();
+
+		// demonstrates how to use stemmer
+		System.out.println("____STEMMER DEMO____");
+		System.out.println();
+
+		Stemmer stemmer = new SnowballStemmer(ENGLISH);
+		String demo = "practicing";
+		String stem = stemmer.stem(demo).toString();
+
+		System.out.println("Word: " + demo);
+		System.out.println("Stem: " + stem);
+		System.out.println();
+
+		// demonstrates how to use list/uniqueStems methods
+		System.out.println("____STEMMING TEXT____");
+		System.out.println();
+
+		String practice = "elephant";
+
+		System.out.println("Original: \n" + practice);
+		System.out.println("  List: " + listStems(practice));
+		System.out.println("Unique: " + uniqueStems(practice));
+		System.out.println();
+		
+		//////////////////////////////////////////////
+
+		
+		System.out.println("____STEMMING TEXT____");
+		System.out.println();
+
+		String practice2 = """
+				zigzag, zig
+				""";
+
+		System.out.println("Original: \n" + practice2);
+		System.out.println("  List: " + listStems(practice2));
+		System.out.println("Unique: " + uniqueStems(practice2));
+		System.out.println();
+		
+//		//////////////////////////////////////////////
+//
+		// demonstrates stemming files
+		System.out.println("____STEMMING FILE____");
+		System.out.println();
+
+		Path base = Path.of("src", "test", "resources", "stemmer");
+		Path file = base.resolve("cleaner.txt");
+		String input = Files.readString(file, UTF_8);
+
+		System.out.println("Original:\n" + input);
+
+		System.out.println("       List: " + listStems(file));
+		System.out.println("     Unique: " + uniqueStems(file));
+		System.out.println("List Unique: " + listUniqueStems(file));
+	}
+
+>>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 	/** Prevent instantiating this class of static methods. */
 	private FileStemmer() {
 	}
