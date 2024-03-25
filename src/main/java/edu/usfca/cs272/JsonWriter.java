@@ -93,16 +93,17 @@ public class JsonWriter {
 		var iterator = elements.iterator();
 
 		if (!elements.isEmpty()) {
-			writer.write("\n");
+			writer.write(System.lineSeparator());
 
 			writeIndent(iterator.next().toString(), writer, indent + 1);
 
 			while (iterator.hasNext()) {
-				writer.write(",\n");
+				writer.write(",");
+				writer.write(System.lineSeparator());
 				writeIndent(iterator.next().toString(), writer, indent + 1);
 			}
 		}
-		writer.write("\n");
+		writer.write(System.lineSeparator());
 		writeIndent("]", writer, indent);
 	}
 
@@ -163,7 +164,7 @@ public class JsonWriter {
 		Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
 
 		if (!elements.isEmpty()) {
-			writer.write("\n");
+			writer.write(System.lineSeparator());
 			if (iterator.hasNext()) {
 				Map.Entry<String, ? extends Number> firstEntry = iterator.next();
 				writeIndent('"' + firstEntry.getKey() + "\": " + firstEntry.getValue(), writer, indent + 1);
@@ -174,11 +175,12 @@ public class JsonWriter {
 				String key = entry.getKey();
 				Number value = entry.getValue();
 
-				writer.write(",\n");
+				writer.write(",");
+				writer.write(System.lineSeparator());
 				writeIndent('"' + key + "\": " + value.toString(), writer, indent + 1);
 			}
 		}
-		writer.write("\n");
+		writer.write(System.lineSeparator());
 		writeIndent("}", writer, indent);
 	}
 
@@ -239,28 +241,29 @@ public class JsonWriter {
 	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Writer writer,
 			int indent) throws IOException {
 		writer.write("{");
-		if (!elements.isEmpty()) {
+
+		Iterator<? extends Map.Entry<String, ? extends Collection<? extends Number>>> iterator = elements.entrySet()
+				.iterator();
+
+		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
-			Iterator<? extends Map.Entry<String, ? extends Collection<? extends Number>>> iterator = elements.entrySet()
-					.iterator();
+
+			Map.Entry<String, ? extends Collection<? extends Number>> firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
+			writeArray(firstEntry.getValue(), writer, indent + 1);
+
 			while (iterator.hasNext()) {
+				writer.write(",");
+				writer.write(System.lineSeparator());
+
 				Map.Entry<String, ? extends Collection<? extends Number>> entry = iterator.next();
-				String key = entry.getKey();
-				Collection<? extends Number> values = entry.getValue();
-
-				writeIndent('"' + key + "\": ", writer, indent + 1);
-				writeArray(values, writer, indent + 1);
-
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+				writeIndent('"' + entry.getKey() + "\": ", writer, indent + 1);
+				writeArray(entry.getValue(), writer, indent + 1);
 			}
 		}
 
 		writer.write(System.lineSeparator());
 		writeIndent("}", writer, indent);
-
 	}
 
 	/**
@@ -321,20 +324,22 @@ public class JsonWriter {
 	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Writer writer,
 			int indent) throws IOException {
 		writer.write("[");
-		if (!elements.isEmpty()) {
-			writer.write(System.lineSeparator());
-			Iterator<? extends Map<String, ? extends Number>> iterator = elements.iterator();
-			while (iterator.hasNext()) {
-				Map<String, ? extends Number> element = iterator.next();
-				writeIndent(writer, indent + 1);
-				writeObject(element, writer, indent + 1);
+		Iterator<? extends Map<String, ? extends Number>> iterator = elements.iterator();
 
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+		if (iterator.hasNext()) {
+			writer.write(System.lineSeparator());
+			writeIndent("", writer, indent + 1);
+			writeObject(iterator.next(), writer, indent + 1);
+
+			while (iterator.hasNext()) {
+				writer.write(",");
+				writer.write(System.lineSeparator());
+				Map<String, ? extends Number> element = iterator.next();
+				writeIndent("", writer, indent + 1);
+				writeObject(element, writer, indent + 1);
 			}
 		}
+
 		writer.write(System.lineSeparator());
 		writeIndent("]", writer, indent);
 	}
