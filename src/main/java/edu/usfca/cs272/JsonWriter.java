@@ -11,11 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -383,6 +380,21 @@ public class JsonWriter {
 	}
 
 	/**
+	 * Writes a key-value pair representing a collection of numbers to a writer,
+	 * with optional indentation.
+	 *
+	 * @param entry The key-value pair to be written.
+	 * @param writer The writer to which the key-value pair will be written.
+	 * @param indent The number of spaces to indent the output by.
+	 * @throws IOException if an I/O error occurs while writing to the writer.
+	 */
+	public static void writeObjectCollection(Map.Entry<String, ? extends Collection<? extends Number>> entry,
+			Writer writer, int indent) throws IOException {
+		writer.write("\"" + entry.getKey() + "\": ");
+		writeArray(entry.getValue(), writer, indent);
+	}
+
+	/**
 	 * Writes the contents of the word positions map to the specified writer in JSON
 	 * format with the given indentation level. If the word positions map is empty,
 	 * it writes an empty JSON object.
@@ -392,73 +404,39 @@ public class JsonWriter {
 	 * @param indent the indentation level for formatting the JSON
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap,
-			Writer writer, int indent) throws IOException {
-		/*
-		 * TODO Try to make this type more generic (here and in other methods in this
-		 * class) so that it works with any type of map and collection and number. Use
-		 * the other methods as a clue of how to make this work. The ? extends syntax is
-		 * important for nested types! Reach out on Piazza if you run into issues---it
-		 * is a really hard generic type to get just right!
-		 */
+	public static void writeWordPositionsMap(
+			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Writer writer,
+			int indent) throws IOException {
+		writer.write("{");
 
-		/*
-		 * TODO So much duplicate code! What JsoNWriter method could you reuse here for
-		 * the inner treemap?
-		 */
-		if (wordPositionsMap.isEmpty()) {
-			writer.write("{");
+		if (!wordPositionsMap.isEmpty()) {
 			writer.write(System.lineSeparator());
-			writer.write("}");
-		}
-		else {
-			writer.write("{");
-			if (!wordPositionsMap.isEmpty()) {
-				writer.write(System.lineSeparator());
-				int counter = 0;
-				for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : wordPositionsMap.entrySet()) {
-					writeIndent(writer, indent + 1);
-					writer.write("\"" + entry.getKey() + "\": ");
-					writer.write("{");
-					if (!entry.getValue().isEmpty()) {
-						writer.write(System.lineSeparator());
-						int innerCounter = 0;
-						for (Map.Entry<String, ArrayList<Integer>> innerEntry : entry.getValue().entrySet()) {
-							writeIndent(writer, indent + 2);
-							writer.write("\"" + innerEntry.getKey() + "\": ");
-							ArrayList<Integer> indices = innerEntry.getValue();
-							writer.write("[");
-							if (!indices.isEmpty()) {
-								writer.write(System.lineSeparator());
-								Iterator<? extends Number> iterator = indices.iterator();
-								while (iterator.hasNext()) {
-									Number element = iterator.next();
-									writeIndent(element.toString(), writer, indent + 3);
-									if (iterator.hasNext()) {
-										writer.write(",");
-										writer.write(System.lineSeparator());
-									}
-								}
-							}
-
-							writer.write(System.lineSeparator());
-							writeIndent("]", writer, indent + 2);
-							if (++innerCounter < entry.getValue().size()) {
-								writer.write(",");
-								writer.write(System.lineSeparator());
-							}
+			int counter = 0;
+			for (Map.Entry<String, ? extends Map<String, ? extends Collection<? extends Number>>> outerEntry : wordPositionsMap
+					.entrySet()) {
+				writeIndent("\"" + outerEntry.getKey() + "\": {", writer, indent + 1);
+				if (!outerEntry.getValue().isEmpty()) {
+					writer.write(System.lineSeparator());
+					int innerCounter = 0;
+					for (Map.Entry<String, ? extends Collection<? extends Number>> entry : outerEntry.getValue().entrySet()) {
+						writeIndent(writer, indent + 2);
+						writeObjectCollection(entry, writer, indent + 2);
+						if (++innerCounter < outerEntry.getValue().size()) {
+							writer.write(",");
 						}
 						writer.write(System.lineSeparator());
 					}
-					writeIndent(writer, indent + 1);
-					writer.write("}");
-					if (++counter < wordPositionsMap.size()) {
-						writer.write(",");
-						writer.write(System.lineSeparator());
-					}
+				}
+				writeIndent("}", writer, indent + 1);
+				if (++counter < wordPositionsMap.size()) {
+					writer.write(",");
 				}
 				writer.write(System.lineSeparator());
 			}
+			writeIndent("}", writer, indent);
+		}
+		else {
+			writer.write(System.lineSeparator());
 			writeIndent("}", writer, indent);
 		}
 	}
@@ -494,37 +472,6 @@ public class JsonWriter {
 		catch (IOException e) {
 			return null;
 		}
-	}
-
-	/**
-	 * Demonstrates this class.
-	 *
-	 * @param args unused
-	 */
-	public static void main(String[] args) { // TODO Remove
-		Set<Integer> empty = Collections.emptySet();
-		Set<Integer> single = Set.of(42);
-		List<Integer> simple = List.of(65, 66, 67);
-
-		System.out.println("\nArrays:");
-		System.out.println(writeArray(empty));
-		System.out.println(writeArray(single));
-		System.out.println(writeArray(simple));
-
-		System.out.println("\nObjects:");
-		System.out.println(writeObject(Collections.emptyMap()));
-		System.out.println(writeObject(Map.of("hello", 42)));
-		System.out.println(writeObject(Map.of("hello", 42, "world", 67)));
-
-		System.out.println("\nNested Arrays:");
-		System.out.println(writeObjectArrays(Collections.emptyMap()));
-		System.out.println(writeObjectArrays(Map.of("hello", single)));
-		System.out.println(writeObjectArrays(Map.of("hello", single, "world", simple)));
-
-		System.out.println("\nNested Objects:");
-		System.out.println(writeArrayObjects(Collections.emptyList()));
-		System.out.println(writeArrayObjects(Set.of(Map.of("hello", 3.12))));
-		System.out.println(writeArrayObjects(Set.of(Map.of("hello", 3.12, "world", 2.04), Map.of("apple", 0.04))));
 	}
 
 	/** Prevent instantiating this class of static methods. */
