@@ -31,12 +31,7 @@ public class InvertedIndex {
 	 * @param count the count of the word in the document
 	 */
 	public void addCount(String location, Integer count) {
-<<<<<<< HEAD
 		if (count > 0) {
-=======
-		// TODO Due to how bug prone it is, most modern code style guides disallow 1 line if/else statements without { } curly braces
-		if (count > 0)
->>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 			wordCountMap.put(location, count);
 		}
 	}
@@ -49,37 +44,11 @@ public class InvertedIndex {
 	 * @param position the position of the word in the document
 	 */
 	public void addWord(String word, String location, Integer position) {
-<<<<<<< HEAD
 		indexMap.computeIfAbsent(word, k -> {
 			TreeMap<String, ArrayList<Integer>> locationMap = new TreeMap<>();
 			locationMap.put(location, new ArrayList<>());
 			return locationMap;
 		}).computeIfAbsent(location, k -> new ArrayList<>()).add(position);
-=======
-		/*
-		 * TODO Time to refactor this add method. It can be either more compact, more
-		 * efficient, or both:
-		 * 
-		 * 1. Focus on making the most compact code possible with a 3 line solution and
-		 * putIfAbsent, but extra inefficient get calls. 2. Focus on making the most
-		 * efficient code possible by reducing the number of times the underlying data
-		 * is accessed (without using putIfAbsent or containsKey methods, always get and
-		 * check for null instead). 3. Focus on making the most compact and efficient
-		 * code by using lambda expressions and the computeIfAbsent method.
-		 * 
-		 * Choose one option, then make the same design choice in all your other
-		 * methods! Some example links are below for #1 and #2.
-		 */
-
-// 1. Visit: https://github.com/usf-cs272-spring2024/cs272-lectures/blob/b58d2cfc1f26c8916ddcb9261bc1143e29923e6d/src/main/java/edu/usfca/cs272/lectures/inheritance/word/WordLength.java#L40-L41
-// 2. Visit: https://github.com/usf-cs272-spring2024/cs272-lectures/blob/b58d2cfc1f26c8916ddcb9261bc1143e29923e6d/src/main/java/edu/usfca/cs272/lectures/inheritance/word/WordPrefix.java#L79-L86
-
-		indexMap.putIfAbsent(word, new TreeMap<>());
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
-		locationMap.putIfAbsent(location, new ArrayList<>());
-		ArrayList<Integer> positions = locationMap.get(location);
-		positions.add(position);
->>>>>>> b8730d64802f31de3f3f0634c2fc0da0fd66abba
 	}
 
 	/**
