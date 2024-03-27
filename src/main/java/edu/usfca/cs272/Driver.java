@@ -46,33 +46,29 @@ public class Driver {
 			}
 		}
 
-		Path countOutput = null; // TODO Declare this where is defined and used
-		Path indexOutput = null; // TODO Declare this where is defined and used
-
 		if (parser.hasFlag("-counts")) {
+			Path countOutput = null;
+
 			countOutput = parser.getPath("-counts", Path.of("counts.json"));
 			/** Only -counts with no path passed */
-			if (countOutput != null) {  // TODO Remove, should never be null!
-				try {
-					System.out.println(index.getWordCountMap().size());
-					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
-				}
-				catch (IOException e) {
-					System.out.println("Error writing word count data: " + e.getMessage());
-				}
+			try {
+				index.writeWordCountMap(countOutput);
+			}
+			catch (IOException e) {
+				System.out.println("Error writing word count data: " + e.getMessage());
 			}
 		}
 
 		if (parser.hasFlag("-index")) {
+			Path indexOutput = null;
+
 			indexOutput = parser.getPath("-index", Path.of("index.json"));
 			/** Only -index with no path passed */
-			if (indexOutput != null) { // TODO Remove, should never be null!
-				try {
-					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
-				}
-				catch (IOException e) {
-					System.out.println("Error writing index data: " + e.getMessage());
-				}
+			try {
+				index.writeIndexMap(indexOutput);
+			}
+			catch (IOException e) {
+				System.out.println("Error writing index data: " + e.getMessage());
 			}
 		}
 	}
