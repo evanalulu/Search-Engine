@@ -122,8 +122,7 @@ public class ArgumentParser {
 	 * @return {@code true} if the flag is mapped to a non-null value
 	 */
 	public boolean hasValue(String flag) {
-		// TODO return (map.get(flag) != null); <-- the ? ternary operator not needed here
-		return (map.get(flag) != null) ? true : false;
+		return (map.get(flag) != null);
 	}
 
 	/**
@@ -166,25 +165,12 @@ public class ArgumentParser {
 	 * @see Path#of(String, String...)
 	 */
 	public Path getPath(String flag, Path backup) {
-		/* TODO Can simplify like:
 		try {
 			return Path.of(map.get(flag));
 		}
 		catch (InvalidPathException | NullPointerException ignored) {
 			return backup;
 		}
-		*/
-		
-		try {
-			String pathString = getString(flag, null);
-			if (pathString != null) {
-				return java.nio.file.Path.of(pathString);
-			}
-		}
-		catch (InvalidPathException ignored) {
-			// Ignored exceptions; return the backup value
-		}
-		return backup;
 	}
 
 	/**
@@ -217,18 +203,12 @@ public class ArgumentParser {
 	 * @see Integer#parseInt(String)
 	 */
 	public int getInteger(String flag, int backup) {
-		// TODO Simplify this one too, no need to check for null if catching
 		try {
-			String stringValue = getString(flag);
-			if (stringValue != null) {
-				return Integer.parseInt(stringValue);
-			}
+			return Integer.parseInt(map.get(flag));
 		}
-		catch (NumberFormatException | NullPointerException ignored) {
-			// Ignored exceptions; return the backup value
-			// TODO Can return from in here instead
+		catch (NumberFormatException ignored) {
+			return backup;
 		}
-		return backup;
 	}
 
 	/**
