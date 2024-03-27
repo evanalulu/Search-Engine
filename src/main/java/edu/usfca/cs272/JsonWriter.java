@@ -157,29 +157,18 @@ public class JsonWriter {
 	 */
 	public static void writeObject(Map<String, ? extends Number> elements, Writer writer, int indent) throws IOException {
 		writer.write("{");
+		var iterator = elements.entrySet().iterator();
 
-		Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
-
-		/*
-		 * TODO Don't need to check elements.isEmpty AND if hasNext --- only one
-		 * of those is required (like your writeArray)
-		 */
-		if (!elements.isEmpty()) {
+		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
-			if (iterator.hasNext()) {
-				// TODO var firstEntry = iterator.next(); <-- the var keyword can start to be useful here
-				Map.Entry<String, ? extends Number> firstEntry = iterator.next();
-				writeIndent('"' + firstEntry.getKey() + "\": " + firstEntry.getValue(), writer, indent + 1);
-			}
+			var firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": " + firstEntry.getValue(), writer, indent + 1);
 
 			while (iterator.hasNext()) {
-				Map.Entry<String, ? extends Number> entry = iterator.next();
-				String key = entry.getKey();
-				Number value = entry.getValue();
-
 				writer.write(",");
 				writer.write(System.lineSeparator());
-				writeIndent('"' + key + "\": " + value.toString(), writer, indent + 1);
+				var entry = iterator.next();
+				writeIndent('"' + entry.getKey() + "\": " + entry.getValue(), writer, indent + 1);
 			}
 		}
 		writer.write(System.lineSeparator());
@@ -414,65 +403,24 @@ public class JsonWriter {
 			int indent) throws IOException {
 
 		writer.write("{");
-		
-		/*
-		 * TODO This one can still look almost exactly the same as writeObjectArrays
-		 * except where it used to call writeArrays, call writeObjectArrays instead.
-		 * 
-		 * ...because the value here is an objectarray!
-		 * 
-
 		var iterator = wordPositionsMap.entrySet().iterator();
 
 		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
 
-			var firstEntry = iterator.next();
-			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
-			writeObjectArrays(firstEntry.getValue(), writer, indent + 1);
+			while (iterator.hasNext()) {
+				var entry = iterator.next();
+				writeIndent("\"" + entry.getKey() + "\": ", writer, indent + 1);
+				writeObjectArrays(entry.getValue(), writer, indent + 1);
 
-			etc.
-		}
-		*/
-		
-
-		if (!wordPositionsMap.isEmpty()) {
-			writer.write(System.lineSeparator());
-			boolean isFirstOuterEntry = true;
-
-			for (Map.Entry<String, ? extends Map<String, ? extends Collection<? extends Number>>> outerEntry : wordPositionsMap
-					.entrySet()) {
-				if (!isFirstOuterEntry) {
+				if (iterator.hasNext()) {
 					writer.write(",");
 					writer.write(System.lineSeparator());
 				}
-
-				writeIndent("\"" + outerEntry.getKey() + "\": {", writer, indent + 1);
-
-				Map<String, ? extends Collection<? extends Number>> innerMap = outerEntry.getValue();
-				if (!innerMap.isEmpty()) {
-					writer.write(System.lineSeparator());
-					boolean isFirstInnerEntry = true;
-
-					for (Map.Entry<String, ? extends Collection<? extends Number>> innerEntry : innerMap.entrySet()) {
-						if (!isFirstInnerEntry) {
-							writer.write(",");
-							writer.write(System.lineSeparator());
-						}
-						writeIndent("\"" + innerEntry.getKey() + "\": ", writer, indent + 2);
-						writeArray(innerEntry.getValue(), writer, indent + 2);
-						isFirstInnerEntry = false;
-					}
-				}
-
-				writer.write(System.lineSeparator());
-				writeIndent("}", writer, indent + 1);
-				isFirstOuterEntry = false;
 			}
 		}
-
 		writer.write(System.lineSeparator());
-		writer.write("}");
+		writeIndent("}", writer, indent);
 	}
 
 	/**
