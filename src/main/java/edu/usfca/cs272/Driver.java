@@ -46,13 +46,13 @@ public class Driver {
 			}
 		}
 
-		Path countOutput = null;
-		Path indexOutput = null;
+		Path countOutput = null; // TODO Declare this where is defined and used
+		Path indexOutput = null; // TODO Declare this where is defined and used
 
 		if (parser.hasFlag("-counts")) {
 			countOutput = parser.getPath("-counts", Path.of("counts.json"));
 			/** Only -counts with no path passed */
-			if (countOutput != null) {
+			if (countOutput != null) {  // TODO Remove, should never be null!
 				try {
 					System.out.println(index.getWordCountMap().size());
 					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
@@ -66,7 +66,7 @@ public class Driver {
 		if (parser.hasFlag("-index")) {
 			indexOutput = parser.getPath("-index", Path.of("index.json"));
 			/** Only -index with no path passed */
-			if (indexOutput != null) {
+			if (indexOutput != null) { // TODO Remove, should never be null!
 				try {
 					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
 				}
