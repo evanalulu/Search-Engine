@@ -160,9 +160,14 @@ public class JsonWriter {
 
 		Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
 
+		/*
+		 * TODO Don't need to check elements.isEmpty AND if hasNext --- only one
+		 * of those is required (like your writeArray)
+		 */
 		if (!elements.isEmpty()) {
 			writer.write(System.lineSeparator());
 			if (iterator.hasNext()) {
+				// TODO var firstEntry = iterator.next(); <-- the var keyword can start to be useful here
 				Map.Entry<String, ? extends Number> firstEntry = iterator.next();
 				writeIndent('"' + firstEntry.getKey() + "\": " + firstEntry.getValue(), writer, indent + 1);
 			}
@@ -409,6 +414,27 @@ public class JsonWriter {
 			int indent) throws IOException {
 
 		writer.write("{");
+		
+		/*
+		 * TODO This one can still look almost exactly the same as writeObjectArrays
+		 * except where it used to call writeArrays, call writeObjectArrays instead.
+		 * 
+		 * ...because the value here is an objectarray!
+		 * 
+
+		var iterator = wordPositionsMap.entrySet().iterator();
+
+		if (iterator.hasNext()) {
+			writer.write(System.lineSeparator());
+
+			var firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
+			writeObjectArrays(firstEntry.getValue(), writer, indent + 1);
+
+			etc.
+		}
+		*/
+		
 
 		if (!wordPositionsMap.isEmpty()) {
 			writer.write(System.lineSeparator());
