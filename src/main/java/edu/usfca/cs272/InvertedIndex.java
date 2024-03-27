@@ -1,7 +1,8 @@
 package edu.usfca.cs272;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -44,57 +45,44 @@ public class InvertedIndex {
 	 * @param position the position of the word in the document
 	 */
 	public void addWord(String word, String location, Integer position) {
-		indexMap.computeIfAbsent(word, k -> {
-			TreeMap<String, ArrayList<Integer>> locationMap = new TreeMap<>();
-			locationMap.put(location, new ArrayList<>());
-			return locationMap;
-		}).computeIfAbsent(location, k -> new ArrayList<>()).add(position);
-		
-		/* TODO Can simplify:
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>())
-			.computeIfAbsent(location, k -> new ArrayList<>())
-			.add(position); */
+				.computeIfAbsent(location, k -> new ArrayList<>())
+				.add(position);
 	}
-	
+
 	/*
 	 * TODO The get methods here are breaking encapsulation. It is now time to fix
 	 * this problem. See lecture examples linked below for how to fix this problem
 	 * efficiently.
 	 */
 
-	// TODO PrefixMap/PrefixDemo: https://usf-cs272-spring2024.notion.site/PrefixMap-and-Demo-2862dfab600341c8bfb20da697def0ce
-	// TODO WordGroup/WordPrefix: https://usf-cs272-spring2024.notion.site/WordGroupDemo-82c94c5b10c841a1a2e0df2ba1ecab37
+	// TODO PrefixMap/PrefixDemo:
+	// https://usf-cs272-spring2024.notion.site/PrefixMap-and-Demo-2862dfab600341c8bfb20da697def0ce
+	// TODO WordGroup/WordPrefix:
+	// https://usf-cs272-spring2024.notion.site/WordGroupDemo-82c94c5b10c841a1a2e0df2ba1ecab37
 
 	/**
 	 * Returns the word count map.
+	 * 
+	 * @param output the count output path
 	 *
-	 * @return the word count map
+	 * @throws IOException
 	 */
-	public Map<String, Integer> getWordCountMap() {
-		return wordCountMap;
+	public void writeWordCountMap(Path output) throws IOException {
+		JsonWriter.writeObject(wordCountMap, output);
 	}
 
 	/**
 	 * Returns the index map.
+	 * 
+	 * @param output the index output path
 	 *
-	 * @return the index map
+	 * @throws IOException
 	 */
-	public TreeMap<String, TreeMap<String, ArrayList<Integer>>> getIndexMap() {
-		/*
-		 * TODO There is not an efficient way to fix breaking encapsulation in this
-		 * method. But, you only need this get method to write the data to a JSON file.
-		 * The reason why you break encapsulation is a clue to how to fix the design. It
-		 * usually means this class is missing functionality. In this case, think of
-		 * writing to JSON more like a get method. It needs to "get" all of the data,
-		 * but it just does it to a file instead of in memory. Where do get methods go?
-		 * In the data structure! Create a new writeIndex(Path input) method in this
-		 * class that calls your JsonWriter method, then call this new writeIndex method
-		 * from your Driver class.
-		 */
-
-		return indexMap;
+	public void writeIndexMap(Path output) throws IOException {
+		JsonWriter.writeWordPositionsMap(indexMap, output);
 	}
-	
+
 	/*
 	 * TODO This class is still missing some methods. Use some of the class
 	 * (WordGroup/WordPrefix) and homework (FileIndex) examples to guide what you
