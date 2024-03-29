@@ -47,10 +47,8 @@ public class Driver {
 		}
 
 		if (parser.hasFlag("-counts")) {
-			Path countOutput = null;
+			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
-			countOutput = parser.getPath("-counts", Path.of("counts.json"));
-			/** Only -counts with no path passed */
 			try {
 				index.writeWordCountMap(countOutput);
 			}
@@ -60,10 +58,8 @@ public class Driver {
 		}
 
 		if (parser.hasFlag("-index")) {
-			Path indexOutput = null;
+			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
 
-			indexOutput = parser.getPath("-index", Path.of("index.json"));
-			/** Only -index with no path passed */
 			try {
 				index.writeIndexMap(indexOutput);
 			}
