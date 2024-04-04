@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -163,39 +162,39 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Returns an unmodifiable view of the set of words indexed in a specific file.
+	 * Returns an unmodifiable view of the set of locations (files) where a specific
+	 * word is indexed.
 	 *
-	 * @param file the file to query
-	 * @return an unmodifiable set of words for the specified file, or an empty set
-	 *   if the file is not indexed
+	 * @param word the word to query
+	 * @return an unmodifiable set of locations (files) where the word is indexed,
+	 *   or an empty set if the word is not indexed
 	 */
-	public Set<String> viewWordsInFile(String file) { // TODO Need a viewLocations(String word) instead
-		Set<String> words = new HashSet<>();
-		indexMap.forEach((word, locationMap) -> {
-			if (locationMap.containsKey(file)) {
-				words.add(word);
-			}
-		});
-		return Collections.unmodifiableSet(words);
+	public Set<String> viewLocations(String word) {
+		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			return Collections.unmodifiableSet(locationMap.keySet());
+		}
+		return Collections.emptySet();
 	}
 
 	/**
-	 * Returns an unmodifiable map of words and their positions in a specific file.
+	 * Returns an unmodifiable list of positions for a specific word in a specific
+	 * file.
 	 *
-	 * @param file the file to query
-	 * @return an unmodifiable map of words to their positions list for the
-	 *   specified file, or an empty map if the file is not indexed
+	 * @param word the word to query
+	 * @param location the file to query
+	 * @return an unmodifiable list of positions for the word in the specified file,
+	 *   or an empty list if the word or file is not indexed
 	 */
-	public Map<String, ArrayList<Integer>> viewWordPositionsInFile(String file) { // TODO Need a viewPositions(String
-																																								// word, String location) instead
-		Map<String, ArrayList<Integer>> wordPositions = new TreeMap<>();
-		indexMap.forEach((word, locationMap) -> {
-			ArrayList<Integer> positions = locationMap.get(file);
+	public List<Integer> viewPositions(String word, String location) {
+		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			ArrayList<Integer> positions = locationMap.get(location);
 			if (positions != null) {
-				wordPositions.put(word, new ArrayList<>(positions));
+				return Collections.unmodifiableList(new ArrayList<>(positions));
 			}
-		});
-		return Collections.unmodifiableMap(wordPositions);
+		}
+		return Collections.emptyList();
 	}
 
 	@Override
