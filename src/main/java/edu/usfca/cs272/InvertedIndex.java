@@ -73,13 +73,6 @@ public class InvertedIndex {
 		JsonWriter.writeWordPositionsMap(indexMap, output);
 	}
 
-	/*
-	 * TODO Unless a file is being opened or written, none of the methods below
-	 * should take Path parameters. What happens when we move to storing URLs
-	 * instead for web pages? Would we need to convert that String to a Path just so
-	 * we can check if it exists in the index?
-	 */
-
 	/**
 	 * Returns the count of words for a given document.
 	 *
@@ -87,8 +80,8 @@ public class InvertedIndex {
 	 * @return the count of words in the document, or 0 if the document is not
 	 *   indexed
 	 */
-	public int getWordCount(Path path) {
-		return wordCountMap.getOrDefault(path.toString(), 0);
+	public int getWordCount(String path) {
+		return wordCountMap.getOrDefault(path, 0);
 	}
 
 	/**
@@ -97,8 +90,8 @@ public class InvertedIndex {
 	 * @param path the document to check
 	 * @return {@code true} if the document is indexed
 	 */
-	public boolean hasFileinCount(Path path) {
-		return wordCountMap.containsKey(path.toString());
+	public boolean hasFileinCount(String path) {
+		return wordCountMap.containsKey(path);
 	}
 
 	// TODO Move the getFileCount() method here since it also accesses wordCountMap?
