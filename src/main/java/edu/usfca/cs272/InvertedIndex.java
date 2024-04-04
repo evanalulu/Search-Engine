@@ -94,7 +94,14 @@ public class InvertedIndex {
 		return wordCountMap.containsKey(path);
 	}
 
-	// TODO Move the getFileCount() method here since it also accesses wordCountMap?
+	/**
+	 * Returns the number of documents indexed.
+	 *
+	 * @return the number of indexed documents
+	 */
+	public int getFileCount() {
+		return wordCountMap.size();
+	}
 
 	/**
 	 * Checks if a specific word is indexed in any document.
@@ -107,29 +114,33 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Checks if the specified file is indexed in any of the word entries in index
-	 * map.
+	 * Checks if a specific location (file) is indexed for a given word.
 	 *
 	 * @param word the word to check
-	 * @param file the file to check
-	 * @return {@code true} if the file is indexed for the specified word
+	 * @param location the location (file) to check
+	 * @return {@code true} if the location is indexed for the specified word
 	 */
-	public boolean hasFileinIndex(String word, String file) {
+	public boolean hasLocation(String word, String location) {
 		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
-		return locationMap != null && locationMap.containsKey(file);
+		return locationMap != null && locationMap.containsKey(location);
 	}
 
-	// TODO Missing a hasPositionForWordAndLocation ... or if you want a less wordy
-	// naming scheme, you need a hasWord(String word) hasLocation(String word,
-	// STring location) hasPosition(String word, String location, Integer position)
-
 	/**
-	 * Returns the number of documents indexed.
+	 * Checks if a specific position for a word is indexed in a given location
+	 * (file).
 	 *
-	 * @return the number of indexed documents
+	 * @param word the word to check
+	 * @param location the location (file) to check
+	 * @param position the position of the word to check
+	 * @return {@code true} if the position is indexed for the word in the location
 	 */
-	public int getFileCount() {
-		return wordCountMap.size();
+	public boolean hasPosition(String word, String location, Integer position) {
+		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			ArrayList<Integer> positions = locationMap.get(location);
+			return positions != null && positions.contains(position);
+		}
+		return false;
 	}
 
 	/**
