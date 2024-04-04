@@ -95,7 +95,7 @@ public class InvertedIndex {
 	 * Checks if a specific document is indexed in word count map.
 	 *
 	 * @param path the document to check
-	 * @return true if the document is indexed, false otherwise
+	 * @return {@code true} if the document is indexed
 	 */
 	public boolean hasFileinCount(Path path) {
 		return wordCountMap.containsKey(path.toString());
@@ -107,7 +107,7 @@ public class InvertedIndex {
 	 * Checks if a specific word is indexed in any document.
 	 *
 	 * @param word the word to check
-	 * @return true if the word is indexed, false otherwise
+	 * @return {@code true} if the word is indexed
 	 */
 	public boolean hasWord(String word) {
 		return indexMap.containsKey(word);
@@ -117,26 +117,13 @@ public class InvertedIndex {
 	 * Checks if the specified file is indexed in any of the word entries in index
 	 * map.
 	 *
+	 * @param word the word to check
 	 * @param file the file to check
-	 * @return true if the file is indexed, false otherwise
+	 * @return {@code true} if the file is indexed for the specified word
 	 */
-	public boolean hasFileinIndex(String file) {
-		/*
-		 * TODO Want to do this without requiring any kind of looping. At this stage, we
-		 * are only concerned about making the existing data safely and efficiently
-		 * accessible. (Notice none of the lecture examples of this included this kind
-		 * of streaming or looping.) Try instead:
-		 * 
-		 * public boolean hasFileForWord(String word, String file) { safely and
-		 * efficiently check if indexMap.get(word) contains the file provided
-		 * 
-		 * ...similar to this:
-		 * 
-		 * https://github.com/usf-cs272-spring2024/cs272-lectures/blob/
-		 * f9364c0fc5ea6e778366628ceda09f641c0f52b2/src/main/java/edu/usfca/cs272/
-		 * lectures/inheritance/word/WordPrefix.java#L125-L126
-		 */
-		return indexMap.values().stream().anyMatch(locationMap -> locationMap.containsKey(file));
+	public boolean hasFileinIndex(String word, String file) {
+		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		return locationMap != null && locationMap.containsKey(file);
 	}
 
 	// TODO Missing a hasPositionForWordAndLocation ... or if you want a less wordy
