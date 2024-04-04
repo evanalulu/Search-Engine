@@ -80,7 +80,7 @@ public class InvertedIndex {
 	 * instead for web pages? Would we need to convert that String to a Path just so
 	 * we can check if it exists in the index?
 	 */
-	
+
 	/**
 	 * Returns the count of words for a given document.
 	 *
@@ -101,9 +101,9 @@ public class InvertedIndex {
 	public boolean hasFileinCount(Path path) {
 		return wordCountMap.containsKey(path.toString());
 	}
-	
+
 	// TODO Move the getFileCount() method here since it also accesses wordCountMap?
-	
+
 	/**
 	 * Checks if a specific word is indexed in any document.
 	 *
@@ -128,16 +128,21 @@ public class InvertedIndex {
 		 * accessible. (Notice none of the lecture examples of this included this kind
 		 * of streaming or looping.) Try instead:
 		 * 
-		 * public boolean hasFileForWord(String word, String file) { safely and efficiently check if indexMap.get(word) contains the file provided
+		 * public boolean hasFileForWord(String word, String file) { safely and
+		 * efficiently check if indexMap.get(word) contains the file provided
 		 * 
 		 * ...similar to this:
 		 * 
-		 * https://github.com/usf-cs272-spring2024/cs272-lectures/blob/f9364c0fc5ea6e778366628ceda09f641c0f52b2/src/main/java/edu/usfca/cs272/lectures/inheritance/word/WordPrefix.java#L125-L126
+		 * https://github.com/usf-cs272-spring2024/cs272-lectures/blob/
+		 * f9364c0fc5ea6e778366628ceda09f641c0f52b2/src/main/java/edu/usfca/cs272/
+		 * lectures/inheritance/word/WordPrefix.java#L125-L126
 		 */
 		return indexMap.values().stream().anyMatch(locationMap -> locationMap.containsKey(file));
 	}
-	
-	// TODO Missing a hasPositionForWordAndLocation ... or if you want a less wordy naming scheme, you need a hasWord(String word) hasLocation(String word, STring location) hasPosition(String word, String location, Integer position) 
+
+	// TODO Missing a hasPositionForWordAndLocation ... or if you want a less wordy
+	// naming scheme, you need a hasWord(String word) hasLocation(String word,
+	// STring location) hasPosition(String word, String location, Integer position)
 
 	/**
 	 * Returns the number of documents indexed.
@@ -181,7 +186,8 @@ public class InvertedIndex {
 	 * @return an unmodifiable map of words to their positions list for the
 	 *   specified file, or an empty map if the file is not indexed
 	 */
-	public Map<String, ArrayList<Integer>> viewWordPositionsInFile(String file) { // TODO Need a viewPositions(String word, String location) instead
+	public Map<String, ArrayList<Integer>> viewWordPositionsInFile(String file) { // TODO Need a viewPositions(String
+																																								// word, String location) instead
 		Map<String, ArrayList<Integer>> wordPositions = new TreeMap<>();
 		indexMap.forEach((word, locationMap) -> {
 			ArrayList<Integer> positions = locationMap.get(file);
@@ -191,6 +197,23 @@ public class InvertedIndex {
 		});
 		return Collections.unmodifiableMap(wordPositions);
 	}
-	
-	// TODO How about a toString?
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+
+		builder.append("Word Count Map:\n");
+		wordCountMap
+				.forEach((file, count) -> { builder.append("  ").append(file).append(": ").append(count).append("\n"); });
+
+		builder.append("\nIndex Map:\n");
+		indexMap.forEach((word, fileMap) -> {
+			builder.append("  ").append(word).append(":\n");
+			fileMap.forEach((file, positions) -> {
+				builder.append("    ").append(file).append(": ").append(positions).append("\n");
+			});
+		});
+
+		return builder.toString();
+	}
 }
