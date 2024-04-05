@@ -19,6 +19,7 @@ public class InvertedIndex {
 
 	/** A nested map that stores the positions of words in each document. */
 	private final TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap;
+	// TODO private final TreeMap<String, TreeMap<String, TreeSet<Integer>>> indexMap;
 
 	/**
 	 * Constructs a new InvertedIndex with empty word count and index maps.
@@ -151,6 +152,8 @@ public class InvertedIndex {
 	public Set<String> viewFiles() {
 		return Collections.unmodifiableSet(wordCountMap.keySet());
 	}
+	
+	// TODO viewWords() keyset of the indexmap
 
 	/**
 	 * Returns an unmodifiable view of the set of locations (files) where a specific
@@ -183,10 +186,16 @@ public class InvertedIndex {
 			ArrayList<Integer> positions = locationMap.get(location);
 			if (positions != null) {
 				return Collections.unmodifiableList(new ArrayList<>(positions));
+				// TODO return Collections.unmodifiableList(positions);
 			}
 		}
 		return Collections.emptyList();
 	}
+	
+	/* TODO 
+	numWords, numLocations, etc.
+	copy all the has methods and change the contains to size
+	*/
 
 	@Override
 	public String toString() {
