@@ -1,7 +1,6 @@
 package edu.usfca.cs272;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -34,12 +33,7 @@ public class Driver {
 			}
 
 			try {
-				if (Files.isDirectory(input)) {
-					FileProcessor.traverseDirectory(input, index);
-				}
-				else {
-					FileProcessor.readFile(input, index);
-				}
+				FileProcessor.processPath(input, index);
 			}
 			catch (IOException e) {
 				System.out.println("Unable to build the inverted index from path: " + input);
