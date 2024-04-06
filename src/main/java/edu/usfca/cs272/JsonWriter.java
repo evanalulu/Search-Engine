@@ -402,6 +402,7 @@ public class JsonWriter {
 			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Writer writer,
 			int indent) throws IOException {
 
+		// TODO refactor this one
 		writer.write("{");
 		var iterator = wordPositionsMap.entrySet().iterator();
 
@@ -432,7 +433,7 @@ public class JsonWriter {
 	 * @param path the path to the file to write the JSON content to
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap,
+	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, // TODO Make generic
 			Path path) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeWordPositionsMap(wordPositionsMap, writer, 0);
@@ -445,7 +446,7 @@ public class JsonWriter {
 	 * @param wordPositionsMap the word positions map to convert to JSON
 	 * @return a JSON string representing the word positions map
 	 */
-	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) {
+	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) { // TODO Make generic
 		try {
 			StringWriter writer = new StringWriter();
 			writeWordPositionsMap(wordPositionsMap, writer, 0);

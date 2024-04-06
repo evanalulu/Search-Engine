@@ -72,6 +72,17 @@ public class FileProcessor {
 			index.addCount(pathStr, wordCount);
 		}
 	}
+	
+	/* TODO CAll this in Driver
+	public static void processPath(Path path, ... ) throws ... {
+		if (Files.isDirectory(input)) {
+			FileProcessor.traverseDirectory(input, index);
+		}
+		else {
+			FileProcessor.readFile(input, index);
+		}
+	}
+	*/
 
 	/**
 	 * Checks if the file extension of the specified path corresponds to a text file.
