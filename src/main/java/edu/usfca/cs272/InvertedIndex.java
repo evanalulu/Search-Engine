@@ -154,7 +154,14 @@ public class InvertedIndex {
 		return Collections.unmodifiableSet(wordCountMap.keySet());
 	}
 
-	// TODO viewWords() keyset of the indexmap
+	/**
+	 * Returns an unmodifiable view of the set of all words that are indexed.
+	 *
+	 * @return an unmodifiable set of all indexed words
+	 */
+	public Set<String> viewWords() {
+		return Collections.unmodifiableSet(indexMap.keySet());
+	}
 
 	/**
 	 * Returns an unmodifiable view of the set of locations (files) where a specific
@@ -186,8 +193,7 @@ public class InvertedIndex {
 		if (locationMap != null) {
 			ArrayList<Integer> positions = locationMap.get(location);
 			if (positions != null) {
-				return Collections.unmodifiableList(new ArrayList<>(positions));
-				// TODO return Collections.unmodifiableList(positions);
+				return Collections.unmodifiableList(positions);
 			}
 		}
 		return Collections.emptyList();
