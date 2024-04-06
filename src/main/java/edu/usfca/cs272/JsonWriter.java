@@ -9,11 +9,9 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Outputs several simple data structures in "pretty" JSON format where newlines
@@ -402,24 +400,27 @@ public class JsonWriter {
 			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Writer writer,
 			int indent) throws IOException {
 
-		// TODO refactor this one
 		writer.write("{");
+
 		var iterator = wordPositionsMap.entrySet().iterator();
 
 		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
 
-			while (iterator.hasNext()) {
-				var entry = iterator.next();
-				writeIndent("\"" + entry.getKey() + "\": ", writer, indent + 1);
-				writeObjectArrays(entry.getValue(), writer, indent + 1);
+			var firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
+			writeObjectArrays(firstEntry.getValue(), writer, indent + 1);
 
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+			while (iterator.hasNext()) {
+				writer.write(",");
+				writer.write(System.lineSeparator());
+
+				var entry = iterator.next();
+				writeIndent('"' + entry.getKey() + "\": ", writer, indent + 1);
+				writeObjectArrays(entry.getValue(), writer, indent + 1);
 			}
 		}
+
 		writer.write(System.lineSeparator());
 		writeIndent("}", writer, indent);
 	}
@@ -433,8 +434,9 @@ public class JsonWriter {
 	 * @param path the path to the file to write the JSON content to
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, // TODO Make generic
-			Path path) throws IOException {
+	public static void writeWordPositionsMap(
+			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeWordPositionsMap(wordPositionsMap, writer, 0);
 		}
@@ -446,7 +448,8 @@ public class JsonWriter {
 	 * @param wordPositionsMap the word positions map to convert to JSON
 	 * @return a JSON string representing the word positions map
 	 */
-	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) { // TODO Make generic
+	public static String writeWordPositionsMap(
+			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap) {
 		try {
 			StringWriter writer = new StringWriter();
 			writeWordPositionsMap(wordPositionsMap, writer, 0);
