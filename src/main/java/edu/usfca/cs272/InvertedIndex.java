@@ -2,11 +2,10 @@ package edu.usfca.cs272;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Represents an inverted index data structure that maps words to their
@@ -18,9 +17,7 @@ public class InvertedIndex {
 	private final TreeMap<String, Integer> wordCountMap;
 
 	/** A nested map that stores the positions of words in each document. */
-	private final TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap;
-	// TODO private final TreeMap<String, TreeMap<String, TreeSet<Integer>>>
-	// indexMap;
+	private final TreeMap<String, TreeMap<String, TreeSet<Integer>>> indexMap;
 
 	/**
 	 * Constructs a new InvertedIndex with empty word count and index maps.
@@ -50,9 +47,7 @@ public class InvertedIndex {
 	 * @param position the position of the word in the document
 	 */
 	public void addWord(String word, String location, Integer position) {
-		indexMap.computeIfAbsent(word, k -> new TreeMap<>())
-				.computeIfAbsent(location, k -> new ArrayList<>())
-				.add(position);
+		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
 	}
 
 	/**
@@ -123,7 +118,7 @@ public class InvertedIndex {
 	 * @return {@code true} if the location is indexed for the specified word
 	 */
 	public boolean hasLocation(String word, String location) {
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
 		return locationMap != null && locationMap.containsKey(location);
 	}
 
@@ -137,9 +132,9 @@ public class InvertedIndex {
 	 * @return {@code true} if the position is indexed for the word in the location
 	 */
 	public boolean hasPosition(String word, String location, Integer position) {
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
 		if (locationMap != null) {
-			ArrayList<Integer> positions = locationMap.get(location);
+			TreeSet<Integer> positions = locationMap.get(location);
 			return positions != null && positions.contains(position);
 		}
 		return false;
@@ -172,7 +167,7 @@ public class InvertedIndex {
 	 *   or an empty set if the word is not indexed
 	 */
 	public Set<String> viewLocations(String word) {
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
 		if (locationMap != null) {
 			return Collections.unmodifiableSet(locationMap.keySet());
 		}
@@ -188,15 +183,15 @@ public class InvertedIndex {
 	 * @return an unmodifiable list of positions for the word in the specified file,
 	 *   or an empty list if the word or file is not indexed
 	 */
-	public List<Integer> viewPositions(String word, String location) {
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+	public Set<Integer> viewPositions(String word, String location) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
 		if (locationMap != null) {
-			ArrayList<Integer> positions = locationMap.get(location);
+			TreeSet<Integer> positions = locationMap.get(location);
 			if (positions != null) {
-				return Collections.unmodifiableList(positions);
+				return Collections.unmodifiableSet(positions);
 			}
 		}
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
 	/**
@@ -218,7 +213,7 @@ public class InvertedIndex {
 	 * @return the number of occurrences of the word in the given location
 	 */
 	public int numLocations(String word, String location) {
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
 		return locationMap.size();
 	}
 
@@ -234,9 +229,9 @@ public class InvertedIndex {
 	 *   position
 	 */
 	public int numPositions(String word, String location, Integer position) {
-		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
 		if (locationMap != null) {
-			ArrayList<Integer> positions = locationMap.get(location);
+			TreeSet<Integer> positions = locationMap.get(location);
 			return positions.size();
 		}
 		return 0;
