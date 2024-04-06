@@ -19,7 +19,8 @@ public class InvertedIndex {
 
 	/** A nested map that stores the positions of words in each document. */
 	private final TreeMap<String, TreeMap<String, ArrayList<Integer>>> indexMap;
-	// TODO private final TreeMap<String, TreeMap<String, TreeSet<Integer>>> indexMap;
+	// TODO private final TreeMap<String, TreeMap<String, TreeSet<Integer>>>
+	// indexMap;
 
 	/**
 	 * Constructs a new InvertedIndex with empty word count and index maps.
@@ -152,7 +153,7 @@ public class InvertedIndex {
 	public Set<String> viewFiles() {
 		return Collections.unmodifiableSet(wordCountMap.keySet());
 	}
-	
+
 	// TODO viewWords() keyset of the indexmap
 
 	/**
@@ -191,11 +192,49 @@ public class InvertedIndex {
 		}
 		return Collections.emptyList();
 	}
-	
-	/* TODO 
-	numWords, numLocations, etc.
-	copy all the has methods and change the contains to size
-	*/
+
+	/**
+	 * Returns the number of occurrences of the specified word in the index map.
+	 *
+	 * @param word the word to count occurrences for
+	 * @return the number of occurrences of the word in the index map
+	 */
+	public int numWords(String word) {
+		return indexMap.size();
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word in the given
+	 * location.
+	 *
+	 * @param word the word to count occurrences for
+	 * @param location the location to search for occurrences of the word
+	 * @return the number of occurrences of the word in the given location
+	 */
+	public int numLocations(String word, String location) {
+		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		return locationMap.size();
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word at the given location
+	 * and position.
+	 *
+	 * @param word the word to count occurrences for
+	 * @param location the location to search for occurrences of the word
+	 * @param position the position to search for occurrences of the word within the
+	 *   location
+	 * @return the number of occurrences of the word at the given location and
+	 *   position
+	 */
+	public int numPositions(String word, String location, Integer position) {
+		TreeMap<String, ArrayList<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			ArrayList<Integer> positions = locationMap.get(location);
+			return positions.size();
+		}
+		return 0;
+	}
 
 	@Override
 	public String toString() {
