@@ -68,13 +68,9 @@ public class Driver {
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
 			if (query != null) {
+				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
-					if (parser.hasFlag("-partial")) {
-						result = FileProcessor.readQuery(query, index, true);
-					}
-					else {
-						result = FileProcessor.readQuery(query, index, false);
-					}
+					result = FileProcessor.readQuery(query, index, isPartialSearch);
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
@@ -84,13 +80,11 @@ public class Driver {
 
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
-			if (resultsOutput != null) {
-				try {
-					JsonWriter.writeSearchResults(result, resultsOutput);
-				}
-				catch (IOException e) {
-					System.err.println(e.getMessage());
-				}
+			try {
+				JsonWriter.writeSearchResults(result, resultsOutput);
+			}
+			catch (IOException e) {
+				System.err.println(e.getMessage());
 			}
 		}
 
