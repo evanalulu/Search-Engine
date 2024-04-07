@@ -301,12 +301,13 @@ public class FileProcessor {
 	 * @return the existing or newly created IndexSearcher
 	 */
 	private static IndexSearcher findOrCreateSearcher(ArrayList<IndexSearcher> searchers, String location) {
+		Path locationPath = Path.of(location);
 		for (IndexSearcher searcher : searchers) {
-			if (searcher.getWhere().equals(location)) {
+			if (searcher.getWhere().equals(locationPath)) {
 				return searcher;
 			}
 		}
-		IndexSearcher newSearcher = new IndexSearcher(0, "0", Path.of(location));
+		IndexSearcher newSearcher = new IndexSearcher(0, "0", locationPath);
 		searchers.add(newSearcher);
 		return newSearcher;
 	}

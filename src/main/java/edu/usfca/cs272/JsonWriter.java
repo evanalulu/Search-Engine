@@ -9,11 +9,11 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Outputs several simple data structures in "pretty" JSON format where newlines
@@ -462,7 +462,6 @@ public class JsonWriter {
 		}
 	}
 
-	// TODO While loop + generic
 	/**
 	 * Writes search results to a writer JSON format.
 	 *
@@ -471,47 +470,80 @@ public class JsonWriter {
 	 * @param indent The number of spaces for indentation.
 	 * @throws IOException If an I/O error occurs while writing.
 	 */
-	public static void writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements, Writer writer, int indent)
-			throws IOException {
+	public static void writeSearchResults(Map<String, ? extends Collection<IndexSearcher>> elements, Writer writer,
+			int indent) throws IOException {
 		writer.write("{");
-		writer.write(System.lineSeparator());
 
-		int entryCount = 0;
-		for (var entry : elements.entrySet()) {
-			writer.write("  \"" + entry.getKey() + "\": [");
+		var iterator = elements.entrySet().iterator();
+
+		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
 
-			ArrayList<IndexSearcher> searchers = entry.getValue();
-			for (int i = 0; i < searchers.size(); i++) {
-				IndexSearcher searcher = searchers.get(i);
-				writer.write("    {");
+			var firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
+			writeSearcherArray(firstEntry.getValue(), writer, indent + 1);
+
+			while (iterator.hasNext()) {
+				writer.write(",");
 				writer.write(System.lineSeparator());
 
-				writer.write("      \"count\": " + searcher.getCount() + ",");
+				var entry = iterator.next();
+				writeIndent('"' + entry.getKey() + "\": ", writer, indent + 1);
+				writeSearcherArray(entry.getValue(), writer, indent + 1);
+			}
+		}
+
+		writer.write(System.lineSeparator());
+		writeIndent("}", writer, indent);
+
+	}
+
+	/**
+	 * Writes the elements of an ArrayList of IndexSearcher objects in JSON format
+	 * to the provided Writer. The elements are written as an array, with each
+	 * IndexSearcher object represented as a JSON string. An optional indentation
+	 * level can be specified to format the JSON output.
+	 *
+	 * @param elements the ArrayList of IndexSearcher objects to be written
+	 * @param writer the Writer object to which the JSON output will be written
+	 * @param indent the number of spaces to use for indentation (0 for no
+	 *   indentation)
+	 * @throws IOException if an I/O error occurs while writing to the Writer
+	 */
+	public static void writeSearcherArray(Collection<IndexSearcher> elements, Writer writer, int indent)
+			throws IOException {
+		writer.write("[");
+		if (!elements.isEmpty()) {
+
+			var iterator = elements.iterator();
+			while (iterator.hasNext()) {
 				writer.write(System.lineSeparator());
 
-				writer.write("      \"score\": " + searcher.getScore() + ",");
-				writer.write(System.lineSeparator());
+				IndexSearcher searcher = iterator.next();
+				String searcherJson = searcher.toString();
+				String indentedSearcherJson = indentJson(searcherJson, indent + 1);
+				writer.write(indentedSearcherJson);
 
-				writer.write("      \"where\": \"" + searcher.getWhere() + "\"");
-				writer.write(System.lineSeparator());
-
-				writer.write("    }");
-				if (i < searchers.size() - 1) {
+				if (iterator.hasNext()) {
 					writer.write(",");
 				}
-				writer.write(System.lineSeparator());
 			}
-
-			writer.write("  ]");
-			if (entryCount < elements.size() - 1) {
-				writer.write(",");
-			}
-			writer.write(System.lineSeparator());
-
-			entryCount++;
 		}
-		writer.write("}");
+		writer.write(System.lineSeparator());
+		writeIndent("]", writer, indent);
+	}
+
+	/**
+	 * Applies indentation to IndexSearcher string.
+	 *
+	 * @param searcher the IndexSearcher string to be indented.
+	 * @param indent the number of spaces to use for indentation.
+	 * @return the indented JSON string.
+	 */
+	private static String indentJson(String searcher, int indent) {
+		String indentSpace = "  ".repeat(indent);
+		String[] lines = searcher.split("\n");
+		return Arrays.stream(lines).map(line -> indentSpace + line).collect(Collectors.joining("\n"));
 	}
 
 	/**
@@ -524,7 +556,7 @@ public class JsonWriter {
 	 * @throws IOException If an I/O error occurs while writing.
 	 */
 
-	public static void writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements, Path path)
+	public static void writeSearchResults(Map<String, ? extends Collection<IndexSearcher>> elements, Path path)
 			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeSearchResults(elements, writer, 0);
@@ -537,7 +569,7 @@ public class JsonWriter {
 	 * @param elements The TreeMap containing search results.
 	 * @return A string representation of the search results.
 	 */
-	public static String writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements) {
+	public static String writeSearchResults(Map<String, ? extends Collection<IndexSearcher>> elements) {
 		try {
 			StringWriter writer = new StringWriter();
 			writeSearchResults(elements, writer, 0);
