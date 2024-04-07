@@ -1,7 +1,6 @@
 package edu.usfca.cs272;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.TreeMap;
@@ -25,73 +24,71 @@ public class Driver {
 	public static void main(String[] args) {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
-		
+
 		if (parser.hasFlag("-text")) {
 			Path input = parser.getPath("-text");
-			
+
 			if (input == null) {
 				System.out.println("Error: Input path is null. Please provide a valid input path.");
 				return;
 			}
-			
+
 			try {
-				if (Files.isDirectory(input)) {
-					FileProcessor.traverseDirectory(input, index);
-				} else {
-					FileProcessor.readFile(input, index);
-				}
-			} catch (IOException e) {
+				FileProcessor.processPath(input, index);
+			}
+			catch (IOException e) {
 				System.out.println("Unable to build the inverted index from path: " + input);
 			}
 		}
-		
+
 		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
-			/** Only -counts with no path passed */
-			if (countOutput != null) {
-				try {
-					System.out.println(index.getWordCountMap().size());
-					JsonWriter.writeObject(index.getWordCountMap(), countOutput);
-				} catch (IOException e) {
-					System.out.println("Error writing word count data: " + e.getMessage());
-				}
+
+			try {
+				index.writeWordCountMap(countOutput);
+			}
+			catch (IOException e) {
+				System.out.println("Error writing word count data: " + e.getMessage());
 			}
 		}
-	
+
 		if (parser.hasFlag("-index")) {
 			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
-			/** Only -index with no path passed */
-			if (indexOutput != null) {
-				try {
-					JsonWriter.writeWordPositionsMap(index.getIndexMap(), indexOutput);
-				} catch (IOException e) {
-					System.out.println("Error writing index data: " + e.getMessage());
-				}
+
+			try {
+				index.writeIndexMap(indexOutput);
+			}
+			catch (IOException e) {
+				System.out.println("Error writing index data: " + e.getMessage());
 			}
 		}
-		
+
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
-		
+
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
-			if (query!= null) {
+			if (query != null) {
 				try {
-					if (parser.hasFlag("-partial"))
+					if (parser.hasFlag("-partial")) {
 						result = FileProcessor.readQuery(query, index, true);
-					else
+					}
+					else {
 						result = FileProcessor.readQuery(query, index, false);
-				} catch (IOException e) {
+					}
+				}
+				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
 				}
 			}
 		}
-		
+
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			if (resultsOutput != null) {
 				try {
 					JsonWriter.writeSearchResults(result, resultsOutput);
-				} catch (IOException e) {
+				}
+				catch (IOException e) {
 					System.err.println(e.getMessage());
 				}
 			}

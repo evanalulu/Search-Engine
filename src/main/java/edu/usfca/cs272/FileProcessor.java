@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -256,30 +257,45 @@ public class FileProcessor {
 	 * 
 	 * @param result The map to store the search results, where each query term maps
 	 * to a list of IndexSearchers.
-	 * 
-	 * private static void partialSearch(TreeSet<String> query, InvertedIndex index,
-	 * TreeMap<String, TreeSet<IndexSearcher>> result) { TreeMap<String,
-	 * TreeMap<String, TreeSet<Integer>>> indexMap = index.getIndexMap(); String
-	 * queryString = treeSetToString(query);
-	 * 
-	 * for (String queryTerm : query) { ArrayList<IndexSearcher> termResults = new
-	 * ArrayList<>(); for (String key : indexMap.keySet()) { if
-	 * (key.startsWith(queryTerm)) { TreeMap<String, TreeSet<Integer>> termIndexMap
-	 * = indexMap.get(key); for (Map.Entry<String, TreeSet<Integer>> entry :
-	 * termIndexMap.entrySet()) { String path = entry.getKey(); ArrayList<Integer>
-	 * value = entry.getValue(); IndexSearcher newSearcher = new
-	 * IndexSearcher(value.size(), calculateScore(index, path, value.size()),
-	 * Path.of(path));
-	 * 
-	 * boolean exists = false; for (IndexSearcher searcher : termResults) { if
-	 * (searcher.getWhere().equals(path)) { searcher.addCount(value.size());
-	 * searcher.setScore(calculateScore(index, path, searcher.getCount())); exists =
-	 * true; break; } } if (!exists) { termResults.add(newSearcher); } } } }
-	 * 
-	 * if (!result.containsKey(queryString)) { result.put(queryString, new
-	 * TreeSet<>()); } mergeResults(result.get(queryString), termResults, index); }
-	 * }
 	 */
+	private static void partialSearch(TreeSet<String> query, InvertedIndex index,
+			TreeMap<String, TreeSet<IndexSearcher>> result) {
+		TreeMap<String, TreeMap<String, TreeSet<Integer>>> indexMap = index.getIndexMap();
+		String queryString = treeSetToString(query);
+
+		for (String queryTerm : query) {
+			ArrayList<IndexSearcher> termResults = new ArrayList<>();
+			for (String key : indexMap.keySet()) {
+				if (key.startsWith(queryTerm)) {
+					TreeMap<String, TreeSet<Integer>> termIndexMap = indexMap.get(key);
+					for (Map.Entry<String, TreeSet<Integer>> entry : termIndexMap.entrySet()) {
+						String path = entry.getKey();
+						ArrayList<Integer> value = entry.getValue();
+						IndexSearcher newSearcher = new IndexSearcher(value.size(), calculateScore(index, path, value.size()),
+								Path.of(path));
+
+						boolean exists = false;
+						for (IndexSearcher searcher : termResults) {
+							if (searcher.getWhere().equals(path)) {
+								searcher.addCount(value.size());
+								searcher.setScore(calculateScore(index, path, searcher.getCount()));
+								exists = true;
+								break;
+							}
+						}
+						if (!exists) {
+							termResults.add(newSearcher);
+						}
+					}
+				}
+			}
+
+			if (!result.containsKey(queryString)) {
+				result.put(queryString, new TreeSet<>());
+			}
+			mergeResults(result.get(queryString), termResults, index);
+		}
+	}
 
 	/**
 	 * Merges the results of query term searches into main results and sorts them.
