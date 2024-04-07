@@ -11,11 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -89,19 +86,20 @@ public class JsonWriter {
 	 */
 	public static void writeArray(Collection<? extends Number> elements, Writer writer, int indent) throws IOException {
 		writer.write("[");
+
+		var iterator = elements.iterator();
+
 		if (!elements.isEmpty()) {
 			writer.write(System.lineSeparator());
-			Iterator<? extends Number> iterator = elements.iterator();
+
+			writeIndent(iterator.next().toString(), writer, indent + 1);
+
 			while (iterator.hasNext()) {
-				Number element = iterator.next();
-				writeIndent(element.toString(), writer, indent + 1);
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+				writer.write(",");
+				writer.write(System.lineSeparator());
+				writeIndent(iterator.next().toString(), writer, indent + 1);
 			}
 		}
-		
 		writer.write(System.lineSeparator());
 		writeIndent("]", writer, indent);
 	}
@@ -158,31 +156,23 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 */
 	public static void writeObject(Map<String, ? extends Number> elements, Writer writer, int indent) throws IOException {
-		if (elements.size() == 1 && elements.containsValue(0)) {
-			writer.write("{");
+		writer.write("{");
+		var iterator = elements.entrySet().iterator();
+
+		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
-			writer.write("}");
-		} else {
-			writer.write("{");
-			writer.write(System.lineSeparator());
-			Iterator<? extends Map.Entry<String, ? extends Number>> iterator = elements.entrySet().iterator();
+			var firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": " + firstEntry.getValue(), writer, indent + 1);
+
 			while (iterator.hasNext()) {
-				Map.Entry<String, ? extends Number> entry = iterator.next();
-				String key = entry.getKey();
-				Number value = entry.getValue();
-				
-				if (value.intValue() == 0) continue;
-				
-				writeIndent('"' + key + "\": " + value.toString(), writer, indent + 1);
-				
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+				writer.write(",");
+				writer.write(System.lineSeparator());
+				var entry = iterator.next();
+				writeIndent('"' + entry.getKey() + "\": " + entry.getValue(), writer, indent + 1);
 			}
-			writer.write(System.lineSeparator());
-			writeIndent("}", writer, indent);
 		}
+		writer.write(System.lineSeparator());
+		writeIndent("}", writer, indent);
 	}
 
 	/**
@@ -239,25 +229,30 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 * @see #writeArray(Collection)
 	 */
-	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Writer writer, int indent) throws IOException {
+	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Writer writer,
+			int indent) throws IOException {
 		writer.write("{");
-		if (!elements.isEmpty()) {
+
+		Iterator<? extends Map.Entry<String, ? extends Collection<? extends Number>>> iterator = elements.entrySet()
+				.iterator();
+
+		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
-			Iterator<? extends Map.Entry<String, ? extends Collection<? extends Number>>> iterator = elements.entrySet().iterator();
+
+			Map.Entry<String, ? extends Collection<? extends Number>> firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
+			writeArray(firstEntry.getValue(), writer, indent + 1);
+
 			while (iterator.hasNext()) {
+				writer.write(",");
+				writer.write(System.lineSeparator());
+
 				Map.Entry<String, ? extends Collection<? extends Number>> entry = iterator.next();
-				String key = entry.getKey();
-				Collection<? extends Number> values = entry.getValue();
-				
-				writeIndent('"' + key + "\": ", writer, indent + 1);
-				writeArray(values, writer, indent + 1);
-				
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+				writeIndent('"' + entry.getKey() + "\": ", writer, indent + 1);
+				writeArray(entry.getValue(), writer, indent + 1);
 			}
 		}
+
 		writer.write(System.lineSeparator());
 		writeIndent("}", writer, indent);
 	}
@@ -273,7 +268,8 @@ public class JsonWriter {
 	 * @see StandardCharsets#UTF_8
 	 * @see #writeObjectArrays(Map, Writer, int)
 	 */
-	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Path path) throws IOException {
+	public static void writeObjectArrays(Map<String, ? extends Collection<? extends Number>> elements, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeObjectArrays(elements, writer, 0);
 		}
@@ -316,22 +312,25 @@ public class JsonWriter {
 	 * @see #writeIndent(String, Writer, int)
 	 * @see #writeObject(Map)
 	 */
-	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Writer writer, int indent) throws IOException {
+	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Writer writer,
+			int indent) throws IOException {
 		writer.write("[");
-		if (!elements.isEmpty()) {
-			writer.write(System.lineSeparator());
-			Iterator<? extends Map<String, ? extends Number>> iterator = elements.iterator();
-			while (iterator.hasNext()) {
-				Map<String, ? extends Number> element = iterator.next();
-				writeIndent(writer, indent + 1);
-				writeObject(element, writer, indent + 1);
+		Iterator<? extends Map<String, ? extends Number>> iterator = elements.iterator();
 
-				if (iterator.hasNext()) {
-					writer.write(",");
-					writer.write(System.lineSeparator());
-				}
+		if (iterator.hasNext()) {
+			writer.write(System.lineSeparator());
+			writeIndent("", writer, indent + 1);
+			writeObject(iterator.next(), writer, indent + 1);
+
+			while (iterator.hasNext()) {
+				writer.write(",");
+				writer.write(System.lineSeparator());
+				Map<String, ? extends Number> element = iterator.next();
+				writeIndent("", writer, indent + 1);
+				writeObject(element, writer, indent + 1);
 			}
 		}
+
 		writer.write(System.lineSeparator());
 		writeIndent("]", writer, indent);
 	}
@@ -347,7 +346,8 @@ public class JsonWriter {
 	 * @see StandardCharsets#UTF_8
 	 * @see #writeArrayObjects(Collection)
 	 */
-	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Path path) throws IOException {
+	public static void writeArrayObjects(Collection<? extends Map<String, ? extends Number>> elements, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeArrayObjects(elements, writer, 0);
 		}
@@ -372,93 +372,86 @@ public class JsonWriter {
 			return null;
 		}
 	}
-	
+
 	/**
-	 * Writes the contents of the word positions map to the specified writer in JSON format with the given indentation level.
-	 * If the word positions map is empty, it writes an empty JSON object.
+	 * Writes a key-value pair representing a collection of numbers to a writer,
+	 * with optional indentation.
+	 *
+	 * @param entry The key-value pair to be written.
+	 * @param writer The writer to which the key-value pair will be written.
+	 * @param indent The number of spaces to indent the output by.
+	 * @throws IOException if an I/O error occurs while writing to the writer.
+	 */
+	public static void writeObjectCollection(Map.Entry<String, ? extends Collection<? extends Number>> entry,
+			Writer writer, int indent) throws IOException {
+		writer.write("\"" + entry.getKey() + "\": ");
+		writeArray(entry.getValue(), writer, indent);
+	}
+
+	/**
+	 * Writes the contents of the word positions map to the specified writer in JSON
+	 * format with the given indentation level. If the word positions map is empty,
+	 * it writes an empty JSON object.
 	 *
 	 * @param wordPositionsMap the word positions map to write
 	 * @param writer the writer to write the JSON content to
 	 * @param indent the indentation level for formatting the JSON
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Writer writer, int indent) throws IOException {
-		if (wordPositionsMap.isEmpty()) {
-			writer.write("{");
+	public static void writeWordPositionsMap(
+			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Writer writer,
+			int indent) throws IOException {
+
+		writer.write("{");
+
+		var iterator = wordPositionsMap.entrySet().iterator();
+
+		if (iterator.hasNext()) {
 			writer.write(System.lineSeparator());
-			writer.write("}");
-		} else {
-			writer.write("{");
-			if (!wordPositionsMap.isEmpty()) {
+
+			var firstEntry = iterator.next();
+			writeIndent('"' + firstEntry.getKey() + "\": ", writer, indent + 1);
+			writeObjectArrays(firstEntry.getValue(), writer, indent + 1);
+
+			while (iterator.hasNext()) {
+				writer.write(",");
 				writer.write(System.lineSeparator());
-				int counter = 0;
-				for (Map.Entry<String, TreeMap<String, ArrayList<Integer>>> entry : wordPositionsMap.entrySet()) {
-					writeIndent(writer, indent + 1);
-					writer.write("\"" + entry.getKey() + "\": ");
-					writer.write("{");
-					if (!entry.getValue().isEmpty()) {
-						writer.write(System.lineSeparator());
-						int innerCounter = 0;
-						for (Map.Entry<String, ArrayList<Integer>> innerEntry : entry.getValue().entrySet()) {
-							writeIndent(writer, indent + 2);
-							writer.write("\"" + innerEntry.getKey() + "\": ");
-							ArrayList<Integer> indices = innerEntry.getValue();
-							writer.write("[");
-							if (!indices.isEmpty()) {
-								writer.write(System.lineSeparator());
-								Iterator<? extends Number> iterator = indices.iterator();
-								while (iterator.hasNext()) {
-									Number element = iterator.next();
-									writeIndent(element.toString(), writer, indent + 3);
-									if (iterator.hasNext()) {
-										writer.write(",");
-										writer.write(System.lineSeparator());
-									}
-								}
-							}
-							writer.write(System.lineSeparator());
-							writeIndent("]", writer, indent + 2);
-							if (++innerCounter < entry.getValue().size()) {
-								writer.write(",");
-								writer.write(System.lineSeparator());
-							}
-						}
-						writer.write(System.lineSeparator());
-					}
-					writeIndent(writer, indent + 1);
-					writer.write("}");
-					if (++counter < wordPositionsMap.size()) {
-						writer.write(",");
-						writer.write(System.lineSeparator());
-					}
-				}
-				writer.write(System.lineSeparator());
+
+				var entry = iterator.next();
+				writeIndent('"' + entry.getKey() + "\": ", writer, indent + 1);
+				writeObjectArrays(entry.getValue(), writer, indent + 1);
 			}
-			writeIndent("}", writer, indent);
 		}
+
+		writer.write(System.lineSeparator());
+		writeIndent("}", writer, indent);
 	}
-	
+
 	/**
-	 * Writes the contents of the word positions map to the specified file path in JSON format.
-	 * If the word positions map is empty, it writes an empty JSON object.
+	 * Writes the contents of the word positions map to the specified file path in
+	 * JSON format. If the word positions map is empty, it writes an empty JSON
+	 * object.
 	 *
 	 * @param wordPositionsMap the word positions map to write
 	 * @param path the path to the file to write the JSON content to
 	 * @throws IOException if an I/O error occurs while writing the JSON content
 	 */
-	public static void writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap, Path path) throws IOException {
+	public static void writeWordPositionsMap(
+			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeWordPositionsMap(wordPositionsMap, writer, 0);
 		}
 	}
-	
+
 	/**
 	 * Writes the contents of the word positions map to a JSON string.
 	 *
 	 * @param wordPositionsMap the word positions map to convert to JSON
 	 * @return a JSON string representing the word positions map
 	 */
-	public static String writeWordPositionsMap(TreeMap<String, TreeMap<String, ArrayList<Integer>>> wordPositionsMap) {
+	public static String writeWordPositionsMap(
+			Map<String, ? extends Map<String, ? extends Collection<? extends Number>>> wordPositionsMap) {
 		try {
 			StringWriter writer = new StringWriter();
 			writeWordPositionsMap(wordPositionsMap, writer, 0);
@@ -468,76 +461,81 @@ public class JsonWriter {
 			return null;
 		}
 	}
-	
+
+	// TODO While loop + generic
 	/**
 	 * Writes search results to a writer JSON format.
 	 *
 	 * @param elements The TreeMap containing search results.
-	 * @param writer   The Writer object to write the results to.
-	 * @param indent   The number of spaces for indentation.
+	 * @param writer The Writer object to write the results to.
+	 * @param indent The number of spaces for indentation.
 	 * @throws IOException If an I/O error occurs while writing.
 	 */
-	public static void writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements, Writer writer, int indent) throws IOException {
+	public static void writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements, Writer writer, int indent)
+			throws IOException {
 		writer.write("{");
 		writer.write(System.lineSeparator());
 
 		int entryCount = 0;
 		for (var entry : elements.entrySet()) {
-		writer.write("  \"" + entry.getKey() + "\": [");
-		writer.write(System.lineSeparator());
-		
-		ArrayList<IndexSearcher> searchers = entry.getValue();
-		for (int i = 0; i < searchers.size(); i++) {
-			IndexSearcher searcher = searchers.get(i);
-			writer.write("    {");
+			writer.write("  \"" + entry.getKey() + "\": [");
 			writer.write(System.lineSeparator());
-			
-			writer.write("      \"count\": " + searcher.getCount() + ",");
-			writer.write(System.lineSeparator());
-			
-			writer.write("      \"score\": " + searcher.getScore() + ",");
-			writer.write(System.lineSeparator());
-			
-			writer.write("      \"where\": \"" + searcher.getWhere() + "\"");
-			writer.write(System.lineSeparator());
-			
-			writer.write("    }");
-			if (i < searchers.size() - 1) {
-			    writer.write(",");
+
+			ArrayList<IndexSearcher> searchers = entry.getValue();
+			for (int i = 0; i < searchers.size(); i++) {
+				IndexSearcher searcher = searchers.get(i);
+				writer.write("    {");
+				writer.write(System.lineSeparator());
+
+				writer.write("      \"count\": " + searcher.getCount() + ",");
+				writer.write(System.lineSeparator());
+
+				writer.write("      \"score\": " + searcher.getScore() + ",");
+				writer.write(System.lineSeparator());
+
+				writer.write("      \"where\": \"" + searcher.getWhere() + "\"");
+				writer.write(System.lineSeparator());
+
+				writer.write("    }");
+				if (i < searchers.size() - 1) {
+					writer.write(",");
+				}
+				writer.write(System.lineSeparator());
 			}
-			writer.write(System.lineSeparator());
-		}
 
 			writer.write("  ]");
 			if (entryCount < elements.size() - 1) {
-			    writer.write(",");
+				writer.write(",");
 			}
 			writer.write(System.lineSeparator());
-			
+
 			entryCount++;
 		}
 		writer.write("}");
 	}
+
 	/**
-	 * Writes the contents of the search results map to the specified file path in JSON format.
-	 * If the word positions map is empty, it writes an empty JSON object.
+	 * Writes the contents of the search results map to the specified file path in
+	 * JSON format. If the word positions map is empty, it writes an empty JSON
+	 * object.
 	 * 
 	 * @param elements The TreeMap containing search results.
-	 * @param path     The Path object representing the file path.
+	 * @param path The Path object representing the file path.
 	 * @throws IOException If an I/O error occurs while writing.
 	 */
-	
-	public static void writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements, Path path) throws IOException {
+
+	public static void writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements, Path path)
+			throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeSearchResults(elements, writer, 0);
 		}
 	}
-	
+
 	/**
 	 * Writes the contents of the search results map t to a JSON string.
 	 *
 	 * @param elements The TreeMap containing search results.
-     * @return A string representation of the search results.
+	 * @return A string representation of the search results.
 	 */
 	public static String writeSearchResults(TreeMap<String, ArrayList<IndexSearcher>> elements) {
 		try {
@@ -548,37 +546,6 @@ public class JsonWriter {
 		catch (IOException e) {
 			return null;
 		}
-	}
-	
-	/**
-	 * Demonstrates this class.
-	 *
-	 * @param args unused
-	 */
-	public static void main(String[] args) {
-		Set<Integer> empty = Collections.emptySet();
-		Set<Integer> single = Set.of(42);
-		List<Integer> simple = List.of(65, 66, 67);
-
-		System.out.println("\nArrays:");
-		System.out.println(writeArray(empty));
-		System.out.println(writeArray(single));
-		System.out.println(writeArray(simple));
-
-		System.out.println("\nObjects:");
-		System.out.println(writeObject(Collections.emptyMap()));
-		System.out.println(writeObject(Map.of("hello", 42)));
-		System.out.println(writeObject(Map.of("hello", 42, "world", 67)));
-
-		System.out.println("\nNested Arrays:");
-		System.out.println(writeObjectArrays(Collections.emptyMap()));
-		System.out.println(writeObjectArrays(Map.of("hello", single)));
-		System.out.println(writeObjectArrays(Map.of("hello", single, "world", simple)));
-
-		System.out.println("\nNested Objects:");
-		System.out.println(writeArrayObjects(Collections.emptyList()));
-		System.out.println(writeArrayObjects(Set.of(Map.of("hello", 3.12))));
-		System.out.println(writeArrayObjects(Set.of(Map.of("hello", 3.12, "world", 2.04), Map.of("apple", 0.04))));
 	}
 
 	/** Prevent instantiating this class of static methods. */
