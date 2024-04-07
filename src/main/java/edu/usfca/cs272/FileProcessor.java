@@ -11,7 +11,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -132,7 +131,7 @@ public class FileProcessor {
 		Set<TreeSet<String>> query = getQuery(path);
 		for (TreeSet<String> querySet : query) {
 			if (isPartial) {
-//				partialSearch(querySet, index, result);
+				partialSearch(querySet, index, result);
 			}
 			else {
 				exactSearch(querySet, index, result);
@@ -246,55 +245,70 @@ public class FileProcessor {
 		return null;
 	}
 
-	/*
-	 * 
+	/**
 	 * Performs partial search based on the provided query, updating the result map
 	 * with search results.
-	 *
+	 * 
 	 * @param query The query terms to search for.
-	 * 
 	 * @param index The inverted index to search within.
-	 * 
 	 * @param result The map to store the search results, where each query term maps
-	 * to a list of IndexSearchers.
+	 *   to a list of IndexSearchers.
 	 */
 	private static void partialSearch(TreeSet<String> query, InvertedIndex index,
-			TreeMap<String, TreeSet<IndexSearcher>> result) {
-		TreeMap<String, TreeMap<String, TreeSet<Integer>>> indexMap = index.getIndexMap();
+			TreeMap<String, ArrayList<IndexSearcher>> result) {
 		String queryString = treeSetToString(query);
 
 		for (String queryTerm : query) {
 			ArrayList<IndexSearcher> termResults = new ArrayList<>();
-			for (String key : indexMap.keySet()) {
-				if (key.startsWith(queryTerm)) {
-					TreeMap<String, TreeSet<Integer>> termIndexMap = indexMap.get(key);
-					for (Map.Entry<String, TreeSet<Integer>> entry : termIndexMap.entrySet()) {
-						String path = entry.getKey();
-						ArrayList<Integer> value = entry.getValue();
-						IndexSearcher newSearcher = new IndexSearcher(value.size(), calculateScore(index, path, value.size()),
-								Path.of(path));
 
-						boolean exists = false;
-						for (IndexSearcher searcher : termResults) {
-							if (searcher.getWhere().equals(path)) {
-								searcher.addCount(value.size());
-								searcher.setScore(calculateScore(index, path, searcher.getCount()));
-								exists = true;
-								break;
-							}
-						}
-						if (!exists) {
-							termResults.add(newSearcher);
-						}
+			for (String word : index.viewWords()) {
+				if (word.startsWith(queryTerm)) {
+					for (String location : index.viewLocations(word)) {
+						Set<Integer> positions = index.viewPositions(word, location);
+						updateSearchResults(termResults, location, positions, index);
 					}
 				}
 			}
 
-			if (!result.containsKey(queryString)) {
-				result.put(queryString, new TreeSet<>());
-			}
-			mergeResults(result.get(queryString), termResults, index);
+			mergeResults(result.computeIfAbsent(queryString, k -> new ArrayList<>()), termResults, index);
 		}
+	}
+
+	/**
+	 * Updates the search results for a specific location with the provided set of
+	 * positions. If an IndexSearcher for the location already exists in the list of
+	 * searchers, it updates its count and score. Otherwise, a new IndexSearcher is
+	 * created for the location.
+	 *
+	 * @param searchers the list of searchers to update or add to
+	 * @param location the location of the matched word positions
+	 * @param positions the set of positions where the word is found in the location
+	 * @param index the inverted index used for score calculation
+	 */
+	private static void updateSearchResults(ArrayList<IndexSearcher> searchers, String location, Set<Integer> positions,
+			InvertedIndex index) {
+		IndexSearcher searcher = findOrCreateSearcher(searchers, location);
+		searcher.addCount(positions.size());
+		searcher.setScore(calculateScore(index, location, searcher.getCount()));
+	}
+
+	/**
+	 * Finds an existing IndexSearcher for the given location from the provided list
+	 * of searchers, or creates a new one if not found.
+	 *
+	 * @param searchers the list of searchers to search within
+	 * @param location the location to match against existing searchers
+	 * @return the existing or newly created IndexSearcher
+	 */
+	private static IndexSearcher findOrCreateSearcher(ArrayList<IndexSearcher> searchers, String location) {
+		for (IndexSearcher searcher : searchers) {
+			if (searcher.getWhere().equals(location)) {
+				return searcher;
+			}
+		}
+		IndexSearcher newSearcher = new IndexSearcher(0, "0", Path.of(location));
+		searchers.add(newSearcher);
+		return newSearcher;
 	}
 
 	/**
@@ -337,24 +351,6 @@ public class FileProcessor {
 	}
 
 	/**
-	 * Converts the elements of a TreeSet into a single string using
-	 * {@link StringBuilder}.
-	 *
-	 * @param treeSet The TreeSet to convert into a string.
-	 * @return A string representation of the TreeSet elements.
-	 */
-	private static String treeSetToString(TreeSet<String> treeSet) {
-		StringBuilder sb = new StringBuilder();
-		for (String element : treeSet) {
-			sb.append(element).append(" ");
-		}
-		if (!treeSet.isEmpty()) {
-			sb.deleteCharAt(sb.length() - 1);
-		}
-		return sb.toString();
-	}
-
-	/**
 	 * Calculates the score for a given search result based on the total number of
 	 * matches and total words in the document.
 	 *
@@ -373,17 +369,32 @@ public class FileProcessor {
 		return formattedScore;
 	}
 
-	// TODO: Double check this
 	/**
-	 * Finds and returns the total count of words present in the specified path
-	 * within the given inverted index.
-	 *
-	 * @param index the inverted index containing word counts
-	 * @param path the path for which to find the total count of words
-	 * @return the total count of words in the specified path within the inverted
-	 *   index
+	 * Finds the total words in a path
+	 * 
+	 * @param index The inverted index containing word count information.
+	 * @param path The path of the document to count the words for.
+	 * @return The total words in path.
 	 */
 	private static int findTotalWords(InvertedIndex index, String path) {
 		return index.getWordCount(path);
+	}
+
+	/**
+	 * Converts the elements of a TreeSet into a single string using
+	 * {@link StringBuilder}.
+	 *
+	 * @param treeSet The TreeSet to convert into a string.
+	 * @return A string representation of the TreeSet elements.
+	 */
+	private static String treeSetToString(TreeSet<String> treeSet) {
+		StringBuilder sb = new StringBuilder();
+		for (String element : treeSet) {
+			sb.append(element).append(" ");
+		}
+		if (!treeSet.isEmpty()) {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb.toString();
 	}
 }
