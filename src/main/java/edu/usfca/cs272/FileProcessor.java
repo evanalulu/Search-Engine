@@ -182,60 +182,67 @@ public class FileProcessor {
 	private static void exactSearch(TreeSet<String> query, InvertedIndex index,
 			TreeMap<String, ArrayList<IndexSearcher>> result) {
 
-		String queryString = treeSetToString(query);
-
 		for (String queryTerm : query) {
+			String queryString = treeSetToString(query);
 			ArrayList<IndexSearcher> innerList = new ArrayList<>();
 
 			if (index.hasWord(queryTerm)) {
-
 				Set<String> locations = index.viewLocations(queryTerm);
 
 				for (String path : locations) {
 					Set<Integer> value = index.viewPositions(queryTerm, path);
-
-					boolean matched = false;
-
-					if (result.containsKey(queryString)) {
-						ArrayList<IndexSearcher> searchers = result.get(queryString);
-
-						for (IndexSearcher searcher : searchers) {
-							/* Same file path exists within results */
-							if (filePathMatch(searcher, path)) {
-								int totalMatches = value.size();
-								searcher.addCount(totalMatches);
-
-								String score = calculateScore(index, path, searcher.getCount());
-								searcher.setScore(score);
-
-								matched = true;
-								break;
-							}
-						}
-					}
-
-					/* Same file path doesn't exist within results */
-					if (!matched) {
-						int totalMatches = value.size();
-						String score = calculateScore(index, path, totalMatches);
-						IndexSearcher searcher = new IndexSearcher(totalMatches, score, Path.of(path));
-						innerList.add(searcher);
-					}
+					calculateResult(result, queryString, index, path, value);
 				}
 			}
 
-			if (result.containsKey(queryString)) {
-				if (!innerList.isEmpty()) {
-					result.get(queryString).addAll(innerList);
-				}
-			}
-			else {
-				Collections.sort(innerList);
-				result.put(queryString, innerList);
-			}
-
+			result.computeIfAbsent(queryString, k -> new ArrayList<>()).addAll(innerList);
 			Collections.sort(result.get(queryString));
 		}
+	}
+
+	/**
+	 * Calculates and updates the search result based on the query string, inverted
+	 * index, path, and set of matching positions. Updates the provided result map
+	 * with the calculated information.
+	 *
+	 * @param result the map to store the search results
+	 * @param queryString the query string used for the search
+	 * @param index the inverted index used for the search
+	 * @param path the path of the file being searched
+	 * @param value the set of matching positions within the file
+	 */
+	public static void calculateResult(TreeMap<String, ArrayList<IndexSearcher>> result, String queryString,
+			InvertedIndex index, String path, Set<Integer> value) {
+		ArrayList<IndexSearcher> searchers = result.computeIfAbsent(queryString, k -> new ArrayList<>());
+		int totalMatches = value.size();
+
+		IndexSearcher existingSearcher = findSearcherForPath(searchers, path);
+		if (existingSearcher != null) {
+			existingSearcher.addCount(totalMatches);
+			existingSearcher.setScore(calculateScore(index, path, existingSearcher.getCount()));
+		}
+		else {
+			String score = calculateScore(index, path, totalMatches);
+			IndexSearcher newSearcher = new IndexSearcher(totalMatches, score, Path.of(path));
+			searchers.add(newSearcher);
+		}
+	}
+
+	/**
+	 * Finds an existing IndexSearcher for the given path from the provided list of
+	 * searchers.
+	 *
+	 * @param searchers the list of searchers to search within
+	 * @param path the path to match against existing searchers
+	 * @return the existing IndexSearcher if found, otherwise null
+	 */
+	private static IndexSearcher findSearcherForPath(ArrayList<IndexSearcher> searchers, String path) {
+		for (IndexSearcher searcher : searchers) {
+			if (filePathMatch(searcher, path)) {
+				return searcher;
+			}
+		}
+		return null;
 	}
 
 	/*
