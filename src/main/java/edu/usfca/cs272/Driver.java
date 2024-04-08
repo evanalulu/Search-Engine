@@ -2,6 +2,8 @@ package edu.usfca.cs272;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -20,7 +22,6 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 */
 	public static void main(String[] args) {
-
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 
@@ -61,5 +62,31 @@ public class Driver {
 				System.out.println("Error writing index data: " + e.getMessage());
 			}
 		}
+
+		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+
+		if (parser.hasFlag("-query")) {
+			Path query = parser.getPath("-query");
+			if (query != null) {
+				boolean isPartialSearch = parser.hasFlag("-partial");
+				try {
+					result = FileProcessor.readQuery(query, index, isPartialSearch);
+				}
+				catch (IOException e) {
+					System.err.println("Error getting search results: " + e.getMessage());
+				}
+			}
+		}
+
+		if (parser.hasFlag("-results")) {
+			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
+			try {
+				JsonWriter.writeSearchResults(result, resultsOutput);
+			}
+			catch (IOException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+
 	}
 }

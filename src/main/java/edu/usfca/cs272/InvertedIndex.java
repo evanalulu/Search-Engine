@@ -201,7 +201,11 @@ public class InvertedIndex {
 	 * @return the number of occurrences of the word in the index map
 	 */
 	public int numWords(String word) {
-		return indexMap.size();
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			return locationMap.values().stream().mapToInt(TreeSet::size).sum();
+		}
+		return 0;
 	}
 
 	/**
