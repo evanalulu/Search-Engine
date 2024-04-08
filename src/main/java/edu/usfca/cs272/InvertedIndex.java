@@ -27,6 +27,31 @@ public class InvertedIndex {
 		indexMap = new TreeMap<>();
 	}
 
+	/* TODO 
+	public void ArrayList<IndexSearcher> exactSearch(Set<String> query) {
+		ArrayList<IndexSearcher> outerList = new ArrayList<>();
+		
+		for (String queryTerm : query) {
+			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+
+			if (index.hasWord(queryTerm)) {
+				Set<String> locations = index.viewLocations(queryTerm);
+
+				for (String path : locations) {
+					Set<Integer> value = index.viewPositions(queryTerm, path);
+					calculateResult(result, queryString, index, path, value);
+				}
+			}
+
+			outerList.addAll(innerList);
+		}
+		
+		Collections.sort(outerList);
+	}
+	
+	...and partial search (and all of the helper methods needed)
+	*/
+	
 	/**
 	 * Adds the count of a word in a document to the word count map.
 	 *
