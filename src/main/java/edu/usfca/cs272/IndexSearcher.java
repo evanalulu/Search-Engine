@@ -6,16 +6,20 @@ import java.nio.file.Path;
  * Represents a search result in the inverted index, including the count of
  * matches, score, and document path.
  */
-public class IndexSearcher implements Comparable<IndexSearcher> {
+public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make this a non-static inner class within inverted index
 
 	/** The count of matches. */
 	public int count;
 
 	/** The score of the search result. */
 	public String score;
+	
+	/*
+	 * TODO Store the score as a double and make a method to get it as a formatted String
+	 */
 
 	/** The path of the document containing the matches. */
-	public Path where;
+	public Path where; // TODO String
 
 	/**
 	 * Constructs an IndexSearcher object with the given parameters.
@@ -44,7 +48,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> {
 	 *
 	 * @param c The value to add to the count of matches.
 	 */
-	public void addCount(int c) {
+	public void addCount(int c) { // TODO Rename the c parameter
 		this.count += c;
 	}
 
@@ -53,7 +57,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> {
 	 *
 	 * @param c The value to set as the count of matches.
 	 */
-	public void setCount(int c) {
+	public void setCount(int c) { // TODO Rename the c parameter
 		this.count = c;
 	}
 

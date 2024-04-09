@@ -150,7 +150,7 @@ public class FileProcessor {
 	 *   as a sorted set of terms.
 	 * @throws IOException If an I/O error occurs while reading the query file.
 	 */
-	public static Set<TreeSet<String>> getQuery(Path path) throws IOException {
+	public static Set<TreeSet<String>> getQuery(Path path) throws IOException { // TODO Remove
 		Set<TreeSet<String>> query = new HashSet<>();
 
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
@@ -389,6 +389,7 @@ public class FileProcessor {
 	 * @return A string representation of the TreeSet elements.
 	 */
 	private static String treeSetToString(TreeSet<String> treeSet) {
+		// TODO String.join(" ", treeSet)
 		StringBuilder sb = new StringBuilder();
 		for (String element : treeSet) {
 			sb.append(element).append(" ");

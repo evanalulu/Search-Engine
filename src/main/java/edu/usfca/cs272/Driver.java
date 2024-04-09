@@ -63,6 +63,31 @@ public class Driver {
 			}
 		}
 
+		/*
+		 * TODO Move this data structure to a QueryProcessor class as a member
+		 * 
+		 * Take an instance-based approach
+		 * 
+
+	public void getQuery(Path path, ...) throws IOException {
+
+		try (BufferedReader reader = Files.newBufferedReader(path)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				getQuery(line, ...)
+			}
+		}
+	}
+
+	public void getQuery(String line, ...) throws IOException {
+		Stem the line
+		Create the joined string
+		and ask the index for the search results
+		store the results
+	}
+
+	Think about what other useful methods might look like in this class
+		 */
 		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 
 		if (parser.hasFlag("-query")) {
