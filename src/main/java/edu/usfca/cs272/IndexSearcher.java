@@ -1,25 +1,25 @@
 package edu.usfca.cs272;
 
-import java.nio.file.Path;
-
 /**
  * Represents a search result in the inverted index, including the count of
  * matches, score, and document path.
  */
-public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make this a non-static inner class within inverted index
+public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make this a non-static inner class within
+																																	// inverted index
 
 	/** The count of matches. */
 	public int count;
 
 	/** The score of the search result. */
-	public String score;
-	
+	public Double score;
+
 	/*
-	 * TODO Store the score as a double and make a method to get it as a formatted String
+	 * TODO Store the score as a double and make a method to get it as a formatted
+	 * String
 	 */
 
 	/** The path of the document containing the matches. */
-	public Path where; // TODO String
+	public String where;
 
 	/**
 	 * Constructs an IndexSearcher object with the given parameters.
@@ -28,7 +28,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	 * @param score The score of the search result.
 	 * @param where The path of the document containing the matches.
 	 */
-	public IndexSearcher(int count, String score, Path where) {
+	public IndexSearcher(int count, Double score, String where) {
 		this.count = count;
 		this.score = score;
 		this.where = where;
@@ -46,19 +46,19 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	/**
 	 * Adds the specified value to the count of matches.
 	 *
-	 * @param c The value to add to the count of matches.
+	 * @param count The value to add to the count of matches.
 	 */
-	public void addCount(int c) { // TODO Rename the c parameter
-		this.count += c;
+	public void addCount(int count) {
+		this.count += count;
 	}
 
 	/**
 	 * Sets the count of matches to the specified value.
 	 *
-	 * @param c The value to set as the count of matches.
+	 * @param count The value to set as the count of matches.
 	 */
-	public void setCount(int c) { // TODO Rename the c parameter
-		this.count = c;
+	public void setCount(int count) {
+		this.count = count;
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	 *
 	 * @return The score of the search result.
 	 */
-	public String getScore() {
+	public Double getScore() {
 		return score;
 	}
 
@@ -75,7 +75,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	 *
 	 * @return The path of the document containing the matches.
 	 */
-	public Path getWhere() {
+	public String getWhere() {
 		return where;
 	}
 
@@ -84,7 +84,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	 *
 	 * @param score The score to set.
 	 */
-	public void setScore(String score) {
+	public void setScore(Double score) {
 		this.score = score;
 	}
 
@@ -93,7 +93,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	 *
 	 * @param where The path to set.
 	 */
-	public void setWhere(Path where) {
+	public void setWhere(String where) {
 		this.where = where;
 	}
 
@@ -106,7 +106,7 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	 */
 	@Override
 	public int compareTo(IndexSearcher other) {
-		int scoreComparison = Double.compare(Double.parseDouble(other.getScore()), Double.parseDouble(this.getScore()));
+		int scoreComparison = Double.compare(other.getScore(), this.getScore());
 		if (scoreComparison != 0) {
 			return scoreComparison;
 		}
