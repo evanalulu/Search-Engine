@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -222,8 +221,8 @@ public class FileProcessor {
 			existingSearcher.setScore(calculateScore(index, path, existingSearcher.getCount()));
 		}
 		else {
-			String score = calculateScore(index, path, totalMatches);
-			IndexSearcher newSearcher = new IndexSearcher(totalMatches, score, Path.of(path));
+			Double score = calculateScore(index, path, totalMatches);
+			IndexSearcher newSearcher = new IndexSearcher(totalMatches, score, path);
 			searchers.add(newSearcher);
 		}
 	}
@@ -301,13 +300,13 @@ public class FileProcessor {
 	 * @return the existing or newly created IndexSearcher
 	 */
 	private static IndexSearcher findOrCreateSearcher(ArrayList<IndexSearcher> searchers, String location) {
-		Path locationPath = Path.of(location);
 		for (IndexSearcher searcher : searchers) {
-			if (searcher.getWhere().equals(locationPath)) {
+			if (searcher.getWhere().equals(location)) {
 				return searcher;
 			}
 		}
-		IndexSearcher newSearcher = new IndexSearcher(0, "0", locationPath);
+
+		IndexSearcher newSearcher = new IndexSearcher(0, 0.0, location);
 		searchers.add(newSearcher);
 		return newSearcher;
 	}
@@ -361,13 +360,11 @@ public class FileProcessor {
 	 *   document.
 	 * @return The calculated score as a formatted string.
 	 */
-	private static String calculateScore(InvertedIndex index, String path, int totalMatches) {
-		DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+	private static Double calculateScore(InvertedIndex index, String path, int totalMatches) {
 
 		int totalWords = findTotalWords(index, path);
-		double score = (double) totalMatches / totalWords;
-		String formattedScore = FORMATTER.format(score);
-		return formattedScore;
+		return (double) totalMatches / totalWords;
+
 	}
 
 	/**
@@ -389,14 +386,6 @@ public class FileProcessor {
 	 * @return A string representation of the TreeSet elements.
 	 */
 	private static String treeSetToString(TreeSet<String> treeSet) {
-		// TODO String.join(" ", treeSet)
-		StringBuilder sb = new StringBuilder();
-		for (String element : treeSet) {
-			sb.append(element).append(" ");
-		}
-		if (!treeSet.isEmpty()) {
-			sb.deleteCharAt(sb.length() - 1);
-		}
-		return sb.toString();
+		return String.join(" ", treeSet);
 	}
 }

@@ -1,5 +1,7 @@
 package edu.usfca.cs272;
 
+import java.text.DecimalFormat;
+
 /**
  * Represents a search result in the inverted index, including the count of
  * matches, score, and document path.
@@ -120,6 +122,19 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 	}
 
 	/**
+	 * Formats the given score to a string representation with eight decimal places.
+	 *
+	 * @param score the score to be formatted
+	 * @return the formatted score as a string with eight decimal places
+	 */
+	private static String formatScore(Double score) {
+		DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+
+		String formattedScore = FORMATTER.format(score);
+		return formattedScore;
+	}
+
+	/**
 	 * Returns a string representation of the IndexSearcher object.
 	 *
 	 * @return A string representation of the IndexSearcher object.
@@ -129,7 +144,8 @@ public class IndexSearcher implements Comparable<IndexSearcher> { // TODO Make t
 		StringBuilder builder = new StringBuilder();
 		builder.append("{\n");
 		builder.append("  \"count\": ").append(count).append(",\n");
-		builder.append("  \"score\": ").append(score).append(",\n"); // If score is a number, no need for quotes
+		builder.append("  \"score\": ").append(formatScore(score)).append(",\n"); // If score is a number, no need for
+																																							// quotes
 		builder.append("  \"where\": \"").append(where).append("\"\n");
 		builder.append("}");
 		return builder.toString();
