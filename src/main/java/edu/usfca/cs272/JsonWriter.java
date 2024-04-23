@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import edu.usfca.cs272.InvertedIndex.IndexSearcher;
+
 /**
  * Outputs several simple data structures in "pretty" JSON format where newlines
  * are used to separate elements and nested elements are indented using spaces.
@@ -470,8 +472,8 @@ public class JsonWriter {
 	 * @param indent The number of spaces for indentation.
 	 * @throws IOException If an I/O error occurs while writing.
 	 */
-	public static void writeSearchResults(Map<String, ? extends Collection<IndexSearcher>> elements, Writer writer,
-			int indent) throws IOException {
+	public static void writeSearchResults(Map<String, ? extends Collection<InvertedIndex.IndexSearcher>> elements,
+			Writer writer, int indent) throws IOException {
 		writer.write("{");
 
 		var iterator = elements.entrySet().iterator();

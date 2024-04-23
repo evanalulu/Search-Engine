@@ -2,6 +2,8 @@ package edu.usfca.cs272;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeMap;
@@ -27,31 +29,6 @@ public class InvertedIndex {
 		indexMap = new TreeMap<>();
 	}
 
-	/* TODO 
-	public void ArrayList<IndexSearcher> exactSearch(Set<String> query) {
-		ArrayList<IndexSearcher> outerList = new ArrayList<>();
-		
-		for (String queryTerm : query) {
-			ArrayList<IndexSearcher> innerList = new ArrayList<>();
-
-			if (index.hasWord(queryTerm)) {
-				Set<String> locations = index.viewLocations(queryTerm);
-
-				for (String path : locations) {
-					Set<Integer> value = index.viewPositions(queryTerm, path);
-					calculateResult(result, queryString, index, path, value);
-				}
-			}
-
-			outerList.addAll(innerList);
-		}
-		
-		Collections.sort(outerList);
-	}
-	
-	...and partial search (and all of the helper methods needed)
-	*/
-	
 	/**
 	 * Adds the count of a word in a document to the word count map.
 	 *
@@ -284,4 +261,393 @@ public class InvertedIndex {
 
 		return builder.toString();
 	}
+
+	/*
+	 * TODO public void ArrayList<IndexSearcher> exactSearch(Set<String> query) {
+	 * ArrayList<IndexSearcher> outerList = new ArrayList<>();
+	 * 
+	 * for (String queryTerm : query) { ArrayList<IndexSearcher> innerList = new
+	 * ArrayList<>();
+	 * 
+	 * if (index.hasWord(queryTerm)) { Set<String> locations =
+	 * index.viewLocations(queryTerm);
+	 * 
+	 * for (String path : locations) { Set<Integer> value =
+	 * index.viewPositions(queryTerm, path); calculateResult(result, queryString,
+	 * index, path, value); } }
+	 * 
+	 * outerList.addAll(innerList); }
+	 * 
+	 * Collections.sort(outerList); }
+	 * 
+	 * ...and partial search (and all of the helper methods needed)
+	 */
+
+	/**
+	 * Performs exact search based on the provided query, updating the result map
+	 * with search results.
+	 *
+	 * @param query The query terms to search for.
+	 * @param index The inverted index to search within.
+	 * @param result The map to store the search results, where each query term maps
+	 *   to a list of IndexSearchers.
+	 */
+	public static void exactSearch(TreeSet<String> query, InvertedIndex index,
+			TreeMap<String, ArrayList<IndexSearcher>> result) {
+
+		for (String queryTerm : query) {
+			String queryString = treeSetToString(query);
+			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+
+			if (index.hasWord(queryTerm)) {
+				Set<String> locations = index.viewLocations(queryTerm);
+
+				for (String path : locations) {
+					Set<Integer> value = index.viewPositions(queryTerm, path);
+					calculateResult(result, queryString, index, path, value);
+				}
+			}
+
+			result.computeIfAbsent(queryString, k -> new ArrayList<>()).addAll(innerList);
+			Collections.sort(result.get(queryString));
+		}
+	}
+
+	/**
+	 * Calculates and updates the search result based on the query string, inverted
+	 * index, path, and set of matching positions. Updates the provided result map
+	 * with the calculated information.
+	 *
+	 * @param result the map to store the search results
+	 * @param queryString the query string used for the search
+	 * @param index the inverted index used for the search
+	 * @param path the path of the file being searched
+	 * @param value the set of matching positions within the file
+	 */
+	public static void calculateResult(TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result, String queryString,
+			InvertedIndex index, String path, Set<Integer> value) {
+		ArrayList<IndexSearcher> searchers = result.computeIfAbsent(queryString, k -> new ArrayList<>());
+		int totalMatches = value.size();
+
+		IndexSearcher existingSearcher = findSearcherForPath(searchers, path);
+		if (existingSearcher != null) {
+			existingSearcher.addCount(totalMatches);
+			existingSearcher.setScore(calculateScore(index, path, existingSearcher.getCount()));
+		}
+		else {
+			Double score = calculateScore(index, path, totalMatches);
+			IndexSearcher newSearcher = index.new IndexSearcher(totalMatches, score, path);
+			searchers.add(newSearcher);
+		}
+	}
+
+	/**
+	 * Finds an existing IndexSearcher for the given path from the provided list of
+	 * searchers.
+	 *
+	 * @param searchers the list of searchers to search within
+	 * @param path the path to match against existing searchers
+	 * @return the existing IndexSearcher if found, otherwise null
+	 */
+	private static IndexSearcher findSearcherForPath(ArrayList<IndexSearcher> searchers, String path) {
+		for (IndexSearcher searcher : searchers) {
+			if (filePathMatch(searcher, path)) {
+				return searcher;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Performs partial search based on the provided query, updating the result map
+	 * with search results.
+	 * 
+	 * @param query The query terms to search for.
+	 * @param index The inverted index to search within.
+	 * @param result The map to store the search results, where each query term maps
+	 *   to a list of IndexSearchers.
+	 */
+	public static void partialSearch(TreeSet<String> query, InvertedIndex index,
+			TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result) {
+		String queryString = treeSetToString(query);
+
+		for (String queryTerm : query) {
+			ArrayList<InvertedIndex.IndexSearcher> termResults = new ArrayList<>();
+
+			for (String word : index.viewWords()) {
+				if (word.startsWith(queryTerm)) {
+					for (String location : index.viewLocations(word)) {
+						Set<Integer> positions = index.viewPositions(word, location);
+						updateSearchResults(termResults, location, positions, index);
+					}
+				}
+			}
+
+			mergeResults(result.computeIfAbsent(queryString, k -> new ArrayList<>()), termResults, index);
+		}
+	}
+
+	/**
+	 * Updates the search results for a specific location with the provided set of
+	 * positions. If an IndexSearcher for the location already exists in the list of
+	 * searchers, it updates its count and score. Otherwise, a new IndexSearcher is
+	 * created for the location.
+	 *
+	 * @param searchers the list of searchers to update or add to
+	 * @param location the location of the matched word positions
+	 * @param positions the set of positions where the word is found in the location
+	 * @param index the inverted index used for score calculation
+	 */
+	private static void updateSearchResults(ArrayList<InvertedIndex.IndexSearcher> searchers, String location,
+			Set<Integer> positions, InvertedIndex index) {
+		IndexSearcher searcher = findOrCreateSearcher(index, searchers, location);
+		searcher.addCount(positions.size());
+		searcher.setScore(calculateScore(index, location, searcher.getCount()));
+	}
+
+	/**
+	 * Finds an existing IndexSearcher for the given location from the provided list
+	 * of searchers, or creates a new one if not found.
+	 * 
+	 * @param index Inverted Index instances
+	 * @param searchers the list of searchers to search within
+	 * @param location the location to match against existing searchers
+	 * @return the existing or newly created IndexSearcher
+	 */
+	private static IndexSearcher findOrCreateSearcher(InvertedIndex index,
+			ArrayList<InvertedIndex.IndexSearcher> searchers, String location) {
+		for (IndexSearcher searcher : searchers) {
+			if (searcher.getWhere().equals(location)) {
+				return searcher;
+			}
+		}
+
+		IndexSearcher newSearcher = index.new IndexSearcher(0, 0.0, location);
+		searchers.add(newSearcher);
+		return newSearcher;
+	}
+
+	/**
+	 * Merges the results of query term searches into main results and sorts them.
+	 *
+	 * @param mainResults The main list of search results.
+	 * @param termResults The list of search results from a term search.
+	 * @param index The InvertedIndex containing the indexed data.
+	 */
+	private static void mergeResults(ArrayList<IndexSearcher> mainResults, ArrayList<IndexSearcher> termResults,
+			InvertedIndex index) {
+		for (IndexSearcher termSearcher : termResults) {
+			boolean found = false;
+			for (IndexSearcher mainSearcher : mainResults) {
+				if (mainSearcher.getWhere().equals(termSearcher.getWhere())) {
+					mainSearcher.addCount(termSearcher.getCount());
+					mainSearcher.setScore(calculateScore(index, termSearcher.getWhere().toString(), mainSearcher.getCount()));
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				mainResults.add(termSearcher);
+			}
+		}
+		Collections.sort(mainResults);
+	}
+
+	/**
+	 * Checks if the file path in the given IndexSearcher matches the specified
+	 * path.
+	 *
+	 * @param searcher The IndexSearcher object containing the file path to compare.
+	 * @param path The file path to compare against.
+	 * @return {@code true} if the file path in the IndexSearcher matches the
+	 *   specified path, {@code false} otherwise.
+	 */
+	private static boolean filePathMatch(IndexSearcher searcher, String path) {
+		return (searcher.getWhere().toString().equalsIgnoreCase(path));
+	}
+
+	/**
+	 * Calculates the score for a given search result based on the total number of
+	 * matches and total words in the document.
+	 *
+	 * @param index The inverted index containing word count information.
+	 * @param path The path of the document to calculate the score for.
+	 * @param totalMatches The total number of matches for the query term in the
+	 *   document.
+	 * @return The calculated score as a formatted string.
+	 */
+	private static Double calculateScore(InvertedIndex index, String path, int totalMatches) {
+
+		int totalWords = findTotalWords(index, path);
+		return (double) totalMatches / totalWords;
+
+	}
+
+	/**
+	 * Finds the total words in a path
+	 * 
+	 * @param index The inverted index containing word count information.
+	 * @param path The path of the document to count the words for.
+	 * @return The total words in path.
+	 */
+	private static int findTotalWords(InvertedIndex index, String path) {
+		return index.getWordCount(path);
+	}
+
+	/**
+	 * Converts the elements of a TreeSet into a single string using
+	 * {@link StringBuilder}.
+	 *
+	 * @param treeSet The TreeSet to convert into a string.
+	 * @return A string representation of the TreeSet elements.
+	 */
+	private static String treeSetToString(TreeSet<String> treeSet) {
+		return String.join(" ", treeSet);
+	}
+
+	/**
+	 * Represents a search result in the inverted index, including the count of
+	 * matches, score, and document path.
+	 */
+	public class IndexSearcher implements Comparable<IndexSearcher> {
+
+		/** The count of matches. */
+		public int count;
+
+		/** The score of the search result. */
+		public Double score;
+
+		/** The path of the document containing the matches. */
+		public String where;
+
+		/**
+		 * Constructs an IndexSearcher object with the given parameters.
+		 *
+		 * @param count The count of matches.
+		 * @param score The score of the search result.
+		 * @param where The path of the document containing the matches.
+		 */
+		public IndexSearcher(int count, Double score, String where) {
+			this.count = count;
+			this.score = score;
+			this.where = where;
+		}
+
+		/**
+		 * Retrieves the count of matches.
+		 *
+		 * @return The count of matches.
+		 */
+		public int getCount() {
+			return count;
+		}
+
+		/**
+		 * Adds the specified value to the count of matches.
+		 *
+		 * @param count The value to add to the count of matches.
+		 */
+		public void addCount(int count) {
+			this.count += count;
+		}
+
+		/**
+		 * Sets the count of matches to the specified value.
+		 *
+		 * @param count The value to set as the count of matches.
+		 */
+		public void setCount(int count) {
+			this.count = count;
+		}
+
+		/**
+		 * Retrieves the score of the search result.
+		 *
+		 * @return The score of the search result.
+		 */
+		public Double getScore() {
+			return score;
+		}
+
+		/**
+		 * Retrieves the path of the document containing the matches.
+		 *
+		 * @return The path of the document containing the matches.
+		 */
+		public String getWhere() {
+			return where;
+		}
+
+		/**
+		 * Sets the score of the search result.
+		 *
+		 * @param score The score to set.
+		 */
+		public void setScore(Double score) {
+			this.score = score;
+		}
+
+		/**
+		 * Sets the path of the document containing the matches.
+		 *
+		 * @param where The path to set.
+		 */
+		public void setWhere(String where) {
+			this.where = where;
+		}
+
+		/**
+		 * Compares this IndexSearcher with another IndexSearcher for sorting.
+		 *
+		 * @param other The IndexSearcher to compare with.
+		 * @return A negative integer, zero, or a positive integer if this object is
+		 *   less than, equal to, or greater than the specified object.
+		 */
+		@Override
+		public int compareTo(IndexSearcher other) {
+			int scoreComparison = Double.compare(other.getScore(), this.getScore());
+			if (scoreComparison != 0) {
+				return scoreComparison;
+			}
+
+			int countComparison = Integer.compare(other.getCount(), this.getCount());
+			if (countComparison != 0) {
+				return countComparison;
+			}
+
+			return this.getWhere().toString().compareToIgnoreCase(other.getWhere().toString());
+		}
+
+		/**
+		 * Formats the given score to a string representation with eight decimal places.
+		 *
+		 * @param score the score to be formatted
+		 * @return the formatted score as a string with eight decimal places
+		 */
+		private static String formatScore(Double score) {
+			DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+
+			String formattedScore = FORMATTER.format(score);
+			return formattedScore;
+		}
+
+		/**
+		 * Returns a string representation of the IndexSearcher object.
+		 *
+		 * @return A string representation of the IndexSearcher object.
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("{\n");
+			builder.append("  \"count\": ").append(count).append(",\n");
+			builder.append("  \"score\": ").append(formatScore(score)).append(",\n"); // If score is a number, no need for
+			// quotes
+			builder.append("  \"where\": \"").append(where).append("\"\n");
+			builder.append("}");
+			return builder.toString();
+		}
+
+	}
+
 }
