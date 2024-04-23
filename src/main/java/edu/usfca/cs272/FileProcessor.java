@@ -129,10 +129,10 @@ public class FileProcessor {
 		Set<TreeSet<String>> query = getQuery(path);
 		for (TreeSet<String> querySet : query) {
 			if (isPartial) {
-				InvertedIndex.partialSearch(querySet, index, result);
+				index.partialSearch(querySet);
 			}
 			else {
-				InvertedIndex.exactSearch(querySet, index, result);
+				index.exactSearch(querySet);
 			}
 		}
 

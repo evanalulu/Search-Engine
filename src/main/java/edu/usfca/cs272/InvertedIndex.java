@@ -262,56 +262,54 @@ public class InvertedIndex {
 		return builder.toString();
 	}
 
-	/*
-	 * TODO public void ArrayList<IndexSearcher> exactSearch(Set<String> query) {
-	 * ArrayList<IndexSearcher> outerList = new ArrayList<>();
-	 * 
-	 * for (String queryTerm : query) { ArrayList<IndexSearcher> innerList = new
-	 * ArrayList<>();
-	 * 
-	 * if (index.hasWord(queryTerm)) { Set<String> locations =
-	 * index.viewLocations(queryTerm);
-	 * 
-	 * for (String path : locations) { Set<Integer> value =
-	 * index.viewPositions(queryTerm, path); calculateResult(result, queryString,
-	 * index, path, value); } }
-	 * 
-	 * outerList.addAll(innerList); }
-	 * 
-	 * Collections.sort(outerList); }
-	 * 
-	 * ...and partial search (and all of the helper methods needed)
-	 */
-
 	/**
 	 * Performs exact search based on the provided query, updating the result map
 	 * with search results.
 	 *
 	 * @param query The query terms to search for.
-	 * @param index The inverted index to search within.
-	 * @param result The map to store the search results, where each query term maps
-	 *   to a list of IndexSearchers.
 	 */
-	public static void exactSearch(TreeSet<String> query, InvertedIndex index,
-			TreeMap<String, ArrayList<IndexSearcher>> result) {
+	public void exactSearch(Set<String> query) {
+		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+		ArrayList<IndexSearcher> outerList = new ArrayList<>();
 
 		for (String queryTerm : query) {
-			String queryString = treeSetToString(query);
 			ArrayList<IndexSearcher> innerList = new ArrayList<>();
 
-			if (index.hasWord(queryTerm)) {
-				Set<String> locations = index.viewLocations(queryTerm);
+			if (this.hasWord(queryTerm)) {
+				Set<String> locations = this.viewLocations(queryTerm);
 
 				for (String path : locations) {
-					Set<Integer> value = index.viewPositions(queryTerm, path);
-					calculateResult(result, queryString, index, path, value);
+					Set<Integer> value = this.viewPositions(queryTerm, path);
+					calculateResult(result, treeSetToString(query), path, value);
 				}
 			}
 
-			result.computeIfAbsent(queryString, k -> new ArrayList<>()).addAll(innerList);
-			Collections.sort(result.get(queryString));
+			outerList.addAll(innerList);
 		}
+
+		Collections.sort(outerList);
 	}
+
+//	public static void exactSearch(TreeSet<String> query, InvertedIndex index,
+//			TreeMap<String, ArrayList<IndexSearcher>> result) {
+//
+//		for (String queryTerm : query) {
+//			String queryString = treeSetToString(query);
+//			ArrayList<IndexSearcher> innerList = new ArrayList<>();
+//
+//			if (index.hasWord(queryTerm)) {
+//				Set<String> locations = index.viewLocations(queryTerm);
+//
+//				for (String path : locations) {
+//					Set<Integer> value = index.viewPositions(queryTerm, path);
+//					calculateResult(result, queryString, index, path, value);
+//				}
+//			}
+//
+//			result.computeIfAbsent(queryString, k -> new ArrayList<>()).addAll(innerList);
+//			Collections.sort(result.get(queryString));
+//		}
+//	}
 
 	/**
 	 * Calculates and updates the search result based on the query string, inverted
@@ -320,23 +318,22 @@ public class InvertedIndex {
 	 *
 	 * @param result the map to store the search results
 	 * @param queryString the query string used for the search
-	 * @param index the inverted index used for the search
 	 * @param path the path of the file being searched
 	 * @param value the set of matching positions within the file
 	 */
-	public static void calculateResult(TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result, String queryString,
-			InvertedIndex index, String path, Set<Integer> value) {
+	public void calculateResult(TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result, String queryString,
+			String path, Set<Integer> value) {
 		ArrayList<IndexSearcher> searchers = result.computeIfAbsent(queryString, k -> new ArrayList<>());
 		int totalMatches = value.size();
 
 		IndexSearcher existingSearcher = findSearcherForPath(searchers, path);
 		if (existingSearcher != null) {
 			existingSearcher.addCount(totalMatches);
-			existingSearcher.setScore(calculateScore(index, path, existingSearcher.getCount()));
+			existingSearcher.setScore(calculateScore(path, existingSearcher.getCount()));
 		}
 		else {
-			Double score = calculateScore(index, path, totalMatches);
-			IndexSearcher newSearcher = index.new IndexSearcher(totalMatches, score, path);
+			Double score = calculateScore(path, totalMatches);
+			IndexSearcher newSearcher = new IndexSearcher(totalMatches, score, path);
 			searchers.add(newSearcher);
 		}
 	}
@@ -363,27 +360,24 @@ public class InvertedIndex {
 	 * with search results.
 	 * 
 	 * @param query The query terms to search for.
-	 * @param index The inverted index to search within.
-	 * @param result The map to store the search results, where each query term maps
-	 *   to a list of IndexSearchers.
 	 */
-	public static void partialSearch(TreeSet<String> query, InvertedIndex index,
-			TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result) {
+	public void partialSearch(TreeSet<String> query) {
+		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
 		String queryString = treeSetToString(query);
 
 		for (String queryTerm : query) {
-			ArrayList<InvertedIndex.IndexSearcher> termResults = new ArrayList<>();
+			ArrayList<IndexSearcher> termResults = new ArrayList<>();
 
-			for (String word : index.viewWords()) {
+			for (String word : this.viewWords()) {
 				if (word.startsWith(queryTerm)) {
-					for (String location : index.viewLocations(word)) {
-						Set<Integer> positions = index.viewPositions(word, location);
-						updateSearchResults(termResults, location, positions, index);
+					for (String location : this.viewLocations(word)) {
+						Set<Integer> positions = this.viewPositions(word, location);
+						updateSearchResults(termResults, location, positions);
 					}
 				}
 			}
 
-			mergeResults(result.computeIfAbsent(queryString, k -> new ArrayList<>()), termResults, index);
+			mergeResults(result.computeIfAbsent(queryString, k -> new ArrayList<>()), termResults);
 		}
 	}
 
@@ -396,33 +390,28 @@ public class InvertedIndex {
 	 * @param searchers the list of searchers to update or add to
 	 * @param location the location of the matched word positions
 	 * @param positions the set of positions where the word is found in the location
-	 * @param index the inverted index used for score calculation
 	 */
-	private static void updateSearchResults(ArrayList<InvertedIndex.IndexSearcher> searchers, String location,
-			Set<Integer> positions, InvertedIndex index) {
-		IndexSearcher searcher = findOrCreateSearcher(index, searchers, location);
+	private void updateSearchResults(ArrayList<IndexSearcher> searchers, String location, Set<Integer> positions) {
+		IndexSearcher searcher = findOrCreateSearcher(searchers, location);
 		searcher.addCount(positions.size());
-		searcher.setScore(calculateScore(index, location, searcher.getCount()));
+		searcher.setScore(calculateScore(location, searcher.getCount()));
 	}
 
 	/**
 	 * Finds an existing IndexSearcher for the given location from the provided list
 	 * of searchers, or creates a new one if not found.
 	 * 
-	 * @param index Inverted Index instances
 	 * @param searchers the list of searchers to search within
 	 * @param location the location to match against existing searchers
 	 * @return the existing or newly created IndexSearcher
 	 */
-	private static IndexSearcher findOrCreateSearcher(InvertedIndex index,
-			ArrayList<InvertedIndex.IndexSearcher> searchers, String location) {
+	private IndexSearcher findOrCreateSearcher(ArrayList<IndexSearcher> searchers, String location) {
 		for (IndexSearcher searcher : searchers) {
 			if (searcher.getWhere().equals(location)) {
 				return searcher;
 			}
 		}
-
-		IndexSearcher newSearcher = index.new IndexSearcher(0, 0.0, location);
+		IndexSearcher newSearcher = new IndexSearcher(0, 0.0, location);
 		searchers.add(newSearcher);
 		return newSearcher;
 	}
@@ -432,16 +421,14 @@ public class InvertedIndex {
 	 *
 	 * @param mainResults The main list of search results.
 	 * @param termResults The list of search results from a term search.
-	 * @param index The InvertedIndex containing the indexed data.
 	 */
-	private static void mergeResults(ArrayList<IndexSearcher> mainResults, ArrayList<IndexSearcher> termResults,
-			InvertedIndex index) {
+	private void mergeResults(ArrayList<IndexSearcher> mainResults, ArrayList<IndexSearcher> termResults) {
 		for (IndexSearcher termSearcher : termResults) {
 			boolean found = false;
 			for (IndexSearcher mainSearcher : mainResults) {
 				if (mainSearcher.getWhere().equals(termSearcher.getWhere())) {
 					mainSearcher.addCount(termSearcher.getCount());
-					mainSearcher.setScore(calculateScore(index, termSearcher.getWhere().toString(), mainSearcher.getCount()));
+					mainSearcher.setScore(calculateScore(termSearcher.getWhere(), mainSearcher.getCount()));
 					found = true;
 					break;
 				}
@@ -470,28 +457,16 @@ public class InvertedIndex {
 	 * Calculates the score for a given search result based on the total number of
 	 * matches and total words in the document.
 	 *
-	 * @param index The inverted index containing word count information.
 	 * @param path The path of the document to calculate the score for.
 	 * @param totalMatches The total number of matches for the query term in the
 	 *   document.
 	 * @return The calculated score as a formatted string.
 	 */
-	private static Double calculateScore(InvertedIndex index, String path, int totalMatches) {
+	private Double calculateScore(String path, int totalMatches) {
 
-		int totalWords = findTotalWords(index, path);
+		int totalWords = getWordCount(path);
 		return (double) totalMatches / totalWords;
 
-	}
-
-	/**
-	 * Finds the total words in a path
-	 * 
-	 * @param index The inverted index containing word count information.
-	 * @param path The path of the document to count the words for.
-	 * @return The total words in path.
-	 */
-	private static int findTotalWords(InvertedIndex index, String path) {
-		return index.getWordCount(path);
 	}
 
 	/**
@@ -501,7 +476,7 @@ public class InvertedIndex {
 	 * @param treeSet The TreeSet to convert into a string.
 	 * @return A string representation of the TreeSet elements.
 	 */
-	private static String treeSetToString(TreeSet<String> treeSet) {
+	private static String treeSetToString(Set<String> treeSet) {
 		return String.join(" ", treeSet);
 	}
 
