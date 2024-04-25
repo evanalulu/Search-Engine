@@ -558,8 +558,8 @@ public class JsonWriter {
 	 * @throws IOException If an I/O error occurs while writing.
 	 */
 
-	public static void writeSearchResults(Map<String, ? extends Collection<IndexSearcher>> elements, Path path)
-			throws IOException {
+	public static void writeSearchResults(Map<String, ? extends Collection<InvertedIndex.IndexSearcher>> elements,
+			Path path) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, UTF_8)) {
 			writeSearchResults(elements, writer, 0);
 		}

@@ -2,8 +2,6 @@ package edu.usfca.cs272;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.TreeMap;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -63,39 +61,14 @@ public class Driver {
 			}
 		}
 
-		/*
-		 * TODO Move this data structure to a QueryProcessor class as a member
-		 * 
-		 * Take an instance-based approach
-		 * 
-
-	public void getQuery(Path path, ...) throws IOException {
-
-		try (BufferedReader reader = Files.newBufferedReader(path)) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				getQuery(line, ...)
-			}
-		}
-	}
-
-	public void getQuery(String line, ...) throws IOException {
-		Stem the line
-		Create the joined string
-		and ask the index for the search results
-		store the results
-	}
-
-	Think about what other useful methods might look like in this class
-		 */
-		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+		QueryProcessor search = new QueryProcessor(index);
 
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
 			if (query != null) {
 				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
-					result = FileProcessor.readQuery(query, index, isPartialSearch);
+					search.processQueries(query, isPartialSearch);
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
@@ -106,7 +79,7 @@ public class Driver {
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			try {
-				JsonWriter.writeSearchResults(result, resultsOutput);
+				JsonWriter.writeSearchResults(search.viewResult(), resultsOutput);
 			}
 			catch (IOException e) {
 				System.err.println(e.getMessage());

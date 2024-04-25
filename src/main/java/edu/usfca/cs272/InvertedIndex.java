@@ -268,8 +268,7 @@ public class InvertedIndex {
 	 *
 	 * @param query The query terms to search for.
 	 */
-	public void exactSearch(Set<String> query) {
-		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+	public void exactSearch(Set<String> query, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		ArrayList<IndexSearcher> outerList = new ArrayList<>();
 
 		for (String queryTerm : query) {
@@ -321,8 +320,8 @@ public class InvertedIndex {
 	 * @param path the path of the file being searched
 	 * @param value the set of matching positions within the file
 	 */
-	public void calculateResult(TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result, String queryString,
-			String path, Set<Integer> value) {
+	public void calculateResult(TreeMap<String, ArrayList<IndexSearcher>> result, String queryString, String path,
+			Set<Integer> value) {
 		ArrayList<IndexSearcher> searchers = result.computeIfAbsent(queryString, k -> new ArrayList<>());
 		int totalMatches = value.size();
 
@@ -361,8 +360,7 @@ public class InvertedIndex {
 	 * 
 	 * @param query The query terms to search for.
 	 */
-	public void partialSearch(TreeSet<String> query) {
-		TreeMap<String, ArrayList<IndexSearcher>> result = new TreeMap<>();
+	public void partialSearch(TreeSet<String> query, TreeMap<String, ArrayList<IndexSearcher>> result) {
 		String queryString = treeSetToString(query);
 
 		for (String queryTerm : query) {

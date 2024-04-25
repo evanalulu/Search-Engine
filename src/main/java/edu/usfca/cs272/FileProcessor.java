@@ -7,11 +7,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
@@ -110,62 +105,6 @@ public class FileProcessor {
 	public static boolean isExtensionText(Path path) {
 		String extension = path.toString().toLowerCase();
 		return extension.endsWith(".txt") || extension.endsWith(".text");
-	}
-
-	/**
-	 * Reads queries from a file and performs search on an inverted index.
-	 * 
-	 * @param path The path to the file containing queries.
-	 * @param index The inverted index to perform searches on.
-	 * @param isPartial If -partial search is requested
-	 * @return A TreeMap where each query term maps to a list of IndexSearchers
-	 *   containing search results.
-	 * @throws IOException If an I/O error occurs while reading the query file.
-	 */
-	public static TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> readQuery(Path path, InvertedIndex index,
-			Boolean isPartial) throws IOException {
-		TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> result = new TreeMap<>();
-
-		Set<TreeSet<String>> query = getQuery(path);
-		for (TreeSet<String> querySet : query) {
-			if (isPartial) {
-				index.partialSearch(querySet);
-			}
-			else {
-				index.exactSearch(querySet);
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * Retrieves query terms from a file and returns a set of unique stemmed query
-	 * terms.
-	 *
-	 * @param path The path to the file containing queries.
-	 * @return A set of unique stemmed query terms, where each query is represented
-	 *   as a sorted set of terms.
-	 * @throws IOException If an I/O error occurs while reading the query file.
-	 */
-	public static Set<TreeSet<String>> getQuery(Path path) throws IOException { // TODO Remove
-		Set<TreeSet<String>> query = new HashSet<>();
-
-		try (BufferedReader reader = Files.newBufferedReader(path)) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				if (line.trim().isEmpty()) {
-					continue;
-				}
-
-				String[] words = FileStemmer.parse(line);
-				String wordsString = String.join(" ", words);
-				if (!wordsString.isEmpty()) {
-					query.add(FileStemmer.uniqueStems(wordsString));
-				}
-			}
-		}
-		return query;
 	}
 
 }
