@@ -79,7 +79,7 @@ public class Driver {
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			try {
-				JsonWriter.writeSearchResults(search.viewResult(), resultsOutput);
+				search.writeSearchResults(resultsOutput);
 			}
 			catch (IOException e) {
 				System.err.println(e.getMessage());
