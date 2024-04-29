@@ -39,6 +39,17 @@ public class Driver {
 			}
 		}
 
+		if (parser.hasFlag("-threads")) {
+			int threads = parser.getInteger("-threads", 5);
+
+			if (threads < 1) {
+				threads = 5;
+			}
+
+			WorkQueue queue = new WorkQueue(threads);
+
+		}
+
 		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
