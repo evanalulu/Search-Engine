@@ -261,6 +261,12 @@ public class InvertedIndex {
 		return builder.toString();
 	}
 
+	/**
+	 * Adds all entries from the specified inverted index to this inverted index.
+	 *
+	 * @param other the inverted index containing entries to be added to this
+	 *   inverted index
+	 */
 	public void addAll(InvertedIndex other) {
 		for (var wordEntry : other.indexMap.entrySet()) {
 			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
