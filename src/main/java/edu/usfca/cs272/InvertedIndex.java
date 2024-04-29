@@ -340,30 +340,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Checks if the file path in the given IndexSearcher matches the specified
-	 * path.
-	 *
-	 * @param searcher The IndexSearcher object containing the file path to compare.
-	 * @param path The file path to compare against.
-	 * @return {@code true} if the file path in the IndexSearcher matches the
-	 *   specified path, {@code false} otherwise.
-	 */
-	private static boolean filePathMatch(IndexSearcher searcher, String path) {
-		return (searcher.getWhere().toString().equalsIgnoreCase(path));
-	}
-
-	/**
-	 * Converts the elements of a TreeSet into a single string using
-	 * {@link StringBuilder}.
-	 *
-	 * @param treeSet The TreeSet to convert into a string.
-	 * @return A string representation of the TreeSet elements.
-	 */
-	private static String treeSetToString(Set<String> treeSet) {
-		return String.join(" ", treeSet);
-	}
-
-	/**
 	 * Represents a search result in the inverted index, including the count of
 	 * matches, score, and document path.
 	 */
