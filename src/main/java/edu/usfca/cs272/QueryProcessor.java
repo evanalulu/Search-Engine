@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -106,15 +105,23 @@ public class QueryProcessor {
 		return searchResult.size();
 	}
 
-	// TODO: Make sure all views encapsulated
 	/**
-	 * Retrieves an unmodifiable view of the search result map.
+	 * Checks if there are any search results.
 	 *
-	 * @return An unmodifiable map where keys are query strings and values are lists
-	 *   of IndexSearcher objects, representing the search results for each query.
+	 * @return {@code true} if there are any results, {@code false} otherwise.
 	 */
-	public Map<String, ArrayList<IndexSearcher>> viewResult() {
-		return Collections.unmodifiableMap(searchResult); // TODO Breaking encapsulation
+	public boolean hasResults() {
+		return !searchResult.isEmpty();
+	}
+
+	/**
+	 * Checks if a specific word is indexed in search results.
+	 *
+	 * @param word the word to check
+	 * @return {@code true} if the word is indexed
+	 */
+	public boolean hasWord(String word) {
+		return searchResult.containsKey(word);
 	}
 
 	/**
@@ -128,23 +135,21 @@ public class QueryProcessor {
 	}
 
 	/**
-	 * Retrieves an unmodifiable collection of lists of IndexSearcher objects
-	 * representing search results.
+	 * Retrieves an unmodifiable collection of IndexSearcher objects associated with
+	 * the specified word. If search results exist for the word, the method returns
+	 * an unmodifiable collection containing those searchers. If no search results
+	 * exist for the word, an empty collection is returned.
 	 *
-	 * @return an unmodifiable collection containing lists of IndexSearcher objects,
-	 *   representing search results for each word
+	 * @param word the word for which to retrieve searchers
+	 * @return an unmodifiable collection of IndexSearcher objects associated with
+	 *   the specified word, or an empty collection if no search results exist for
+	 *   the word
 	 */
-	public Collection<ArrayList<IndexSearcher>> viewSearchers() {
-		return Collections.unmodifiableCollection(searchResult.values());
-	}
-
-	/**
-	 * Checks if a specific word is indexed in search results.
-	 *
-	 * @param word the word to check
-	 * @return {@code true} if the word is indexed
-	 */
-	public boolean hasWord(String word) {
-		return searchResult.containsKey(word);
+	public Collection<IndexSearcher> viewSearchers(String word) {
+		ArrayList<IndexSearcher> searchers = searchResult.get(word);
+		if (searchers != null) {
+			return Collections.unmodifiableCollection(searchers);
+		}
+		return Collections.emptyList();
 	}
 }
