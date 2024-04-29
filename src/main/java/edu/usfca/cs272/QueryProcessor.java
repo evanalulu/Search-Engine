@@ -57,7 +57,8 @@ public class QueryProcessor {
 				searchResult.put(String.join(" ", querySet), results);
 			}
 			else {
-				index.exactSearch(querySet);
+				ArrayList<InvertedIndex.IndexSearcher> results = index.exactSearch(querySet);
+				searchResult.put(String.join(" ", querySet), results);
 			}
 		}
 	}

@@ -270,43 +270,34 @@ public class InvertedIndex {
 	 *
 	 * @param query The query terms to search for.
 	 */
-	public void exactSearch(TreeSet<String> query) {
-//		for (String queryTerm : query) {
-//			String queryString = treeSetToString(query);
-//			ArrayList<IndexSearcher> innerList = searchResult.getOrDefault(queryString, new ArrayList<>());
-//
-//			if (this.hasWord(queryTerm)) {
-//				Set<String> locations = this.viewLocations(queryTerm);
-//
-//				for (String path : locations) {
-//					Set<Integer> value = this.viewPositions(queryTerm, path);
-//					calculateResult(queryString, path, value);
-//				}
-//			}
-//
-//			if (!searchResult.containsKey(queryString)) {
-//				searchResult.put(queryString, innerList);
-//			}
-//
-//			Collections.sort(searchResult.get(queryString));
-//		}
-	}
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
+		ArrayList<IndexSearcher> results = new ArrayList<>();
+		Map<String, IndexSearcher> lookup = new HashMap<>();
 
-	/**
-	 * Finds an existing IndexSearcher for the given path from the provided list of
-	 * searchers.
-	 *
-	 * @param searchers the list of searchers to search within
-	 * @param path the path to match against existing searchers
-	 * @return the existing IndexSearcher if found, otherwise null
-	 */
-	private static IndexSearcher findSearcherForPath(ArrayList<IndexSearcher> searchers, String path) {
-		for (IndexSearcher searcher : searchers) {
-			if (filePathMatch(searcher, path)) {
-				return searcher;
+		for (String queryTerm : query) {
+			if (this.hasWord(queryTerm)) {
+				Set<String> locations = this.viewLocations(queryTerm);
+
+				for (String location : locations) {
+					Set<Integer> positions = this.viewPositions(queryTerm, location);
+					int matches = positions.size();
+
+					IndexSearcher current = lookup.get(location);
+					if (current != null) {
+						current.calculateScore(matches);
+					}
+					else {
+						IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+						newSearcher.calculateScore(matches);
+						results.add(newSearcher);
+						lookup.put(location, newSearcher);
+					}
+				}
 			}
 		}
-		return null;
+
+		Collections.sort(results);
+		return results;
 	}
 
 	/**
