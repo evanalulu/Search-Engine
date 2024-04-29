@@ -20,7 +20,7 @@ public class QueuedFileProcessor {
 				if (Files.isDirectory(newPath)) {
 					traverseDirectory(newPath, index, queue);
 				}
-				else if (Files.isRegularFile(input) && FileProcessor.isExtensionText(newPath)) {
+				else if (Files.isRegularFile(newPath) && FileProcessor.isExtensionText(newPath)) {
 					Task task = new Task(newPath, index);
 					queue.execute(task);
 				}
@@ -55,6 +55,7 @@ public class QueuedFileProcessor {
 		public void run() {
 			try {
 				FileProcessor.processPath(path, index);
+				threadSafeIndex.addAll(index);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

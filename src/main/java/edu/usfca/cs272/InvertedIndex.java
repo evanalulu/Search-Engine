@@ -261,6 +261,32 @@ public class InvertedIndex {
 		return builder.toString();
 	}
 
+	public void addAll(InvertedIndex other) {
+		for (var wordEntry : other.indexMap.entrySet()) {
+			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
+
+			if (wordMap == null) {
+				this.indexMap.put(wordEntry.getKey(), wordEntry.getValue());
+			}
+			else {
+				for (var locationEntry : wordEntry.getValue().entrySet()) {
+					TreeSet<Integer> locationMap = wordMap.get(locationEntry.getKey());
+
+					if (locationMap == null) {
+						wordMap.put(locationEntry.getKey(), locationEntry.getValue());
+					}
+					else {
+						locationMap.addAll(locationEntry.getValue());
+					}
+				}
+			}
+		}
+
+		for (var otherEntry : other.wordCountMap.entrySet()) {
+			this.wordCountMap.merge(otherEntry.getKey(), otherEntry.getValue(), Integer::max);
+		}
+	}
+
 	/**
 	 * Represents a search result in the inverted index, including the count of
 	 * matches, score, and document path.

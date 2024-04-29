@@ -222,6 +222,18 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
+	public void addAll(InvertedIndex other) {
+		lock.writeLock().lock();
+
+		try {
+			super.addAll(other);
+		}
+		finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	@Override
 	public String toString() {
 		lock.readLock().lock();
 		try {
