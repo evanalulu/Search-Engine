@@ -358,6 +358,8 @@ public class InvertedIndex {
 		/** The path of the document containing the matches. */
 		private final String where;
 
+		private static DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
 		 *
@@ -437,8 +439,6 @@ public class InvertedIndex {
 		 * @return the formatted score as a string with eight decimal places
 		 */
 		private static String formatScore(Double score) {
-			DecimalFormat FORMATTER = new DecimalFormat("0.00000000"); // TODO Make a static member
-
 			String formattedScore = FORMATTER.format(score);
 			return formattedScore;
 		}
