@@ -58,7 +58,7 @@ public class QueryProcessor {
 	 *   of IndexSearcher objects, representing the search results for each query.
 	 */
 	public Map<String, ArrayList<IndexSearcher>> viewResult() {
-		return Collections.unmodifiableMap(searchResult);
+		return Collections.unmodifiableMap(searchResult); // TODO Breaking encapsulation
 	}
 
 	/**
@@ -320,7 +320,7 @@ public class QueryProcessor {
 	 *   document.
 	 * @return The calculated score as a formatted string.
 	 */
-	private Double calculateScore(String path, int totalMatches) {
+	private Double calculateScore(String path, int totalMatches) { // TODO Remove
 
 		int totalWords = index.getWordCount(path);
 		return (double) totalMatches / totalWords;

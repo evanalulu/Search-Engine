@@ -260,6 +260,39 @@ public class InvertedIndex {
 
 		return builder.toString();
 	}
+	
+	/* TODO 
+	public ArrayList<IndexSearcher> partialSearch(Set<String> queries) {
+		ArrayList<IndexSearcher> results = new ArrayList<>();
+		Map<String, IndexSearcher> lookup = null;
+		
+		for (String query : queries) {
+			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
+				if (outerEntry.getKey().startsWith(query)) {
+					for (var innerEntry : outerEntry.getValue().entrySet()) {
+						int matches = innerEntry.getValue().size();
+						String location = innerEntry.getKey();
+						
+						if (lookup.containsKey(location)) {
+							IndexSearcher current = lookup.get(location);
+							current.addCount(matches);
+						}
+						else {
+							create a new result
+							add it to both the list and the lookup map
+						}
+					}
+				}
+				else break
+			}
+		}
+		
+		Collections.sort(results);
+		return results;
+	}
+	
+	exactSearch
+	*/
 
 	/**
 	 * Represents a search result in the inverted index, including the count of
@@ -267,6 +300,8 @@ public class InvertedIndex {
 	 */
 	public class IndexSearcher implements Comparable<IndexSearcher> {
 
+		// TODO Make private
+		
 		/** The count of matches. */
 		public int count;
 
@@ -274,7 +309,7 @@ public class InvertedIndex {
 		public Double score;
 
 		/** The path of the document containing the matches. */
-		public String where;
+		public String where; // TODO final
 
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
@@ -305,6 +340,7 @@ public class InvertedIndex {
 		 */
 		public void addCount(int count) {
 			this.count += count;
+			// TODO this.score = (double) this.count / wordCountMap.get(this.where);
 		}
 
 		/**
@@ -312,7 +348,7 @@ public class InvertedIndex {
 		 *
 		 * @param count The value to set as the count of matches.
 		 */
-		public void setCount(int count) {
+		public void setCount(int count) { // TODO Remove
 			this.count = count;
 		}
 
@@ -339,7 +375,7 @@ public class InvertedIndex {
 		 *
 		 * @param score The score to set.
 		 */
-		public void setScore(Double score) {
+		public void setScore(Double score) { // TODO Remove
 			this.score = score;
 		}
 
@@ -348,7 +384,7 @@ public class InvertedIndex {
 		 *
 		 * @param where The path to set.
 		 */
-		public void setWhere(String where) {
+		public void setWhere(String where) { // TODO Remove
 			this.where = where;
 		}
 
@@ -381,7 +417,7 @@ public class InvertedIndex {
 		 * @return the formatted score as a string with eight decimal places
 		 */
 		private static String formatScore(Double score) {
-			DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
+			DecimalFormat FORMATTER = new DecimalFormat("0.00000000"); // TODO Make a static member
 
 			String formattedScore = FORMATTER.format(score);
 			return formattedScore;
