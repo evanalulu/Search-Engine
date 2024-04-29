@@ -293,28 +293,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Calculates and updates the search result based on the query string, inverted
-	 * index, path, and set of matching positions. Updates the provided result map
-	 * with the calculated information.
-	 *
-	 * @param queryString the query string used for the search
-	 * @param path the path of the file being searched
-	 * @param value the set of matching positions within the file
-	 * 
-	 *   public void calculateResult(String queryString, String path, Set<Integer>
-	 *   value) { ArrayList<IndexSearcher> searchers =
-	 *   searchResult.computeIfAbsent(queryString, k -> new ArrayList<>()); int
-	 *   totalMatches = value.size();
-	 * 
-	 *   IndexSearcher existingSearcher = findSearcherForPath(searchers, path); if
-	 *   (existingSearcher != null) { existingSearcher.addCount(totalMatches);
-	 *   existingSearcher.setScore(calculateScore(path,
-	 *   existingSearcher.getCount())); } else { Double score = calculateScore(path,
-	 *   totalMatches); IndexSearcher newSearcher = new IndexSearcher(totalMatches,
-	 *   score, path); searchers.add(newSearcher); } }
-	 */
-
-	/**
 	 * Finds an existing IndexSearcher for the given path from the provided list of
 	 * searchers.
 	 *
@@ -342,30 +320,26 @@ public class InvertedIndex {
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
 		for (String query : queries) {
-			var possibleMatches = indexMap.tailMap(query).entrySet().iterator();
+			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
+				if (outerEntry.getKey().startsWith(query)) {
+					for (var innerEntry : outerEntry.getValue().entrySet()) {
+						int matches = innerEntry.getValue().size();
+						String location = innerEntry.getKey();
 
-			while (possibleMatches.hasNext()) {
-				var outerEntry = possibleMatches.next();
-				String key = outerEntry.getKey();
-
-				if (!key.startsWith(query)) {
-					break;
+						IndexSearcher current = lookup.get(location);
+						if (current != null) {
+							current.calculateScore(matches);
+						}
+						else {
+							IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+							newSearcher.calculateScore(matches);
+							results.add(newSearcher);
+							lookup.put(location, newSearcher);
+						}
+					}
 				}
-
-				for (var innerEntry : outerEntry.getValue().entrySet()) {
-					int matches = innerEntry.getValue().size();
-					String location = innerEntry.getKey();
-
-					IndexSearcher current = lookup.get(location);
-					if (current != null) {
-						current.calculateScore(matches);
-					}
-					else {
-						IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
-						newSearcher.calculateScore(matches);
-						results.add(newSearcher);
-						lookup.put(location, newSearcher);
-					}
+				else {
+					break;
 				}
 			}
 		}
@@ -413,7 +387,7 @@ public class InvertedIndex {
 		public Double score;
 
 		/** The path of the document containing the matches. */
-		final String where; // TODO final
+		final String where;
 
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
@@ -445,15 +419,6 @@ public class InvertedIndex {
 		public void calculateScore(int count) {
 			this.count += count;
 			this.score = (double) this.count / wordCountMap.get(this.where);
-		}
-
-		/**
-		 * Sets the count of matches to the specified value.
-		 *
-		 * @param count The value to set as the count of matches.
-		 */
-		public void setCount(int count) { // TODO Remove
-			this.count = count;
 		}
 
 		/**
