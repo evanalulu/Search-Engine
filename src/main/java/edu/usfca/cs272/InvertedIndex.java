@@ -264,6 +264,10 @@ public class InvertedIndex {
 		return builder.toString();
 	}
 
+	public ArrayList<IndexSearcher> search(TreeSet<String> query, boolean isPartial) {
+		return (isPartial) ? partialSearch(query) : exactSearch(query);
+	}
+
 	/**
 	 * Performs exact search based on the provided query, updating the result map
 	 * with search results.
