@@ -23,9 +23,11 @@ public class Driver {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		ThreadSafeInvertedIndex safeIndex = new ThreadSafeInvertedIndex();
-		WorkQueue queue = null;
 
-		if (parser.hasFlag("-threads")) {
+		WorkQueue queue = null;
+		boolean multithread = parser.hasFlag("-thread");
+
+		if (multithread) {
 			int threads = parser.getInteger("-threads", 5);
 
 			if (threads < 1) {
@@ -44,7 +46,7 @@ public class Driver {
 			}
 
 			try {
-				if (parser.hasFlag("-threads")) {
+				if (multithread) {
 					QueuedFileProcessor.processPath(input, safeIndex, queue);
 				}
 				else {
@@ -62,7 +64,12 @@ public class Driver {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
 			try {
-				index.writeWordCountMap(countOutput);
+				if (multithread) {
+					safeIndex.writeWordCountMap(countOutput);
+				}
+				else {
+					index.writeWordCountMap(countOutput);
+				}
 			}
 			catch (IOException e) {
 				System.out.println("Error writing word count data: " + e.getMessage());
@@ -73,7 +80,12 @@ public class Driver {
 			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
 
 			try {
-				index.writeIndexMap(indexOutput);
+				if (multithread) {
+					safeIndex.writeIndexMap(indexOutput);
+				}
+				else {
+					index.writeIndexMap(indexOutput);
+				}
 			}
 			catch (IOException e) {
 				System.out.println("Error writing index data: " + e.getMessage());
