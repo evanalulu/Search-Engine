@@ -97,7 +97,12 @@ public class Driver {
 			if (query != null) {
 				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
-					search.processQueries(query, isPartialSearch);
+					if (multithread) {
+
+					}
+					else {
+						search.processQueries(query, isPartialSearch);
+					}
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
