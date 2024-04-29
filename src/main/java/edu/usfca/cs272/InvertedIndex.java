@@ -264,15 +264,27 @@ public class InvertedIndex {
 		return builder.toString();
 	}
 
+	/**
+	 * Performs either exact o partial search for the specified set of query terms
+	 * in the inverted index depending on the value of the isPartial.
+	 *
+	 * @param query the set of query terms to be searched for in the inverted index
+	 * @param isPartial a boolean indicating whether to perform a partial search
+	 *   (true) or an exact search (false)
+	 * @return an ArrayList containing IndexSearcher objects representing the search
+	 *   results, sorted based on the calculated scores in descending order
+	 */
 	public ArrayList<IndexSearcher> search(TreeSet<String> query, boolean isPartial) {
 		return (isPartial) ? partialSearch(query) : exactSearch(query);
 	}
 
 	/**
-	 * Performs exact search based on the provided query, updating the result map
-	 * with search results.
+	 * Performs an exact search for the specified set of query terms in the inverted
+	 * index.
 	 *
-	 * @param query The query terms to search for.
+	 * @param query the set of query terms to be searched for in the inverted index
+	 * @return an ArrayList containing IndexSearcher objects representing the exact
+	 *   search results, sorted based on the calculated scores in descending order
 	 */
 	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
@@ -305,10 +317,14 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Performs partial search based on the provided query, updating the result map
-	 * with search results.
+	 * Performs a partial search for the specified set of queries in the inverted
+	 * index.
 	 * 
-	 * @param queries The query terms to search for.
+	 * @param queries the set of query strings to be partially searched in the
+	 *   inverted index
+	 * @return an ArrayList containing IndexSearcher objects representing the
+	 *   partial search results, sorted based on the calculated scores in descending
+	 *   order
 	 */
 	public ArrayList<IndexSearcher> partialSearch(Set<String> queries) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
@@ -358,6 +374,9 @@ public class InvertedIndex {
 		/** The path of the document containing the matches. */
 		private final String where;
 
+		/**
+		 * The decimal format used for formatting numbers with eight decimal places.
+		 */
 		private static DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
 
 		/**
