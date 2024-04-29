@@ -33,16 +33,16 @@ public class QueuedFileProcessor {
 		private final InvertedIndex index;
 		private final ThreadSafeInvertedIndex threadSafeIndex;
 
-		private Task(Path path, ThreadSafeInvertedIndex index) {
+		private Task(Path path, ThreadSafeInvertedIndex threadSafeIndex) {
 			this.path = path;
-			this.threadSafeIndex = index;
+			this.threadSafeIndex = threadSafeIndex;
 			this.index = new InvertedIndex();
 		}
 
 		@Override
 		public void run() {
 			try {
-				FileProcessor.readFile(path, index);
+				FileProcessor.processPath(path, index);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
