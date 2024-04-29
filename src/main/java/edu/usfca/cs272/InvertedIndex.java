@@ -349,16 +349,14 @@ public class InvertedIndex {
 	 */
 	public class IndexSearcher implements Comparable<IndexSearcher> {
 
-		// TODO Make private
-
 		/** The count of matches. */
-		public int count;
+		private int count;
 
 		/** The score of the search result. */
-		public Double score;
+		private Double score;
 
 		/** The path of the document containing the matches. */
-		final String where;
+		private final String where;
 
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
