@@ -22,6 +22,18 @@ public class Driver {
 	public static void main(String[] args) {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
+		ThreadSafeInvertedIndex safeIndex = new ThreadSafeInvertedIndex();
+		WorkQueue queue = null;
+
+		if (parser.hasFlag("-threads")) {
+			int threads = parser.getInteger("-threads", 5);
+
+			if (threads < 1) {
+				threads = 5;
+			}
+
+			queue = new WorkQueue(threads);
+		}
 
 		if (parser.hasFlag("-text")) {
 			Path input = parser.getPath("-text");
@@ -32,25 +44,21 @@ public class Driver {
 			}
 
 			try {
-				FileProcessor.processPath(input, index);
+				if (parser.hasFlag("-threads")) {
+					QueuedFileProcessor.processPath(input, safeIndex, queue);
+				}
+				else {
+					FileProcessor.processPath(input, index);
+				}
 			}
 			catch (IOException e) {
 				System.out.println("Unable to build the inverted index from path: " + input);
 			}
 		}
 
-		if (parser.hasFlag("-threads")) {
-			int threads = parser.getInteger("-threads", 5);
+		if (parser.hasFlag("-counts"))
 
-			if (threads < 1) {
-				threads = 5;
-			}
-
-			WorkQueue queue = new WorkQueue(threads);
-
-		}
-
-		if (parser.hasFlag("-counts")) {
+		{
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
 			try {
