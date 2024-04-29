@@ -3,7 +3,10 @@ package edu.usfca.cs272;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -260,39 +263,140 @@ public class InvertedIndex {
 
 		return builder.toString();
 	}
-	
-	/* TODO 
-	public ArrayList<IndexSearcher> partialSearch(Set<String> queries) {
-		ArrayList<IndexSearcher> results = new ArrayList<>();
-		Map<String, IndexSearcher> lookup = null;
-		
-		for (String query : queries) {
-			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
-				if (outerEntry.getKey().startsWith(query)) {
-					for (var innerEntry : outerEntry.getValue().entrySet()) {
-						int matches = innerEntry.getValue().size();
-						String location = innerEntry.getKey();
-						
-						if (lookup.containsKey(location)) {
-							IndexSearcher current = lookup.get(location);
-							current.addCount(matches);
-						}
-						else {
-							create a new result
-							add it to both the list and the lookup map
-						}
-					}
-				}
-				else break
+
+	/**
+	 * Performs exact search based on the provided query, updating the result map
+	 * with search results.
+	 *
+	 * @param query The query terms to search for.
+	 */
+	public void exactSearch(TreeSet<String> query) {
+//		for (String queryTerm : query) {
+//			String queryString = treeSetToString(query);
+//			ArrayList<IndexSearcher> innerList = searchResult.getOrDefault(queryString, new ArrayList<>());
+//
+//			if (this.hasWord(queryTerm)) {
+//				Set<String> locations = this.viewLocations(queryTerm);
+//
+//				for (String path : locations) {
+//					Set<Integer> value = this.viewPositions(queryTerm, path);
+//					calculateResult(queryString, path, value);
+//				}
+//			}
+//
+//			if (!searchResult.containsKey(queryString)) {
+//				searchResult.put(queryString, innerList);
+//			}
+//
+//			Collections.sort(searchResult.get(queryString));
+//		}
+	}
+
+	/**
+	 * Calculates and updates the search result based on the query string, inverted
+	 * index, path, and set of matching positions. Updates the provided result map
+	 * with the calculated information.
+	 *
+	 * @param queryString the query string used for the search
+	 * @param path the path of the file being searched
+	 * @param value the set of matching positions within the file
+	 * 
+	 *   public void calculateResult(String queryString, String path, Set<Integer>
+	 *   value) { ArrayList<IndexSearcher> searchers =
+	 *   searchResult.computeIfAbsent(queryString, k -> new ArrayList<>()); int
+	 *   totalMatches = value.size();
+	 * 
+	 *   IndexSearcher existingSearcher = findSearcherForPath(searchers, path); if
+	 *   (existingSearcher != null) { existingSearcher.addCount(totalMatches);
+	 *   existingSearcher.setScore(calculateScore(path,
+	 *   existingSearcher.getCount())); } else { Double score = calculateScore(path,
+	 *   totalMatches); IndexSearcher newSearcher = new IndexSearcher(totalMatches,
+	 *   score, path); searchers.add(newSearcher); } }
+	 */
+
+	/**
+	 * Finds an existing IndexSearcher for the given path from the provided list of
+	 * searchers.
+	 *
+	 * @param searchers the list of searchers to search within
+	 * @param path the path to match against existing searchers
+	 * @return the existing IndexSearcher if found, otherwise null
+	 */
+	private static IndexSearcher findSearcherForPath(ArrayList<IndexSearcher> searchers, String path) {
+		for (IndexSearcher searcher : searchers) {
+			if (filePathMatch(searcher, path)) {
+				return searcher;
 			}
 		}
-		
+		return null;
+	}
+
+	/**
+	 * Performs partial search based on the provided query, updating the result map
+	 * with search results.
+	 * 
+	 * @param queries The query terms to search for.
+	 */
+	public ArrayList<IndexSearcher> partialSearch(Set<String> queries) {
+		ArrayList<IndexSearcher> results = new ArrayList<>();
+		Map<String, IndexSearcher> lookup = new HashMap<>();
+
+		for (String query : queries) {
+			var possibleMatches = indexMap.tailMap(query).entrySet().iterator();
+
+			while (possibleMatches.hasNext()) {
+				var outerEntry = possibleMatches.next();
+				String key = outerEntry.getKey();
+
+				if (!key.startsWith(query)) {
+					break;
+				}
+
+				for (var innerEntry : outerEntry.getValue().entrySet()) {
+					int matches = innerEntry.getValue().size();
+					String location = innerEntry.getKey();
+
+					IndexSearcher current = lookup.get(location);
+					if (current != null) {
+						current.calculateScore(matches);
+					}
+					else {
+						IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+						newSearcher.calculateScore(matches);
+						results.add(newSearcher);
+						lookup.put(location, newSearcher);
+					}
+				}
+			}
+		}
+
 		Collections.sort(results);
 		return results;
 	}
-	
-	exactSearch
-	*/
+
+	/**
+	 * Checks if the file path in the given IndexSearcher matches the specified
+	 * path.
+	 *
+	 * @param searcher The IndexSearcher object containing the file path to compare.
+	 * @param path The file path to compare against.
+	 * @return {@code true} if the file path in the IndexSearcher matches the
+	 *   specified path, {@code false} otherwise.
+	 */
+	private static boolean filePathMatch(IndexSearcher searcher, String path) {
+		return (searcher.getWhere().toString().equalsIgnoreCase(path));
+	}
+
+	/**
+	 * Converts the elements of a TreeSet into a single string using
+	 * {@link StringBuilder}.
+	 *
+	 * @param treeSet The TreeSet to convert into a string.
+	 * @return A string representation of the TreeSet elements.
+	 */
+	private static String treeSetToString(Set<String> treeSet) {
+		return String.join(" ", treeSet);
+	}
 
 	/**
 	 * Represents a search result in the inverted index, including the count of
@@ -301,7 +405,7 @@ public class InvertedIndex {
 	public class IndexSearcher implements Comparable<IndexSearcher> {
 
 		// TODO Make private
-		
+
 		/** The count of matches. */
 		public int count;
 
@@ -309,7 +413,7 @@ public class InvertedIndex {
 		public Double score;
 
 		/** The path of the document containing the matches. */
-		public String where; // TODO final
+		final String where; // TODO final
 
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
@@ -319,8 +423,8 @@ public class InvertedIndex {
 		 * @param where The path of the document containing the matches.
 		 */
 		public IndexSearcher(int count, Double score, String where) {
-			this.count = count;
-			this.score = score;
+			this.count = 0;
+			this.score = 0.0;
 			this.where = where;
 		}
 
@@ -338,9 +442,9 @@ public class InvertedIndex {
 		 *
 		 * @param count The value to add to the count of matches.
 		 */
-		public void addCount(int count) {
+		public void calculateScore(int count) {
 			this.count += count;
-			// TODO this.score = (double) this.count / wordCountMap.get(this.where);
+			this.score = (double) this.count / wordCountMap.get(this.where);
 		}
 
 		/**
@@ -368,24 +472,6 @@ public class InvertedIndex {
 		 */
 		public String getWhere() {
 			return where;
-		}
-
-		/**
-		 * Sets the score of the search result.
-		 *
-		 * @param score The score to set.
-		 */
-		public void setScore(Double score) { // TODO Remove
-			this.score = score;
-		}
-
-		/**
-		 * Sets the path of the document containing the matches.
-		 *
-		 * @param where The path to set.
-		 */
-		public void setWhere(String where) { // TODO Remove
-			this.where = where;
 		}
 
 		/**
