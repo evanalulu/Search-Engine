@@ -52,14 +52,8 @@ public class QueryProcessor {
 	public void processQueries(Path path, Boolean isPartial) throws IOException {
 		Set<TreeSet<String>> queries = getQuery(path);
 		for (TreeSet<String> querySet : queries) {
-			if (isPartial) {
-				ArrayList<InvertedIndex.IndexSearcher> results = index.partialSearch(querySet);
-				searchResult.put(String.join(" ", querySet), results);
-			}
-			else {
-				ArrayList<InvertedIndex.IndexSearcher> results = index.exactSearch(querySet);
-				searchResult.put(String.join(" ", querySet), results);
-			}
+			ArrayList<InvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
+			searchResult.put(String.join(" ", querySet), results);
 		}
 	}
 
