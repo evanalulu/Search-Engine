@@ -22,10 +22,10 @@ public class Driver {
 	public static void main(String[] args) {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
-		ThreadSafeInvertedIndex safeIndex = new ThreadSafeInvertedIndex();
+		ThreadSafeInvertedIndex threadSafeIndex = new ThreadSafeInvertedIndex();
 
 		WorkQueue queue = null;
-		boolean multithread = parser.hasFlag("-thread");
+		boolean multithread = parser.hasFlag("-threads");
 
 		if (multithread) {
 			int threads = parser.getInteger("-threads", 5);
@@ -47,7 +47,7 @@ public class Driver {
 
 			try {
 				if (multithread) {
-					QueuedFileProcessor.processPath(input, safeIndex, queue);
+					QueuedFileProcessor.processPath(input, threadSafeIndex, queue);
 				}
 				else {
 					FileProcessor.processPath(input, index);
@@ -58,14 +58,12 @@ public class Driver {
 			}
 		}
 
-		if (parser.hasFlag("-counts"))
-
-		{
+		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
 			try {
 				if (multithread) {
-					safeIndex.writeWordCountMap(countOutput);
+					threadSafeIndex.writeWordCountMap(countOutput);
 				}
 				else {
 					index.writeWordCountMap(countOutput);
@@ -81,7 +79,7 @@ public class Driver {
 
 			try {
 				if (multithread) {
-					safeIndex.writeIndexMap(indexOutput);
+					threadSafeIndex.writeIndexMap(indexOutput);
 				}
 				else {
 					index.writeIndexMap(indexOutput);
