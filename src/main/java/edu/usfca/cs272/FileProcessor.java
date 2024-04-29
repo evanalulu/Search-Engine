@@ -87,10 +87,10 @@ public class FileProcessor {
 	 */
 	public static void processPath(Path input, InvertedIndex index) throws IOException {
 		if (Files.isDirectory(input)) {
-			FileProcessor.traverseDirectory(input, index);
+			traverseDirectory(input, index);
 		}
 		else {
-			FileProcessor.readFile(input, index);
+			readFile(input, index);
 		}
 	}
 
