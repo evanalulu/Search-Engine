@@ -8,9 +8,9 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 
 public class QueuedFileProcessor {
-	public static void traverseDirectory(Path path, ThreadSafeInvertedIndex index, WorkQueue queue)
+	public static void traverseDirectory(Path input, ThreadSafeInvertedIndex index, WorkQueue queue)
 			throws IOException, NotDirectoryException {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(path);) {
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(input);) {
 
 			var iterator = stream.iterator();
 
@@ -20,12 +20,24 @@ public class QueuedFileProcessor {
 				if (Files.isDirectory(newPath)) {
 					traverseDirectory(newPath, index, queue);
 				}
-				else if (Files.isRegularFile(path) && FileProcessor.isExtensionText(newPath)) {
+				else if (Files.isRegularFile(input) && FileProcessor.isExtensionText(newPath)) {
 					Task task = new Task(newPath, index);
 					queue.execute(task);
 				}
 			}
 		}
+	}
+
+	public static void processPath(Path input, ThreadSafeInvertedIndex index, WorkQueue queue) throws IOException {
+		if (Files.isDirectory(input)) {
+			traverseDirectory(input, index, queue);
+		}
+		else {
+			Task task = new Task(input, index);
+			queue.execute(task);
+		}
+
+		queue.finish();
 	}
 
 	private static class Task implements Runnable {
