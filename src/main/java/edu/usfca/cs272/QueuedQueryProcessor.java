@@ -10,9 +10,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class QueuedQueryProcessor {
 
 	private final TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> searchResult;
@@ -76,9 +73,7 @@ public class QueuedQueryProcessor {
 
 		@Override
 		public void run() {
-			Logger log = LogManager.getLogger();
 			String queryString = String.join(" ", querySet);
-			log.warn("Processing query");
 
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 
