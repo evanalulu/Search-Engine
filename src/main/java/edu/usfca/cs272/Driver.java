@@ -91,7 +91,7 @@ public class Driver {
 		}
 
 		QueryProcessor search = new QueryProcessor(index);
-		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, multithread, queue);
+		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, parser.hasFlag("-partial"), queue);
 
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
