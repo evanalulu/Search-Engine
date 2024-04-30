@@ -25,9 +25,9 @@ public class QueuedQueryProcessor {
 	public void processQueries(Path path, Boolean isPartial) throws IOException {
 		Set<TreeSet<String>> queries = getQuery(path);
 		for (TreeSet<String> querySet : queries) {
-			ArrayList<InvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
-			searchResult.put(String.join(" ", querySet), results);
+			queue.execute(new Task(querySet, isPartial));
 		}
+		queue.finish();
 	}
 
 	private static Set<TreeSet<String>> getQuery(Path path) throws IOException {
@@ -48,5 +48,25 @@ public class QueuedQueryProcessor {
 			}
 		}
 		return query;
+	}
+
+	private class Task implements Runnable {
+		private final TreeSet<String> querySet;
+		private final boolean isPartial;
+
+		public Task(TreeSet<String> querySet, boolean isPartial) {
+			this.querySet = querySet;
+			this.isPartial = isPartial;
+		}
+
+		@Override
+		public void run() {
+			String queryString = String.join(" ", querySet);
+			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
+
+			synchronized (searchResult) {
+//				searchResult.put(queryString, results);
+			}
+		}
 	}
 }
