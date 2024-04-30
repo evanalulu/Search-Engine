@@ -110,7 +110,7 @@ public class QueuedQueryProcessor {
 		/**
 		 * The set of query terms to be processed.
 		 */
-		private final TreeSet<String> queries;
+		private final String queryLine;
 
 		/**
 		 * A boolean indicating whether to perform a partial search (true) or an exact
@@ -126,8 +126,8 @@ public class QueuedQueryProcessor {
 		 * @param isPartial a boolean indicating whether to perform a partial search
 		 *   (true) or an exact search (false)
 		 */
-		public Task(TreeSet<String> querySet, boolean isPartial) {
-			this.queries = querySet;
+		public Task(String queryLine, boolean isPartial) {
+			this.queryLine = queryLine;
 			this.isPartial = isPartial;
 		}
 
@@ -136,9 +136,17 @@ public class QueuedQueryProcessor {
 		 */
 		@Override
 		public void run() {
-			String queryString = String.join(" ", queries);
+			TreeSet<String> querySet = FileStemmer.uniqueStems(queryLine);
+			String queryString = String.join(" ", querySet);
 
-			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(queries, isPartial);
+			synchronized (searchResult) {
+				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
+					return;
+				}
+				searchResult.put(queryString, null);
+			}
+
+			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 
 			synchronized (searchResult) {
 				searchResult.put(queryString, results);
