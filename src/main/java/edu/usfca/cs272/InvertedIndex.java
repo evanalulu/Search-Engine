@@ -300,34 +300,34 @@ public class InvertedIndex {
 	 * Performs either exact o partial search for the specified set of query terms
 	 * in the inverted index depending on the value of the isPartial.
 	 *
-	 * @param query the set of query terms to be searched for in the inverted index
+	 * @param queries the set of query terms to be searched for in the inverted index
 	 * @param isPartial a boolean indicating whether to perform a partial search
 	 *   (true) or an exact search (false)
 	 * @return an ArrayList containing IndexSearcher objects representing the search
 	 *   results, sorted based on the calculated scores in descending order
 	 */
-	public ArrayList<IndexSearcher> search(TreeSet<String> query, boolean isPartial) {
-		return (isPartial) ? partialSearch(query) : exactSearch(query);
+	public ArrayList<IndexSearcher> search(TreeSet<String> queries, boolean isPartial) {
+		return (isPartial) ? partialSearch(queries) : exactSearch(queries);
 	}
 
 	/**
 	 * Performs an exact search for the specified set of query terms in the inverted
 	 * index.
 	 *
-	 * @param query the set of query terms to be searched for in the inverted index
+	 * @param queries the set of query terms to be searched for in the inverted index
 	 * @return an ArrayList containing IndexSearcher objects representing the exact
 	 *   search results, sorted based on the calculated scores in descending order
 	 */
-	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
-		for (String queryTerm : query) {
-			if (this.hasWord(queryTerm)) {
-				Set<String> locations = this.viewLocations(queryTerm);
+		for (String query : queries) {
+			if (this.hasWord(query)) {
+				Set<String> locations = this.viewLocations(query);
 
 				for (String location : locations) {
-					Set<Integer> positions = this.viewPositions(queryTerm, location);
+					Set<Integer> positions = this.viewPositions(query, location);
 					int matches = positions.size();
 
 					IndexSearcher current = lookup.get(location);
