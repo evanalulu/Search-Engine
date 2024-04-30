@@ -29,11 +29,6 @@ public class QueuedQueryProcessor {
 	private final ThreadSafeInvertedIndex index;
 
 	/**
-	 * The work queue for executing query processing tasks.
-	 */
-	private final WorkQueue queue;
-
-	/**
 	 * Constructs a QueuedQueryProcessor with the specified thread-safe inverted
 	 * index, partial search flag, and work queue.
 	 *
@@ -41,11 +36,9 @@ public class QueuedQueryProcessor {
 	 *   and search result management
 	 * @param usePartial a boolean indicating whether to use partial search (true)
 	 *   or exact search (false)
-	 * @param queue the work queue for executing query processing tasks
 	 */
-	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean usePartial, WorkQueue queue) {
+	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean usePartial) {
 		this.index = index;
-		this.queue = queue;
 		this.searchResult = new TreeMap<>();
 	}
 
@@ -58,7 +51,7 @@ public class QueuedQueryProcessor {
 	 * @throws IOException if an I/O error occurs while reading the query file or
 	 *   processing queries
 	 */
-	public void processQueries(Path path, Boolean isPartial) throws IOException {
+	public void processQueries(Path path, Boolean isPartial, WorkQueue queue) throws IOException {
 		Set<TreeSet<String>> queries = getQuery(path);
 		for (TreeSet<String> querySet : queries) {
 			queue.execute(new Task(querySet, isPartial));

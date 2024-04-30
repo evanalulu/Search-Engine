@@ -91,7 +91,7 @@ public class Driver {
 		}
 
 		QueryProcessor search = new QueryProcessor(index);
-		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, parser.hasFlag("-partial"), queue);
+		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, parser.hasFlag("-partial"));
 
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
@@ -99,7 +99,7 @@ public class Driver {
 				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
 					if (multithread) {
-						queuedSearch.processQueries(query, isPartialSearch);
+						queuedSearch.processQueries(query, isPartialSearch, queue);
 					}
 					else {
 						search.processQueries(query, isPartialSearch);
