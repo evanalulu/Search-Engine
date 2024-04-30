@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -52,40 +50,15 @@ public class QueuedQueryProcessor {
 	 *   processing queries
 	 */
 	public void processQueries(Path path, Boolean isPartial, WorkQueue queue) throws IOException {
-		Set<TreeSet<String>> queries = getQuery(path);
-		for (TreeSet<String> querySet : queries) {
-			queue.execute(new Task(querySet, isPartial));
-		}
-		queue.finish();
-	}
-
-	/**
-	 * Retrieves query terms from a file and returns a set of unique stemmed query
-	 * terms.
-	 *
-	 * @param path The path to the file containing queries.
-	 * @return A set of unique stemmed query terms, where each query is represented
-	 *   as a sorted set of terms.
-	 * @throws IOException If an I/O error occurs while reading the query file.
-	 */
-	private static Set<TreeSet<String>> getQuery(Path path) throws IOException {
-		Set<TreeSet<String>> queries = new HashSet<>();
-
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				if (line.trim().isEmpty()) {
-					continue;
-				}
-
-				String[] words = FileStemmer.parse(line);
-				String wordsString = String.join(" ", words);
-				if (!wordsString.isEmpty()) {
-					queries.add(FileStemmer.uniqueStems(wordsString));
+				if (!line.trim().isEmpty()) {
+					queue.execute(new Task(line, isPartial));
 				}
 			}
 		}
-		return queries;
+		queue.finish();
 	}
 
 	/**

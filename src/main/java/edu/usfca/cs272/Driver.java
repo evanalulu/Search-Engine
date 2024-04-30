@@ -25,6 +25,7 @@ public class Driver {
 		ThreadSafeInvertedIndex threadSafeIndex = new ThreadSafeInvertedIndex();
 
 		WorkQueue queue = null;
+
 		boolean multithread = parser.hasFlag("-threads");
 
 		if (multithread) {
