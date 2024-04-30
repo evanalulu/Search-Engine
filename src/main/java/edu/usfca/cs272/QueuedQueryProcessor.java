@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class QueuedQueryProcessor {
 
 	private final TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> searchResult;
@@ -28,23 +31,28 @@ public class QueuedQueryProcessor {
 			queue.execute(new Task(querySet, isPartial));
 		}
 		queue.finish();
+		System.out.println("Finished processing all queries.");
+
 	}
 
 	private static Set<TreeSet<String>> getQuery(Path path) throws IOException {
-		Set<TreeSet<String>> query = new HashSet<>();
+		Set<TreeSet<String>> queries = new HashSet<>();
 
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				if (!line.trim().isEmpty()) {
-					TreeSet<String> uniqueStems = FileStemmer.uniqueStems(line);
-					if (!uniqueStems.isEmpty()) {
-						query.add(uniqueStems);
-					}
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+
+				String[] words = FileStemmer.parse(line);
+				String wordsString = String.join(" ", words);
+				if (!wordsString.isEmpty()) {
+					queries.add(FileStemmer.uniqueStems(wordsString));
 				}
 			}
 		}
-		return query;
+		return queries;
 	}
 
 	/**
@@ -69,12 +77,22 @@ public class QueuedQueryProcessor {
 
 		@Override
 		public void run() {
+			Logger log = LogManager.getLogger();
 			String queryString = String.join(" ", querySet);
+			log.info("Processing query");
+
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 
 			synchronized (searchResult) {
 				searchResult.put(queryString, results);
 			}
+
+		}
+	}
+
+	public TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> getResults() {
+		synchronized (searchResult) {
+			return new TreeMap<>(searchResult);
 		}
 	}
 }

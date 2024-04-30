@@ -91,7 +91,7 @@ public class Driver {
 		}
 
 		QueryProcessor search = new QueryProcessor(index);
-		QueuedQueryProcessor Queuedsearch = new QueuedQueryProcessor(threadSafeIndex, multithread, queue);
+		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, multithread, queue);
 
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
@@ -99,10 +99,10 @@ public class Driver {
 				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
 					if (multithread) {
-						search.processQueries(query, isPartialSearch);
+						queuedSearch.processQueries(query, isPartialSearch);
 					}
 					else {
-						Queuedsearch.processQueries(query, isPartialSearch);
+						search.processQueries(query, isPartialSearch);
 					}
 				}
 				catch (IOException e) {
@@ -118,7 +118,7 @@ public class Driver {
 					search.writeSearchResults(resultsOutput);
 				}
 				else {
-					Queuedsearch.writeSearchResults(resultsOutput);
+					queuedSearch.writeSearchResults(resultsOutput);
 				}
 			}
 			catch (IOException e) {
