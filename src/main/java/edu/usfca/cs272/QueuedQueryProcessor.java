@@ -31,8 +31,7 @@ public class QueuedQueryProcessor {
 			queue.execute(new Task(querySet, isPartial));
 		}
 		queue.finish();
-		System.out.println("Finished processing all queries.");
-
+		System.out.println(searchResult.toString());
 	}
 
 	private static Set<TreeSet<String>> getQuery(Path path) throws IOException {
@@ -79,7 +78,7 @@ public class QueuedQueryProcessor {
 		public void run() {
 			Logger log = LogManager.getLogger();
 			String queryString = String.join(" ", querySet);
-			log.info("Processing query");
+			log.warn("Processing query");
 
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 

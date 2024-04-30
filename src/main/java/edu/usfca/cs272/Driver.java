@@ -115,10 +115,10 @@ public class Driver {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			try {
 				if (multithread) {
-					search.writeSearchResults(resultsOutput);
+					queuedSearch.writeSearchResults(resultsOutput);
 				}
 				else {
-					queuedSearch.writeSearchResults(resultsOutput);
+					search.writeSearchResults(resultsOutput);
 				}
 			}
 			catch (IOException e) {
