@@ -96,7 +96,9 @@ public class QueuedQueryProcessor {
 	 * @throws IOException if an I/O error occurs while writing the JSON file
 	 */
 	public void writeSearchResults(Path output) throws IOException {
-		JsonWriter.writeSearchResults(searchResult, output);
+		synchronized (searchResult) {
+			JsonWriter.writeSearchResults(searchResult, output);
+		}
 	}
 
 	/**
