@@ -64,7 +64,6 @@ public class QueuedQueryProcessor {
 			queue.execute(new Task(querySet, isPartial));
 		}
 		queue.finish();
-		System.out.println(searchResult.toString());
 	}
 
 	/**
