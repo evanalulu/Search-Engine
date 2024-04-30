@@ -47,6 +47,17 @@ public class QueuedQueryProcessor {
 		return query;
 	}
 
+	/**
+	 * Writes the search result map to a JSON file specified by the given output
+	 * path.
+	 *
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
+	 */
+	public void writeSearchResults(Path output) throws IOException {
+		JsonWriter.writeSearchResults(searchResult, output);
+	}
+
 	private class Task implements Runnable {
 		private final TreeSet<String> querySet;
 		private final boolean isPartial;
@@ -62,7 +73,7 @@ public class QueuedQueryProcessor {
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 
 			synchronized (searchResult) {
-//				searchResult.put(queryString, results);
+				searchResult.put(queryString, results);
 			}
 		}
 	}
