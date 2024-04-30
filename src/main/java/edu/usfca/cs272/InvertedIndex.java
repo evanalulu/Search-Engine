@@ -3,7 +3,10 @@ package edu.usfca.cs272;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -81,26 +84,6 @@ public class InvertedIndex {
 		for (var otherEntry : other.wordCountMap.entrySet()) {
 			this.wordCountMap.merge(otherEntry.getKey(), otherEntry.getValue(), Integer::max);
 		}
-	}
-
-	/**
-	 * Writes the word count map to a JSON file specified by the given output path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeWordCountMap(Path output) throws IOException {
-		JsonWriter.writeObject(wordCountMap, output);
-	}
-
-	/**
-	 * Writes the index map to a JSON file specified by the given output path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeIndexMap(Path output) throws IOException {
-		JsonWriter.writeWordPositionsMap(indexMap, output);
 	}
 
 	/**
@@ -274,6 +257,26 @@ public class InvertedIndex {
 		return 0;
 	}
 
+	/**
+	 * Writes the word count map to a JSON file specified by the given output path.
+	 *
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
+	 */
+	public void writeWordCountMap(Path output) throws IOException {
+		JsonWriter.writeObject(wordCountMap, output);
+	}
+
+	/**
+	 * Writes the index map to a JSON file specified by the given output path.
+	 *
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
+	 */
+	public void writeIndexMap(Path output) throws IOException {
+		JsonWriter.writeWordPositionsMap(indexMap, output);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -294,19 +297,119 @@ public class InvertedIndex {
 	}
 
 	/**
+	 * Performs either exact o partial search for the specified set of query terms
+	 * in the inverted index depending on the value of the isPartial.
+	 *
+	 * @param query the set of query terms to be searched for in the inverted index
+	 * @param isPartial a boolean indicating whether to perform a partial search
+	 *   (true) or an exact search (false)
+	 * @return an ArrayList containing IndexSearcher objects representing the search
+	 *   results, sorted based on the calculated scores in descending order
+	 */
+	public ArrayList<IndexSearcher> search(TreeSet<String> query, boolean isPartial) {
+		return (isPartial) ? partialSearch(query) : exactSearch(query);
+	}
+
+	/**
+	 * Performs an exact search for the specified set of query terms in the inverted
+	 * index.
+	 *
+	 * @param query the set of query terms to be searched for in the inverted index
+	 * @return an ArrayList containing IndexSearcher objects representing the exact
+	 *   search results, sorted based on the calculated scores in descending order
+	 */
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
+		ArrayList<IndexSearcher> results = new ArrayList<>();
+		Map<String, IndexSearcher> lookup = new HashMap<>();
+
+		for (String queryTerm : query) {
+			if (this.hasWord(queryTerm)) {
+				Set<String> locations = this.viewLocations(queryTerm);
+
+				for (String location : locations) {
+					Set<Integer> positions = this.viewPositions(queryTerm, location);
+					int matches = positions.size();
+
+					IndexSearcher current = lookup.get(location);
+					if (current != null) {
+						current.calculateScore(matches);
+					}
+					else {
+						IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+						newSearcher.calculateScore(matches);
+						results.add(newSearcher);
+						lookup.put(location, newSearcher);
+					}
+				}
+			}
+		}
+
+		Collections.sort(results);
+		return results;
+	}
+
+	/**
+	 * Performs a partial search for the specified set of queries in the inverted
+	 * index.
+	 * 
+	 * @param queries the set of query strings to be partially searched in the
+	 *   inverted index
+	 * @return an ArrayList containing IndexSearcher objects representing the
+	 *   partial search results, sorted based on the calculated scores in descending
+	 *   order
+	 */
+	public ArrayList<IndexSearcher> partialSearch(Set<String> queries) {
+		ArrayList<IndexSearcher> results = new ArrayList<>();
+		Map<String, IndexSearcher> lookup = new HashMap<>();
+
+		for (String query : queries) {
+			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
+				if (outerEntry.getKey().startsWith(query)) {
+					for (var innerEntry : outerEntry.getValue().entrySet()) {
+						int matches = innerEntry.getValue().size();
+						String location = innerEntry.getKey();
+
+						IndexSearcher current = lookup.get(location);
+						if (current != null) {
+							current.calculateScore(matches);
+						}
+						else {
+							IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+							newSearcher.calculateScore(matches);
+							results.add(newSearcher);
+							lookup.put(location, newSearcher);
+						}
+					}
+				}
+				else {
+					break;
+				}
+			}
+		}
+
+		Collections.sort(results);
+		return results;
+	}
+
+	/**
 	 * Represents a search result in the inverted index, including the count of
 	 * matches, score, and document path.
 	 */
 	public class IndexSearcher implements Comparable<IndexSearcher> {
 
 		/** The count of matches. */
-		public int count;
+		private int count;
 
 		/** The score of the search result. */
-		public Double score;
+		private Double score;
 
 		/** The path of the document containing the matches. */
-		public String where;
+		private final String where;
+
+		/**
+		 * The decimal format used for formatting numbers with eight decimal places.
+		 */
+		private static DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
 
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
@@ -316,9 +419,19 @@ public class InvertedIndex {
 		 * @param where The path of the document containing the matches.
 		 */
 		public IndexSearcher(int count, Double score, String where) {
-			this.count = count;
-			this.score = score;
+			this.count = 0;
+			this.score = 0.0;
 			this.where = where;
+		}
+
+		/**
+		 * Adds the specified value to the count of matches.
+		 *
+		 * @param count The value to add to the count of matches.
+		 */
+		public void calculateScore(int count) {
+			this.count += count;
+			this.score = (double) this.count / wordCountMap.get(this.where);
 		}
 
 		/**
@@ -328,24 +441,6 @@ public class InvertedIndex {
 		 */
 		public int getCount() {
 			return count;
-		}
-
-		/**
-		 * Adds the specified value to the count of matches.
-		 *
-		 * @param count The value to add to the count of matches.
-		 */
-		public void addCount(int count) {
-			this.count += count;
-		}
-
-		/**
-		 * Sets the count of matches to the specified value.
-		 *
-		 * @param count The value to set as the count of matches.
-		 */
-		public void setCount(int count) {
-			this.count = count;
 		}
 
 		/**
@@ -364,24 +459,6 @@ public class InvertedIndex {
 		 */
 		public String getWhere() {
 			return where;
-		}
-
-		/**
-		 * Sets the score of the search result.
-		 *
-		 * @param score The score to set.
-		 */
-		public void setScore(Double score) {
-			this.score = score;
-		}
-
-		/**
-		 * Sets the path of the document containing the matches.
-		 *
-		 * @param where The path to set.
-		 */
-		public void setWhere(String where) {
-			this.where = where;
 		}
 
 		/**
@@ -413,8 +490,6 @@ public class InvertedIndex {
 		 * @return the formatted score as a string with eight decimal places
 		 */
 		private static String formatScore(Double score) {
-			DecimalFormat FORMATTER = new DecimalFormat("0.00000000");
-
 			String formattedScore = FORMATTER.format(score);
 			return formattedScore;
 		}
