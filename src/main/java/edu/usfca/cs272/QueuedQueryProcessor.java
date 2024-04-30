@@ -1,42 +1,52 @@
 package edu.usfca.cs272;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class QueuedQueryProcessor {
-	private final TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> searchResults;
-	private final ThreadSafeInvertedIndex threadSafeIndex;
+
+	private final TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> searchResult;
+	private final ThreadSafeInvertedIndex index;
 	private final WorkQueue queue;
 
-	public QueuedQueryProcessor(ThreadSafeInvertedIndex threadSafeIndex, boolean usePartial, WorkQueue queue) {
-		this.searchResults = new TreeMap<>();
-		this.threadSafeIndex = threadSafeIndex;
+	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean usePartial, WorkQueue queue) {
+		this.index = index;
 		this.queue = queue;
+		this.searchResult = new TreeMap<>();
 	}
 
-	private static class Task implements Runnable {
-		private final Path path;
-		private final InvertedIndex index;
-		private final ThreadSafeInvertedIndex threadSafeIndex;
-
-		private Task(Path path, ThreadSafeInvertedIndex threadSafeIndex) {
-			this.path = path;
-			this.threadSafeIndex = threadSafeIndex;
-			this.index = new InvertedIndex();
+	public void processQueries(Path path, Boolean isPartial) throws IOException {
+		Set<TreeSet<String>> queries = getQuery(path);
+		for (TreeSet<String> querySet : queries) {
+			ArrayList<InvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
+			searchResult.put(String.join(" ", querySet), results);
 		}
+	}
 
-		@Override
-		public void run() {
-			try {
-				FileProcessor.processPath(path, index);
-				threadSafeIndex.addAll(index);
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
+	private static Set<TreeSet<String>> getQuery(Path path) throws IOException {
+		Set<TreeSet<String>> query = new HashSet<>();
+
+		try (BufferedReader reader = Files.newBufferedReader(path)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+
+				String[] words = FileStemmer.parse(line);
+				String wordsString = String.join(" ", words);
+				if (!wordsString.isEmpty()) {
+					query.add(FileStemmer.uniqueStems(wordsString));
+				}
 			}
 		}
+		return query;
 	}
 }
