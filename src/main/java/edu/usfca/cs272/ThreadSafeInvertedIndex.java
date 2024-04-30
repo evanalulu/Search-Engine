@@ -2,7 +2,9 @@ package edu.usfca.cs272;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A thread-safe version of {@link InvertedIndex} using a read/write lock. *
@@ -20,6 +22,18 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	public ThreadSafeInvertedIndex() {
 		super();
 		lock = new MultiReaderLock();
+	}
+
+	@Override
+	public void addAll(InvertedIndex other) {
+		lock.writeLock().lock();
+
+		try {
+			super.addAll(other);
+		}
+		finally {
+			lock.writeLock().unlock();
+		}
 	}
 
 	@Override
@@ -222,22 +236,43 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public void addAll(InvertedIndex other) {
-		lock.writeLock().lock();
-
-		try {
-			super.addAll(other);
-		}
-		finally {
-			lock.writeLock().unlock();
-		}
-	}
-
-	@Override
 	public String toString() {
 		lock.readLock().lock();
 		try {
 			return super.toString();
+		}
+		finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public ArrayList<IndexSearcher> search(TreeSet<String> queries, boolean isPartial) {
+		lock.readLock().lock();
+		try {
+			return super.search(queries, isPartial);
+		}
+		finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
+		lock.readLock().lock();
+		try {
+			return super.exactSearch(queries);
+		}
+		finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public ArrayList<IndexSearcher> partialSearch(Set<String> queries) {
+		lock.readLock().lock();
+		try {
+			return super.partialSearch(queries);
 		}
 		finally {
 			lock.readLock().unlock();
