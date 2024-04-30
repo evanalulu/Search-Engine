@@ -36,14 +36,11 @@ public class QueuedQueryProcessor {
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				if (line.trim().isEmpty()) {
-					continue;
-				}
-
-				String[] words = FileStemmer.parse(line);
-				String wordsString = String.join(" ", words);
-				if (!wordsString.isEmpty()) {
-					query.add(FileStemmer.uniqueStems(wordsString));
+				if (!line.trim().isEmpty()) {
+					TreeSet<String> uniqueStems = FileStemmer.uniqueStems(line);
+					if (!uniqueStems.isEmpty()) {
+						query.add(uniqueStems);
+					}
 				}
 			}
 		}
