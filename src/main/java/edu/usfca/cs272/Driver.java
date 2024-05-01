@@ -61,14 +61,14 @@ public class Driver {
 			}
 		}
 
-		QueryProcessor search = new QueryProcessor(index);
+		boolean isPartialSearch = parser.hasFlag("-partial");
+		QueryProcessor search = new QueryProcessor(index, isPartialSearch);
 
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
 			if (query != null) {
-				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
-					search.processQueries(query, isPartialSearch);
+					search.processQueries(query);
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
