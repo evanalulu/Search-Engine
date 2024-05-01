@@ -285,22 +285,9 @@ public class InvertedIndex {
 
 		for (String queryTerm : query) {
 			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(queryTerm);
-
 			if (locations != null) {
 				for (var entry : locations.entrySet()) {
-					int matches = entry.getValue().size();
-					String location = entry.getKey();
-
-					IndexSearcher current = lookup.get(location);
-					if (current != null) {
-						current.calculateScore(matches);
-					}
-					else {
-						IndexSearcher newSearcher = new IndexSearcher(location);
-						newSearcher.calculateScore(matches);
-						results.add(newSearcher);
-						lookup.put(location, newSearcher);
-					}
+					processSearchResult(entry.getKey(), entry.getValue().size(), lookup, results);
 				}
 			}
 		}
@@ -308,8 +295,6 @@ public class InvertedIndex {
 		Collections.sort(results);
 		return results;
 	}
-
-	// TODO After fixing, try to reduce duplicate logic
 
 	/**
 	 * Performs a partial search for the specified set of queries in the inverted
@@ -329,19 +314,7 @@ public class InvertedIndex {
 			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
 				if (outerEntry.getKey().startsWith(query)) {
 					for (var innerEntry : outerEntry.getValue().entrySet()) {
-						int matches = innerEntry.getValue().size();
-						String location = innerEntry.getKey();
-
-						IndexSearcher current = lookup.get(location);
-						if (current != null) {
-							current.calculateScore(matches);
-						}
-						else {
-							IndexSearcher newSearcher = new IndexSearcher(location);
-							newSearcher.calculateScore(matches);
-							results.add(newSearcher);
-							lookup.put(location, newSearcher);
-						}
+						processSearchResult(innerEntry.getKey(), innerEntry.getValue().size(), lookup, results);
 					}
 				}
 				else {
@@ -352,6 +325,31 @@ public class InvertedIndex {
 
 		Collections.sort(results);
 		return results;
+	}
+
+	/**
+	 * Processes a search result by updating an existing IndexSearcher or creating a
+	 * new one. If an IndexSearcher already exists for the location, its score is
+	 * updated based on the matches. Otherwise, a new IndexSearcher is created, its
+	 * score is calculated, and it's added to the results list and lookup map.
+	 *
+	 * @param location the location associated with the search result
+	 * @param matches the number of matches found at the location
+	 * @param lookup the map used to look up existing IndexSearchers by location
+	 * @param results the list containing the search results
+	 */
+	private void processSearchResult(String location, int matches, Map<String, IndexSearcher> lookup,
+			ArrayList<IndexSearcher> results) {
+		IndexSearcher current = lookup.get(location);
+		if (current != null) {
+			current.calculateScore(matches);
+		}
+		else {
+			IndexSearcher newSearcher = new IndexSearcher(location);
+			newSearcher.calculateScore(matches);
+			results.add(newSearcher);
+			lookup.put(location, newSearcher);
+		}
 	}
 
 	/**
