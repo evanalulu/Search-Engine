@@ -1,5 +1,7 @@
 package edu.usfca.cs272;
 
+import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +15,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import edu.usfca.cs272.InvertedIndex.IndexSearcher;
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
  * A class responsible for processing queries and managing search results.
@@ -25,19 +29,34 @@ public class QueryProcessor {
 	private final InvertedIndex index;
 
 	/**
+	 * A boolean flag indicating whether the search mode is set to partial (true) or
+	 * exact (false).
+	 */
+	private final boolean isPartial;
+
+	/**
+	 * The stemmer used for stemming words.
+	 */
+	private final Stemmer stemmer;
+
+	/**
 	 * The map storing search results, where keys represent query strings and values
 	 * represent lists of searchers.
 	 */
 	private final TreeMap<String, ArrayList<InvertedIndex.IndexSearcher>> searchResult;
 
 	/**
-	 * Constructs a QueryProcessor with the specified inverted index. Initializes
-	 * the search result map as an empty TreeMap.
+	 * Constructs a QueryProcessor with the specified inverted index, search mode,
+	 * and stemmer.
 	 *
 	 * @param index the inverted index to be used for query processing
+	 * @param isPartial a boolean indicating whether to use partial search (true) or
+	 *   exact search (false)
 	 */
-	public QueryProcessor(InvertedIndex index) {
+	public QueryProcessor(InvertedIndex index, boolean isPartial) {
 		this.index = index;
+		this.isPartial = isPartial;
+		this.stemmer = new SnowballStemmer(ENGLISH);
 		this.searchResult = new TreeMap<>();
 	}
 
@@ -59,10 +78,9 @@ public class QueryProcessor {
 	 * Reads queries from a file and performs search on an inverted index.
 	 * 
 	 * @param path The path to the file containing queries.
-	 * @param isPartial If -partial search is requested
 	 * @throws IOException If an I/O error occurs while reading the query file.
 	 */
-	public void processQueries(Path path, Boolean isPartial) throws IOException {
+	public void processQueries(Path path) throws IOException {
 		/*
 		 * TODO try (BufferedReader reader = Files.newBufferedReader(path)) { String
 		 * line; while ((line = reader.readLine()) != null) { processQueries(line, ...)
