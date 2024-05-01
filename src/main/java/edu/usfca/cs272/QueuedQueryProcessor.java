@@ -50,7 +50,7 @@ public class QueuedQueryProcessor {
 	 * @param queue the WorkQueue to use in multithreading
 	 * @throws IOException if an I/O error occurs while reading the query file or
 	 *   processing queries
-	 */a
+	 */
 	public void processQueries(Path path, Boolean isPartial, WorkQueue queue) throws IOException {
 		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			String line;
