@@ -516,6 +516,8 @@ public class JsonWriter {
 			throws IOException {
 		writer.write("[");
 		if (!elements.isEmpty()) {
+			
+			// TODO if/while approach
 
 			var iterator = elements.iterator();
 			while (iterator.hasNext()) {
@@ -542,7 +544,7 @@ public class JsonWriter {
 	 * @param indent the number of spaces to use for indentation.
 	 * @return the indented JSON string.
 	 */
-	private static String indentJson(String searcher, int indent) {
+	private static String indentJson(String searcher, int indent) { // TODO See the IndexSearcher class
 		String indentSpace = "  ".repeat(indent);
 		String[] lines = searcher.split("\n");
 		return Arrays.stream(lines).map(line -> indentSpace + line).collect(Collectors.joining("\n"));
