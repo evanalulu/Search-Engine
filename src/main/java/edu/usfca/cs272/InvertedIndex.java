@@ -32,18 +32,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Adds the count of a word in a document to the word count map.
-	 *
-	 * @param location the path of the document
-	 * @param count the count of the word in the document
-	 */
-	public void addCount(String location, Integer count) { // TODO Private or remote
-		if (count > 0) {
-			wordCountMap.put(location, count);
-		}
-	}
-
-	/**
 	 * Adds the position of a word in a document to the index map.
 	 *
 	 * @param word the word to add
@@ -52,14 +40,10 @@ public class InvertedIndex {
 	 */
 	public void addWord(String word, String location, Integer position) {
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
-		
-		/*
-		 * TODO Update the count here
-		 * 
-		 * 1) If add(position) returns true, increment the count for location by 1
-		 * 
-		 * 2) if position is greater than what is already stored for the location, use the position as the count
-		 */
+
+		if (!wordCountMap.containsKey(location) || position > wordCountMap.get(location)) {
+			wordCountMap.put(location, position);
+		}
 	}
 
 	/**
@@ -299,14 +283,12 @@ public class InvertedIndex {
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
 		for (String queryTerm : query) {
-			/* TODO 
-			var locations = this.indexMap.get(queryTerm);
-			
-			if (locations != null) {
-				for (var entry : locations.entrySet()) ..
-			}
-			*/
-			
+			/*
+			 * TODO var locations = this.indexMap.get(queryTerm);
+			 * 
+			 * if (locations != null) { for (var entry : locations.entrySet()) .. }
+			 */
+
 			if (this.hasWord(queryTerm)) {
 				Set<String> locations = this.viewLocations(queryTerm);
 
@@ -327,7 +309,7 @@ public class InvertedIndex {
 				}
 			}
 		}
-		
+
 		// TODO After fixing, try to reduce duplicate logic
 
 		Collections.sort(results);
@@ -496,13 +478,11 @@ public class InvertedIndex {
 			builder.append("}");
 			return builder.toString();
 		}
-		
-		/* TODO 
-		public void toJson(Writer writer, int level) throws IOException {
-			writer.append("{");
-			etc.
-		}
-		*/
+
+		/*
+		 * TODO public void toJson(Writer writer, int level) throws IOException {
+		 * writer.append("{"); etc. }
+		 */
 	}
 
 }
