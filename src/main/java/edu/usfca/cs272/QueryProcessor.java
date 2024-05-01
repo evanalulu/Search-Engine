@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
@@ -60,20 +59,6 @@ public class QueryProcessor {
 		this.searchResult = new TreeMap<>();
 	}
 
-	/*
-	 * TODO
-	 * 
-	 * Think about what makes sense to make a final member versus a parameter that
-	 * can change each call in a method...
-	 * 
-	 * processQueries(hello.txt, true) "hello world" --> world.txt, earth.txt
-	 * 
-	 * processQueries(hello.txt, false) "hello world" --> earth.txt
-	 * 
-	 * Make the search mode (partial or exact) something set the same way as the
-	 * index so it can't change every method call
-	 */
-
 	/**
 	 * Reads queries from a file and performs search on an inverted index.
 	 * 
@@ -81,51 +66,32 @@ public class QueryProcessor {
 	 * @throws IOException If an I/O error occurs while reading the query file.
 	 */
 	public void processQueries(Path path) throws IOException {
-		/*
-		 * TODO try (BufferedReader reader = Files.newBufferedReader(path)) { String
-		 * line; while ((line = reader.readLine()) != null) { processQueries(line, ...)
-		 * }
-		 */
-
-		Set<TreeSet<String>> queries = getQuery(path);
-		for (TreeSet<String> querySet : queries) {
-			ArrayList<InvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
-			searchResult.put(String.join(" ", querySet), results);
-		}
-	}
-
-	/*
-	 * TODO public void processQueries(String line, ...) { stem (ideally reusing a
-	 * SnowBallStemmer) join decide if need to search storing the search results }
-	 */
-
-	/**
-	 * Retrieves query terms from a file and returns a set of unique stemmed query
-	 * terms.
-	 *
-	 * @param path The path to the file containing queries.
-	 * @return A set of unique stemmed query terms, where each query is represented
-	 *   as a sorted set of terms.
-	 * @throws IOException If an I/O error occurs while reading the query file.
-	 */
-	private static Set<TreeSet<String>> getQuery(Path path) throws IOException {
-		Set<TreeSet<String>> query = new HashSet<>();
-
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				if (line.trim().isEmpty()) {
-					continue;
-				}
-
-				String[] words = FileStemmer.parse(line);
-				String wordsString = String.join(" ", words);
-				if (!wordsString.isEmpty()) {
-					query.add(FileStemmer.uniqueStems(wordsString));
-				}
+				processQueryLine(line);
 			}
 		}
-		return query;
+	}
+
+	/**
+	 * Processes a single query line by stemming the words, constructing a query
+	 * string, and performing a search in the inverted index. If the query string is
+	 * empty or search results already exist for the query, the method returns
+	 * without further processing.
+	 *
+	 * @param line the query line to be processed
+	 */
+	private void processQueryLine(String line) {
+		TreeSet<String> query = FileStemmer.uniqueStems(line, stemmer);
+		String queryString = String.join(" ", query);
+
+		if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
+			return;
+		}
+
+		ArrayList<InvertedIndex.IndexSearcher> results = index.search(query, isPartial);
+		searchResult.put(queryString, results);
 	}
 
 	/**
@@ -210,6 +176,7 @@ public class QueryProcessor {
 		ArrayList<IndexSearcher> searchers = searchResult.get(queryString);
 
 		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
-
 	}
+
+	// TODO: maybe extra function to filestemmer.uniquestems
 }
