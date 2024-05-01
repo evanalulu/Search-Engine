@@ -1,6 +1,7 @@
 package edu.usfca.cs272;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -369,7 +370,7 @@ public class InvertedIndex {
 		private int count;
 
 		/** The score of the search result. */
-		private Double score; // TODO double
+		private double score;
 
 		/** The path of the document containing the matches. */
 		private final String where;
@@ -479,10 +480,14 @@ public class InvertedIndex {
 			return builder.toString();
 		}
 
-		/*
-		 * TODO public void toJson(Writer writer, int level) throws IOException {
-		 * writer.append("{"); etc. }
-		 */
+		public void toJson(Writer writer, int level) throws IOException {
+			String indent = "  ".repeat(level);
+			writer.write(indent + "{\n");
+			writer.write(indent + "  \"count\": " + count + ",\n");
+			writer.write(indent + "  \"score\": " + formatScore(score) + ",\n");
+			writer.write(indent + "  \"where\": \"" + where.replace("\\", "\\\\") + "\"\n");
+			writer.write(indent + "}");
+		}
 	}
 
 }
