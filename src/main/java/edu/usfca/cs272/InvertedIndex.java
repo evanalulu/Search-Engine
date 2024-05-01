@@ -480,6 +480,14 @@ public class InvertedIndex {
 			return builder.toString();
 		}
 
+		/**
+		 * Writes the IndexSearcher object to JSON format and outputs it to the
+		 * specified writer with the given indentation level.
+		 *
+		 * @param writer the writer to which the JSON representation is written
+		 * @param level the indentation level to be used in the JSON output
+		 * @throws IOException if an I/O error occurs while writing to the writer
+		 */
 		public void toJson(Writer writer, int level) throws IOException {
 			String indent = "  ".repeat(level);
 			writer.write(indent + "{\n");
