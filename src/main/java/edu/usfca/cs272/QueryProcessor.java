@@ -128,9 +128,7 @@ public class QueryProcessor {
 	 * @return the number of search results for the query
 	 */
 	public int numResults(String query) {
-		String joinedQuery = String.join(" ", FileStemmer.uniqueStems(query));
-		List<IndexSearcher> results = searchResult.get(joinedQuery);
-
+		List<IndexSearcher> results = searchResult.get(getQuerySting(query));
 		return (results != null) ? results.size() : 0;
 	}
 
@@ -138,12 +136,11 @@ public class QueryProcessor {
 	 * Checks if the search result map contains search results for the specified
 	 * query line.
 	 *
-	 * @param line the query line to be checked
+	 * @param queryLine the query line to be checked
 	 * @return true if search results exist for the query line, false otherwise
 	 */
-	public boolean hasQueryLine(String line) {
-		String queryString = String.join(" ", FileStemmer.uniqueStems(line));
-		return searchResult.containsKey(queryString);
+	public boolean hasQueryLine(String queryLine) {
+		return searchResult.containsKey(getQuerySting(queryLine));
 	}
 
 	/**
@@ -153,8 +150,8 @@ public class QueryProcessor {
 	 * @return true if search results exist for the query, false otherwise
 	 */
 	public boolean hasResult(String query) {
-		String joinedQuery = String.join(" ", FileStemmer.uniqueStems(query));
-		return searchResult.containsKey(joinedQuery) && !searchResult.get(joinedQuery).isEmpty();
+		String queryString = getQuerySting(query);
+		return searchResult.containsKey(queryString) && !searchResult.get(queryString).isEmpty();
 	}
 
 	/**
@@ -178,11 +175,20 @@ public class QueryProcessor {
 	 *   results exist for the query line
 	 */
 	public List<IndexSearcher> viewResults(String query) {
-		String queryString = String.join(" ", FileStemmer.uniqueStems(query));
-		ArrayList<IndexSearcher> searchers = searchResult.get(queryString);
+		ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query));
 
 		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
 	}
 
-	// TODO: maybe extra function to filestemmer.uniquestems
+	/**
+	 * Constructs a query string by stemming the input query and joining the stemmed
+	 * words with spaces.
+	 *
+	 * @param query the query to be stemmed and joined
+	 * @return the constructed query string
+	 */
+	private static String getQuerySting(String query) {
+		return String.join(" ", FileStemmer.uniqueStems(query));
+	}
+
 }
