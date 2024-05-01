@@ -83,7 +83,13 @@ public class QueryProcessor {
 	 * @param line the query line to be processed
 	 */
 	private void processQueryLine(String line) {
-		TreeSet<String> query = FileStemmer.uniqueStems(line, stemmer);
+		TreeSet<String> query = new TreeSet<>();
+
+		String[] words = FileStemmer.parse(line);
+
+		for (String word : words) {
+			query.add(stemmer.stem(word).toString());
+		}
 		String queryString = String.join(" ", query);
 
 		if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
