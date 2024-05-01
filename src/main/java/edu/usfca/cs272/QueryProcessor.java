@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -40,21 +40,19 @@ public class QueryProcessor {
 		this.index = index;
 		this.searchResult = new TreeMap<>();
 	}
-	
+
 	/*
 	 * TODO
 	 * 
-	 * Think about what makes sense to make a final member versus a parameter
-	 * that can change each call in a method...
+	 * Think about what makes sense to make a final member versus a parameter that
+	 * can change each call in a method...
 	 * 
-	 * processQueries(hello.txt, true)
-	 * "hello world" --> world.txt, earth.txt
+	 * processQueries(hello.txt, true) "hello world" --> world.txt, earth.txt
 	 * 
-	 * processQueries(hello.txt, false)
-	 * "hello world" --> earth.txt
+	 * processQueries(hello.txt, false) "hello world" --> earth.txt
 	 * 
-	 * Make the search mode (partial or exact) something set the same way 
-	 * as the index so it can't change every method call
+	 * Make the search mode (partial or exact) something set the same way as the
+	 * index so it can't change every method call
 	 */
 
 	/**
@@ -65,30 +63,23 @@ public class QueryProcessor {
 	 * @throws IOException If an I/O error occurs while reading the query file.
 	 */
 	public void processQueries(Path path, Boolean isPartial) throws IOException {
-		/* TODO 
-		try (BufferedReader reader = Files.newBufferedReader(path)) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				processQueries(line, ...)
-			}
-			*/
-		
-		
+		/*
+		 * TODO try (BufferedReader reader = Files.newBufferedReader(path)) { String
+		 * line; while ((line = reader.readLine()) != null) { processQueries(line, ...)
+		 * }
+		 */
+
 		Set<TreeSet<String>> queries = getQuery(path);
 		for (TreeSet<String> querySet : queries) {
 			ArrayList<InvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 			searchResult.put(String.join(" ", querySet), results);
 		}
 	}
-	
-	/* TODO 
-	public void processQueries(String line, ...) {
-		stem (ideally reusing a SnowBallStemmer)
-		join
-		decide if need to search
-		storing the search results
-	}
-	*/
+
+	/*
+	 * TODO public void processQueries(String line, ...) { stem (ideally reusing a
+	 * SnowBallStemmer) join decide if need to search storing the search results }
+	 */
 
 	/**
 	 * Retrieves query terms from a file and returns a set of unique stemmed query
@@ -131,63 +122,76 @@ public class QueryProcessor {
 	}
 
 	/**
-	 * Returns the number of results in result map.
+	 * Retrieves the number of queries processed and stored in the search result
+	 * map.
 	 *
-	 * @return the number of results in result map
+	 * @return the number of queries processed
 	 */
-	public int getResultCount() { // TODO Rename, number of query lines not number of results
+	public int numQueryLines() {
 		return searchResult.size();
 	}
 
 	/**
-	 * Checks if there are any search results.
+	 * Retrieves the number of search results associated with the specified query.
 	 *
-	 * @return {@code true} if there are any results, {@code false} otherwise.
+	 * @param query the query for which to retrieve the number of search results
+	 * @return the number of search results for the query
 	 */
-	public boolean hasResults() { // TODO Remove
-		return !searchResult.isEmpty();
+	public int numResults(String query) {
+		String joinedQuery = String.join(" ", FileStemmer.uniqueStems(query));
+		List<IndexSearcher> results = searchResult.get(joinedQuery);
+
+		return (results != null) ? results.size() : 0;
 	}
 
 	/**
-	 * Checks if a specific word is indexed in search results.
+	 * Checks if the search result map contains search results for the specified
+	 * query line.
 	 *
-	 * @param word the word to check
-	 * @return {@code true} if the word is indexed
+	 * @param line the query line to be checked
+	 * @return true if search results exist for the query line, false otherwise
 	 */
-	public boolean hasWord(String word) { // TODO hasQueryLine
-		// TODO The word is likely to be something like "APPLE!! BANANAS!!!"
-		// TODO So need to re-stem, join, before doing the get
-		return searchResult.containsKey(word);
+	public boolean hasQueryLine(String line) {
+		String queryString = String.join(" ", FileStemmer.uniqueStems(line));
+		return searchResult.containsKey(queryString);
 	}
 
 	/**
-	 * Retrieves an unmodifiable set of words present in the search result map.
+	 * Checks if search results exist for the specified query.
 	 *
-	 * @return an unmodifiable set containing the unique words for which search
-	 *   results are available
+	 * @param query the query to be checked for search results
+	 * @return true if search results exist for the query, false otherwise
 	 */
-	public Set<String> viewWords() { // TODO Rename viewQueries
+	public boolean hasResult(String query) {
+		String joinedQuery = String.join(" ", FileStemmer.uniqueStems(query));
+		return searchResult.containsKey(joinedQuery) && !searchResult.get(joinedQuery).isEmpty();
+	}
+
+	/**
+	 * Retrieves an unmodifiable set of query strings stored in the search result
+	 * map.
+	 *
+	 * @return an unmodifiable set containing the query strings for which search
+	 *   results are stored
+	 */
+	public Set<String> viewQueries() {
 		return Collections.unmodifiableSet(searchResult.keySet());
 	}
 
 	/**
-	 * Retrieves an unmodifiable collection of IndexSearcher objects associated with
-	 * the specified word. If search results exist for the word, the method returns
-	 * an unmodifiable collection containing those searchers. If no search results
-	 * exist for the word, an empty collection is returned.
+	 * Retrieves an unmodifiable list of search results associated with the
+	 * specified query line.
 	 *
-	 * @param word the word for which to retrieve searchers
-	 * @return an unmodifiable collection of IndexSearcher objects associated with
-	 *   the specified word, or an empty collection if no search results exist for
-	 *   the word
+	 * @param query the query line for which to retrieve search results
+	 * @return an unmodifiable list containing IndexSearcher objects representing
+	 *   the search results for the query line, or an empty list if no search
+	 *   results exist for the query line
 	 */
-	// TODO public List<IndexSearcher> viewSearchers(String word) {
-	public Collection<IndexSearcher> viewSearchers(String word) { // TODO viewResults
-		// TODO Re-stem and join before doing the get
-		ArrayList<IndexSearcher> searchers = searchResult.get(word);
-		if (searchers != null) {
-			return Collections.unmodifiableCollection(searchers);
-		}
-		return Collections.emptyList();
+	public List<IndexSearcher> viewResults(String query) {
+		String queryString = String.join(" ", FileStemmer.uniqueStems(query));
+		ArrayList<IndexSearcher> searchers = searchResult.get(queryString);
+
+		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
+
 	}
 }
