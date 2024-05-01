@@ -2,6 +2,7 @@ package edu.usfca.cs272;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,19 +47,25 @@ public class QueuedQueryProcessor {
 	 * @param path the path to the file containing query sets to be processed
 	 * @param isPartial a boolean indicating whether to use partial search (true) or
 	 *   exact search (false)
+	 * @param queue the WorkQueue to use in multithreading
 	 * @throws IOException if an I/O error occurs while reading the query file or
 	 *   processing queries
 	 */
 	public void processQueries(Path path, Boolean isPartial, WorkQueue queue) throws IOException {
-		try (BufferedReader reader = Files.newBufferedReader(path)) {
+		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				if (!line.trim().isEmpty()) {
-					queue.execute(new Task(line, isPartial));
+					processLine(line, isPartial, queue);
 				}
 			}
 		}
 		queue.finish();
+	}
+
+	public void processLine(String queryLine, boolean isPartial, WorkQueue queue) {
+		Task task = new Task(queryLine, isPartial);
+		queue.execute(task);
 	}
 
 	/**
@@ -71,6 +78,13 @@ public class QueuedQueryProcessor {
 	public void writeSearchResults(Path output) throws IOException {
 		synchronized (searchResult) {
 			JsonWriter.writeSearchResults(searchResult, output);
+		}
+	}
+
+	@Override
+	public String toString() {
+		synchronized (searchResult) {
+			return searchResult.toString();
 		}
 	}
 
@@ -95,7 +109,7 @@ public class QueuedQueryProcessor {
 		 * Constructs a Task with the specified set of query terms and partial search
 		 * flag.
 		 *
-		 * @param querySet the set of query terms to be processed
+		 * @param queryLine the set of query terms to be processed
 		 * @param isPartial a boolean indicating whether to perform a partial search
 		 *   (true) or an exact search (false)
 		 */
@@ -109,8 +123,8 @@ public class QueuedQueryProcessor {
 		 */
 		@Override
 		public void run() {
-			TreeSet<String> querySet = FileStemmer.uniqueStems(queryLine);
-			String queryString = String.join(" ", querySet);
+			TreeSet<String> query = FileStemmer.uniqueStems(queryLine);
+			String queryString = String.join(" ", query);
 
 			synchronized (searchResult) {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
@@ -119,12 +133,11 @@ public class QueuedQueryProcessor {
 				searchResult.put(queryString, null);
 			}
 
-			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
+			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(query, isPartial);
 
 			synchronized (searchResult) {
 				searchResult.put(queryString, results);
 			}
-
 		}
 	}
 }
