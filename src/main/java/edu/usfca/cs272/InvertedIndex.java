@@ -284,25 +284,19 @@ public class InvertedIndex {
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
 		for (String queryTerm : query) {
-			/*
-			 * TODO var locations = this.indexMap.get(queryTerm);
-			 * 
-			 * if (locations != null) { for (var entry : locations.entrySet()) .. }
-			 */
+			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(queryTerm);
 
-			if (this.hasWord(queryTerm)) {
-				Set<String> locations = this.viewLocations(queryTerm);
-
-				for (String location : locations) {
-					Set<Integer> positions = this.viewPositions(queryTerm, location);
-					int matches = positions.size();
+			if (locations != null) {
+				for (var entry : locations.entrySet()) {
+					int matches = entry.getValue().size();
+					String location = entry.getKey();
 
 					IndexSearcher current = lookup.get(location);
 					if (current != null) {
 						current.calculateScore(matches);
 					}
 					else {
-						IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+						IndexSearcher newSearcher = new IndexSearcher(location);
 						newSearcher.calculateScore(matches);
 						results.add(newSearcher);
 						lookup.put(location, newSearcher);
@@ -311,11 +305,11 @@ public class InvertedIndex {
 			}
 		}
 
-		// TODO After fixing, try to reduce duplicate logic
-
 		Collections.sort(results);
 		return results;
 	}
+
+	// TODO After fixing, try to reduce duplicate logic
 
 	/**
 	 * Performs a partial search for the specified set of queries in the inverted
@@ -343,7 +337,7 @@ public class InvertedIndex {
 							current.calculateScore(matches);
 						}
 						else {
-							IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
+							IndexSearcher newSearcher = new IndexSearcher(location);
 							newSearcher.calculateScore(matches);
 							results.add(newSearcher);
 							lookup.put(location, newSearcher);
@@ -383,12 +377,9 @@ public class InvertedIndex {
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
 		 *
-		 * @param count The count of matches.
-		 * @param score The score of the search result.
 		 * @param where The path of the document containing the matches.
 		 */
-		// TODO public IndexSearcher(String where) {
-		public IndexSearcher(int count, Double score, String where) {
+		public IndexSearcher(String where) {
 			this.count = 0;
 			this.score = 0.0;
 			this.where = where;
@@ -408,7 +399,7 @@ public class InvertedIndex {
 		 *
 		 * @param count The value to add to the count of matches.
 		 */
-		public void calculateScore(int count) { // TODO private
+		private void calculateScore(int count) {
 			this.count += count;
 			this.score = (double) this.count / wordCountMap.get(this.where);
 		}
@@ -418,7 +409,7 @@ public class InvertedIndex {
 		 *
 		 * @return The score of the search result.
 		 */
-		public Double getScore() { // TODO double
+		public double getScore() {
 			return score;
 		}
 
