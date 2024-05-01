@@ -40,6 +40,22 @@ public class QueryProcessor {
 		this.index = index;
 		this.searchResult = new TreeMap<>();
 	}
+	
+	/*
+	 * TODO
+	 * 
+	 * Think about what makes sense to make a final member versus a parameter
+	 * that can change each call in a method...
+	 * 
+	 * processQueries(hello.txt, true)
+	 * "hello world" --> world.txt, earth.txt
+	 * 
+	 * processQueries(hello.txt, false)
+	 * "hello world" --> earth.txt
+	 * 
+	 * Make the search mode (partial or exact) something set the same way 
+	 * as the index so it can't change every method call
+	 */
 
 	/**
 	 * Reads queries from a file and performs search on an inverted index.
@@ -49,12 +65,30 @@ public class QueryProcessor {
 	 * @throws IOException If an I/O error occurs while reading the query file.
 	 */
 	public void processQueries(Path path, Boolean isPartial) throws IOException {
+		/* TODO 
+		try (BufferedReader reader = Files.newBufferedReader(path)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				processQueries(line, ...)
+			}
+			*/
+		
+		
 		Set<TreeSet<String>> queries = getQuery(path);
 		for (TreeSet<String> querySet : queries) {
 			ArrayList<InvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
 			searchResult.put(String.join(" ", querySet), results);
 		}
 	}
+	
+	/* TODO 
+	public void processQueries(String line, ...) {
+		stem (ideally reusing a SnowBallStemmer)
+		join
+		decide if need to search
+		storing the search results
+	}
+	*/
 
 	/**
 	 * Retrieves query terms from a file and returns a set of unique stemmed query
@@ -101,7 +135,7 @@ public class QueryProcessor {
 	 *
 	 * @return the number of results in result map
 	 */
-	public int getResultCount() {
+	public int getResultCount() { // TODO Rename, number of query lines not number of results
 		return searchResult.size();
 	}
 
@@ -110,7 +144,7 @@ public class QueryProcessor {
 	 *
 	 * @return {@code true} if there are any results, {@code false} otherwise.
 	 */
-	public boolean hasResults() {
+	public boolean hasResults() { // TODO Remove
 		return !searchResult.isEmpty();
 	}
 
@@ -120,7 +154,9 @@ public class QueryProcessor {
 	 * @param word the word to check
 	 * @return {@code true} if the word is indexed
 	 */
-	public boolean hasWord(String word) {
+	public boolean hasWord(String word) { // TODO hasQueryLine
+		// TODO The word is likely to be something like "APPLE!! BANANAS!!!"
+		// TODO So need to re-stem, join, before doing the get
 		return searchResult.containsKey(word);
 	}
 
@@ -130,7 +166,7 @@ public class QueryProcessor {
 	 * @return an unmodifiable set containing the unique words for which search
 	 *   results are available
 	 */
-	public Set<String> viewWords() {
+	public Set<String> viewWords() { // TODO Rename viewQueries
 		return Collections.unmodifiableSet(searchResult.keySet());
 	}
 
@@ -145,7 +181,9 @@ public class QueryProcessor {
 	 *   the specified word, or an empty collection if no search results exist for
 	 *   the word
 	 */
-	public Collection<IndexSearcher> viewSearchers(String word) {
+	// TODO public List<IndexSearcher> viewSearchers(String word) {
+	public Collection<IndexSearcher> viewSearchers(String word) { // TODO viewResults
+		// TODO Re-stem and join before doing the get
 		ArrayList<IndexSearcher> searchers = searchResult.get(word);
 		if (searchers != null) {
 			return Collections.unmodifiableCollection(searchers);

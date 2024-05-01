@@ -37,7 +37,7 @@ public class InvertedIndex {
 	 * @param location the path of the document
 	 * @param count the count of the word in the document
 	 */
-	public void addCount(String location, Integer count) {
+	public void addCount(String location, Integer count) { // TODO Private or remote
 		if (count > 0) {
 			wordCountMap.put(location, count);
 		}
@@ -52,6 +52,14 @@ public class InvertedIndex {
 	 */
 	public void addWord(String word, String location, Integer position) {
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
+		
+		/*
+		 * TODO Update the count here
+		 * 
+		 * 1) If add(position) returns true, increment the count for location by 1
+		 * 
+		 * 2) if position is greater than what is already stored for the location, use the position as the count
+		 */
 	}
 
 	/**
@@ -291,6 +299,14 @@ public class InvertedIndex {
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
 		for (String queryTerm : query) {
+			/* TODO 
+			var locations = this.indexMap.get(queryTerm);
+			
+			if (locations != null) {
+				for (var entry : locations.entrySet()) ..
+			}
+			*/
+			
 			if (this.hasWord(queryTerm)) {
 				Set<String> locations = this.viewLocations(queryTerm);
 
@@ -311,6 +327,8 @@ public class InvertedIndex {
 				}
 			}
 		}
+		
+		// TODO After fixing, try to reduce duplicate logic
 
 		Collections.sort(results);
 		return results;
@@ -369,7 +387,7 @@ public class InvertedIndex {
 		private int count;
 
 		/** The score of the search result. */
-		private Double score;
+		private Double score; // TODO double
 
 		/** The path of the document containing the matches. */
 		private final String where;
@@ -386,6 +404,7 @@ public class InvertedIndex {
 		 * @param score The score of the search result.
 		 * @param where The path of the document containing the matches.
 		 */
+		// TODO public IndexSearcher(String where) {
 		public IndexSearcher(int count, Double score, String where) {
 			this.count = 0;
 			this.score = 0.0;
@@ -406,7 +425,7 @@ public class InvertedIndex {
 		 *
 		 * @param count The value to add to the count of matches.
 		 */
-		public void calculateScore(int count) {
+		public void calculateScore(int count) { // TODO private
 			this.count += count;
 			this.score = (double) this.count / wordCountMap.get(this.where);
 		}
@@ -416,7 +435,7 @@ public class InvertedIndex {
 		 *
 		 * @return The score of the search result.
 		 */
-		public Double getScore() {
+		public Double getScore() { // TODO double
 			return score;
 		}
 
@@ -477,7 +496,13 @@ public class InvertedIndex {
 			builder.append("}");
 			return builder.toString();
 		}
-
+		
+		/* TODO 
+		public void toJson(Writer writer, int level) throws IOException {
+			writer.append("{");
+			etc.
+		}
+		*/
 	}
 
 }

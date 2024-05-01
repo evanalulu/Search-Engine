@@ -74,7 +74,7 @@ public class FileProcessor {
 				}
 			}
 
-			index.addCount(pathStr, wordCount);
+			index.addCount(pathStr, wordCount); // TODO Remove
 		}
 	}
 
