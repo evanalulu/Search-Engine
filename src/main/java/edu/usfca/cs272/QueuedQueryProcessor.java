@@ -42,6 +42,11 @@ public class QueuedQueryProcessor {
 	private final Stemmer stemmer;
 
 	/**
+	 * The work queue used for processing tasks asynchronously.
+	 */
+	private final WorkQueue queue;
+
+	/**
 	 * The map storing search results, where keys represent query strings and values
 	 * represent lists of searchers.
 	 */
@@ -55,37 +60,44 @@ public class QueuedQueryProcessor {
 	 *   and search result management
 	 * @param isPartial a boolean indicating whether to use partial search (true) or
 	 *   exact search (false)
+	 * @param queue the work queue for processing tasks asynchronously
+	 * 
 	 */
-	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean isPartial) {
+	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean isPartial, WorkQueue queue) {
 		this.index = index;
 		this.isPartial = isPartial;
 		this.stemmer = new SnowballStemmer(ENGLISH);
+		this.queue = queue;
 		this.searchResult = new TreeMap<>();
 	}
 
 	/**
 	 * Processes queries stored in a file specified by the input path.
 	 *
-	 * @param path the path to the file containing query sets to be processed
-	 * @param isPartial a boolean indicating whether to use partial search (true) or
-	 *   exact search (false)
-	 * @param queue the WorkQueue to use in multithreading
+	 * @param path the path to the file containing query sets to be processed exact
+	 *   search (false)
 	 * @throws IOException if an I/O error occurs while reading the query file or
 	 *   processing queries
 	 */
-	public void processQueries(Path path, Boolean isPartial, WorkQueue queue) throws IOException {
+	public void processQueries(Path path) throws IOException {
 		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				if (!line.trim().isEmpty()) {
-					processQueryLine(line, isPartial, queue);
+					processQueryLine(line);
 				}
 			}
 		}
 		queue.finish();
 	}
 
-	public void processQueryLine(String queryLine, boolean isPartial, WorkQueue queue) {
+	/**
+	 * Processes a single query line asynchronously by creating a task and executing
+	 * it in the work queue.
+	 *
+	 * @param queryLine the query line to be processed
+	 */
+	public void processQueryLine(String queryLine) {
 		Task task = new Task(queryLine, isPartial);
 		queue.execute(task);
 	}
