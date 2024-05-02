@@ -25,30 +25,6 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public void addAll(InvertedIndex other) {
-		lock.writeLock().lock();
-
-		try {
-			super.addAll(other);
-		}
-		finally {
-			lock.writeLock().unlock();
-		}
-	}
-
-	@Override
-	public void addCount(String location, Integer count) {
-		lock.readLock().lock();
-
-		try {
-			super.addCount(location, count);
-		}
-		finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	@Override
 	public void addWord(String word, String location, Integer position) {
 		lock.readLock().lock();
 
@@ -57,6 +33,18 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		}
 		finally {
 			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public void addAll(InvertedIndex other) {
+		lock.writeLock().lock();
+
+		try {
+			super.addAll(other);
+		}
+		finally {
+			lock.writeLock().unlock();
 		}
 	}
 
@@ -121,9 +109,10 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public boolean hasFileinCount(String path) {
+	public boolean hasWord(String word) {
+		lock.readLock().lock();
 		try {
-			return super.hasFileinCount(path);
+			return super.hasWord(word);
 		}
 		finally {
 			lock.readLock().unlock();
@@ -131,10 +120,9 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public boolean hasWord(String word) {
-		lock.readLock().lock();
+	public boolean hasFileinCount(String path) {
 		try {
-			return super.hasWord(word);
+			return super.hasFileinCount(path);
 		}
 		finally {
 			lock.readLock().unlock();

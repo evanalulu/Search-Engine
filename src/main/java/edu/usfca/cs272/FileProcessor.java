@@ -55,7 +55,6 @@ public class FileProcessor {
 	 * @throws IOException if an I/O error occurs while reading the file
 	 */
 	public static void readFile(Path path, InvertedIndex index) throws IOException {
-		int wordCount = 0;
 
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
@@ -65,7 +64,6 @@ public class FileProcessor {
 
 			while ((line = reader.readLine()) != null) {
 				String[] words = FileStemmer.parse(line);
-				wordCount += words.length;
 
 				for (String word : words) {
 					String stemmedWord = stemmer.stem(word).toString();
@@ -73,8 +71,6 @@ public class FileProcessor {
 					position++;
 				}
 			}
-
-			index.addCount(pathStr, wordCount);
 		}
 	}
 
@@ -87,10 +83,10 @@ public class FileProcessor {
 	 */
 	public static void processPath(Path input, InvertedIndex index) throws IOException {
 		if (Files.isDirectory(input)) {
-			traverseDirectory(input, index);
+			FileProcessor.traverseDirectory(input, index);
 		}
 		else {
-			readFile(input, index);
+			FileProcessor.readFile(input, index);
 		}
 	}
 

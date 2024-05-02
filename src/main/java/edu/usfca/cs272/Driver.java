@@ -91,19 +91,19 @@ public class Driver {
 			}
 		}
 
-		QueryProcessor search = new QueryProcessor(index);
+		boolean isPartial = parser.hasFlag("-partial");
+		QueryProcessor search = new QueryProcessor(index, isPartial);
 		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, parser.hasFlag("-partial"));
 
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
 			if (query != null) {
-				boolean isPartialSearch = parser.hasFlag("-partial");
 				try {
 					if (multithread) {
-						queuedSearch.processQueries(query, isPartialSearch, queue);
+						queuedSearch.processQueries(query, isPartial, queue);
 					}
 					else {
-						search.processQueries(query, isPartialSearch);
+						search.processQueries(query);
 					}
 				}
 				catch (IOException e) {

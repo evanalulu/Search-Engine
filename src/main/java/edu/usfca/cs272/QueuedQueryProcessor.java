@@ -1,5 +1,7 @@
 package edu.usfca.cs272;
 
+import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,17 +11,14 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+
 /**
  * A class responsible for processing queries using a work queue and managing
  * search results.
  */
 public class QueuedQueryProcessor {
-
-	/**
-	 * The map storing search results, where keys represent query strings and values
-	 * represent lists of searchers.
-	 */
-	private final TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> searchResult;
 
 	/**
 	 * The thread-safe inverted index used for query processing and search result
@@ -28,16 +27,35 @@ public class QueuedQueryProcessor {
 	private final ThreadSafeInvertedIndex index;
 
 	/**
+	 * A boolean flag indicating whether the search mode is set to partial (true) or
+	 * exact (false).
+	 */
+	private final boolean isPartial;
+
+	/**
+	 * The stemmer used for stemming words.
+	 */
+	private final Stemmer stemmer;
+
+	/**
+	 * The map storing search results, where keys represent query strings and values
+	 * represent lists of searchers.
+	 */
+	private final TreeMap<String, ArrayList<ThreadSafeInvertedIndex.IndexSearcher>> searchResult;
+
+	/**
 	 * Constructs a QueuedQueryProcessor with the specified thread-safe inverted
 	 * index, partial search flag, and work queue.
 	 *
 	 * @param index the thread-safe inverted index to be used for query processing
 	 *   and search result management
-	 * @param usePartial a boolean indicating whether to use partial search (true)
-	 *   or exact search (false)
+	 * @param isPartial a boolean indicating whether to use partial search (true) or
+	 *   exact search (false)
 	 */
-	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean usePartial) {
+	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean isPartial) {
 		this.index = index;
+		this.isPartial = isPartial;
+		this.stemmer = new SnowballStemmer(ENGLISH);
 		this.searchResult = new TreeMap<>();
 	}
 
@@ -56,14 +74,14 @@ public class QueuedQueryProcessor {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				if (!line.trim().isEmpty()) {
-					processLine(line, isPartial, queue);
+					processQueryLine(line, isPartial, queue);
 				}
 			}
 		}
 		queue.finish();
 	}
 
-	public void processLine(String queryLine, boolean isPartial, WorkQueue queue) {
+	public void processQueryLine(String queryLine, boolean isPartial, WorkQueue queue) {
 		Task task = new Task(queryLine, isPartial);
 		queue.execute(task);
 	}

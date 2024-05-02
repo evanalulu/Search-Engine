@@ -1,6 +1,7 @@
 package edu.usfca.cs272;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -32,18 +33,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Adds the count of a word in a document to the word count map.
-	 *
-	 * @param location the path of the document
-	 * @param count the count of the word in the document
-	 */
-	public void addCount(String location, Integer count) {
-		if (count > 0) {
-			wordCountMap.put(location, count);
-		}
-	}
-
-	/**
 	 * Adds the position of a word in a document to the index map.
 	 *
 	 * @param word the word to add
@@ -52,6 +41,10 @@ public class InvertedIndex {
 	 */
 	public void addWord(String word, String location, Integer position) {
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
+
+		if (!wordCountMap.containsKey(location) || position > wordCountMap.get(location)) {
+			wordCountMap.put(location, position);
+		}
 	}
 
 	/**
@@ -98,16 +91,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Checks if a specific document is indexed in word count map.
-	 *
-	 * @param path the document to check
-	 * @return {@code true} if the document is indexed
-	 */
-	public boolean hasFileinCount(String path) {
-		return wordCountMap.containsKey(path);
-	}
-
-	/**
 	 * Returns the number of documents indexed.
 	 *
 	 * @return the number of indexed documents
@@ -124,6 +107,16 @@ public class InvertedIndex {
 	 */
 	public boolean hasWord(String word) {
 		return indexMap.containsKey(word);
+	}
+
+	/**
+	 * Checks if a specific document is indexed in word count map.
+	 *
+	 * @param path the document to check
+	 * @return {@code true} if the document is indexed
+	 */
+	public boolean hasFileinCount(String path) {
+		return wordCountMap.containsKey(path);
 	}
 
 	/**
@@ -154,6 +147,53 @@ public class InvertedIndex {
 			return positions != null && positions.contains(position);
 		}
 		return false;
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word in the index map.
+	 *
+	 * @param word the word to count occurrences for
+	 * @return the number of occurrences of the word in the index map
+	 */
+	public int numWords(String word) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			return locationMap.values().stream().mapToInt(TreeSet::size).sum();
+		}
+		return 0;
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word in the given
+	 * location.
+	 *
+	 * @param word the word to count occurrences for
+	 * @param location the location to search for occurrences of the word
+	 * @return the number of occurrences of the word in the given location
+	 */
+	public int numLocations(String word, String location) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		return locationMap.size();
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word at the given location
+	 * and position.
+	 *
+	 * @param word the word to count occurrences for
+	 * @param location the location to search for occurrences of the word
+	 * @param position the position to search for occurrences of the word within the
+	 *   location
+	 * @return the number of occurrences of the word at the given location and
+	 *   position
+	 */
+	public int numPositions(String word, String location, Integer position) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			TreeSet<Integer> positions = locationMap.get(location);
+			return positions.size();
+		}
+		return 0;
 	}
 
 	/**
@@ -211,53 +251,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Returns the number of occurrences of the specified word in the index map.
-	 *
-	 * @param word the word to count occurrences for
-	 * @return the number of occurrences of the word in the index map
-	 */
-	public int numWords(String word) {
-		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
-		if (locationMap != null) {
-			return locationMap.values().stream().mapToInt(TreeSet::size).sum();
-		}
-		return 0;
-	}
-
-	/**
-	 * Returns the number of occurrences of the specified word in the given
-	 * location.
-	 *
-	 * @param word the word to count occurrences for
-	 * @param location the location to search for occurrences of the word
-	 * @return the number of occurrences of the word in the given location
-	 */
-	public int numLocations(String word, String location) {
-		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
-		return locationMap.size();
-	}
-
-	/**
-	 * Returns the number of occurrences of the specified word at the given location
-	 * and position.
-	 *
-	 * @param word the word to count occurrences for
-	 * @param location the location to search for occurrences of the word
-	 * @param position the position to search for occurrences of the word within the
-	 *   location
-	 * @return the number of occurrences of the word at the given location and
-	 *   position
-	 */
-	public int numPositions(String word, String location, Integer position) {
-		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
-		if (locationMap != null) {
-			TreeSet<Integer> positions = locationMap.get(location);
-			return positions.size();
-		}
-		return 0;
-	}
-
-	/**
 	 * Writes the word count map to a JSON file specified by the given output path.
 	 *
 	 * @param output the path to the output JSON file
@@ -300,46 +293,33 @@ public class InvertedIndex {
 	 * Performs either exact o partial search for the specified set of query terms
 	 * in the inverted index depending on the value of the isPartial.
 	 *
-	 * @param queries the set of query terms to be searched for in the inverted index
+	 * @param query the set of query terms to be searched for in the inverted index
 	 * @param isPartial a boolean indicating whether to perform a partial search
 	 *   (true) or an exact search (false)
 	 * @return an ArrayList containing IndexSearcher objects representing the search
 	 *   results, sorted based on the calculated scores in descending order
 	 */
-	public ArrayList<IndexSearcher> search(TreeSet<String> queries, boolean isPartial) {
-		return (isPartial) ? partialSearch(queries) : exactSearch(queries);
+	public ArrayList<IndexSearcher> search(TreeSet<String> query, boolean isPartial) {
+		return (isPartial) ? partialSearch(query) : exactSearch(query);
 	}
 
 	/**
 	 * Performs an exact search for the specified set of query terms in the inverted
 	 * index.
 	 *
-	 * @param queries the set of query terms to be searched for in the inverted index
+	 * @param query the set of query terms to be searched for in the inverted index
 	 * @return an ArrayList containing IndexSearcher objects representing the exact
 	 *   search results, sorted based on the calculated scores in descending order
 	 */
-	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
-		for (String query : queries) {
-			if (this.hasWord(query)) {
-				Set<String> locations = this.viewLocations(query);
-
-				for (String location : locations) {
-					Set<Integer> positions = this.viewPositions(query, location);
-					int matches = positions.size();
-
-					IndexSearcher current = lookup.get(location);
-					if (current != null) {
-						current.calculateScore(matches);
-					}
-					else {
-						IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
-						newSearcher.calculateScore(matches);
-						results.add(newSearcher);
-						lookup.put(location, newSearcher);
-					}
+		for (String queryTerm : query) {
+			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(queryTerm);
+			if (locations != null) {
+				for (var entry : locations.entrySet()) {
+					processSearchResult(entry.getKey(), entry.getValue().size(), lookup, results);
 				}
 			}
 		}
@@ -366,19 +346,7 @@ public class InvertedIndex {
 			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
 				if (outerEntry.getKey().startsWith(query)) {
 					for (var innerEntry : outerEntry.getValue().entrySet()) {
-						int matches = innerEntry.getValue().size();
-						String location = innerEntry.getKey();
-
-						IndexSearcher current = lookup.get(location);
-						if (current != null) {
-							current.calculateScore(matches);
-						}
-						else {
-							IndexSearcher newSearcher = new IndexSearcher(matches, 0.0, location);
-							newSearcher.calculateScore(matches);
-							results.add(newSearcher);
-							lookup.put(location, newSearcher);
-						}
+						processSearchResult(innerEntry.getKey(), innerEntry.getValue().size(), lookup, results);
 					}
 				}
 				else {
@@ -392,6 +360,31 @@ public class InvertedIndex {
 	}
 
 	/**
+	 * Processes a search result by updating an existing IndexSearcher or creating a
+	 * new one. If an IndexSearcher already exists for the location, its score is
+	 * updated based on the matches. Otherwise, a new IndexSearcher is created, its
+	 * score is calculated, and it's added to the results list and lookup map.
+	 *
+	 * @param location the location associated with the search result
+	 * @param matches the number of matches found at the location
+	 * @param lookup the map used to look up existing IndexSearchers by location
+	 * @param results the list containing the search results
+	 */
+	private void processSearchResult(String location, int matches, Map<String, IndexSearcher> lookup,
+			ArrayList<IndexSearcher> results) {
+		IndexSearcher current = lookup.get(location);
+		if (current != null) {
+			current.calculateScore(matches);
+		}
+		else {
+			IndexSearcher newSearcher = new IndexSearcher(location);
+			newSearcher.calculateScore(matches);
+			results.add(newSearcher);
+			lookup.put(location, newSearcher);
+		}
+	}
+
+	/**
 	 * Represents a search result in the inverted index, including the count of
 	 * matches, score, and document path.
 	 */
@@ -401,7 +394,7 @@ public class InvertedIndex {
 		private int count;
 
 		/** The score of the search result. */
-		private Double score;
+		private double score;
 
 		/** The path of the document containing the matches. */
 		private final String where;
@@ -414,24 +407,12 @@ public class InvertedIndex {
 		/**
 		 * Constructs an IndexSearcher object with the given parameters.
 		 *
-		 * @param count The count of matches.
-		 * @param score The score of the search result.
 		 * @param where The path of the document containing the matches.
 		 */
-		public IndexSearcher(int count, Double score, String where) {
+		public IndexSearcher(String where) {
 			this.count = 0;
 			this.score = 0.0;
 			this.where = where;
-		}
-
-		/**
-		 * Adds the specified value to the count of matches.
-		 *
-		 * @param count The value to add to the count of matches.
-		 */
-		public void calculateScore(int count) {
-			this.count += count;
-			this.score = (double) this.count / wordCountMap.get(this.where);
 		}
 
 		/**
@@ -444,11 +425,21 @@ public class InvertedIndex {
 		}
 
 		/**
+		 * Adds the specified value to the count of matches.
+		 *
+		 * @param count The value to add to the count of matches.
+		 */
+		private void calculateScore(int count) {
+			this.count += count;
+			this.score = (double) this.count / wordCountMap.get(this.where);
+		}
+
+		/**
 		 * Retrieves the score of the search result.
 		 *
 		 * @return The score of the search result.
 		 */
-		public Double getScore() {
+		public double getScore() {
 			return score;
 		}
 
@@ -510,6 +501,22 @@ public class InvertedIndex {
 			return builder.toString();
 		}
 
+		/**
+		 * Writes the IndexSearcher object to JSON format and outputs it to the
+		 * specified writer with the given indentation level.
+		 *
+		 * @param writer the writer to which the JSON representation is written
+		 * @param level the indentation level to be used in the JSON output
+		 * @throws IOException if an I/O error occurs while writing to the writer
+		 */
+		public void toJson(Writer writer, int level) throws IOException {
+			String indent = "  ".repeat(level);
+			writer.write(indent + "{\n");
+			writer.write(indent + "  \"count\": " + count + ",\n");
+			writer.write(indent + "  \"score\": " + formatScore(score) + ",\n");
+			writer.write(indent + "  \"where\": \"" + where.replace("\\", "\\\\") + "\"\n");
+			writer.write(indent + "}");
+		}
 	}
 
 }
