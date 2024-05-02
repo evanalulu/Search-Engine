@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import edu.usfca.cs272.InvertedIndex.IndexSearcher;
 import opennlp.tools.stemmer.Stemmer;
@@ -135,7 +134,7 @@ public class QueuedQueryProcessor {
 	 */
 	public int numResults(String query) {
 		synchronized (searchResult) {
-			List<IndexSearcher> results = searchResult.get(getQuerySting(query));
+			List<IndexSearcher> results = searchResult.get(getQuerySting(query, stemmer));
 			return (results != null) ? results.size() : 0;
 		}
 	}
@@ -149,7 +148,7 @@ public class QueuedQueryProcessor {
 	 */
 	public boolean hasQueryLine(String queryLine) {
 		synchronized (searchResult) {
-			return searchResult.containsKey(getQuerySting(queryLine));
+			return searchResult.containsKey(getQuerySting(queryLine, stemmer));
 		}
 	}
 
@@ -161,7 +160,7 @@ public class QueuedQueryProcessor {
 	 */
 	public boolean hasResult(String query) {
 		synchronized (searchResult) {
-			String queryString = getQuerySting(query);
+			String queryString = getQuerySting(query, stemmer);
 			return searchResult.containsKey(queryString) && !searchResult.get(queryString).isEmpty();
 		}
 	}
@@ -190,7 +189,7 @@ public class QueuedQueryProcessor {
 	 */
 	public List<IndexSearcher> viewResults(String query) {
 		synchronized (searchResult) {
-			ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query));
+			ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query, stemmer));
 			return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
 		}
 	}
@@ -200,10 +199,11 @@ public class QueuedQueryProcessor {
 	 * words with spaces.
 	 *
 	 * @param query the query to be stemmed and joined
+	 * @param stemmer the stemmer used for stemming words.
 	 * @return the constructed query string
 	 */
-	private static String getQuerySting(String query) {
-		return String.join(" ", FileStemmer.uniqueStems(query));
+	private static String getQuerySting(String query, Stemmer stemmer) {
+		return String.join(" ", FileStemmer.uniqueStems(query, stemmer));
 	}
 
 	@Override
@@ -248,8 +248,7 @@ public class QueuedQueryProcessor {
 		 */
 		@Override
 		public void run() {
-			TreeSet<String> query = FileStemmer.uniqueStems(queryLine);
-			String queryString = String.join(" ", query);
+			String queryString = getQuerySting(queryLine, stemmer);
 
 			synchronized (searchResult) {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
@@ -258,7 +257,8 @@ public class QueuedQueryProcessor {
 				searchResult.put(queryString, null);
 			}
 
-			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(query, isPartial);
+			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index
+					.search(FileStemmer.uniqueStems(queryLine, stemmer), isPartial);
 
 			synchronized (searchResult) {
 				searchResult.put(queryString, results);
