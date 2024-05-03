@@ -142,6 +142,7 @@ public class QueuedQueryProcessor {
 					return;
 				}
 				searchResult.put(queryString, null);
+				// hello lol
 			}
 
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
