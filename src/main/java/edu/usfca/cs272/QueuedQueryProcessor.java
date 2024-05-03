@@ -35,11 +35,6 @@ public class QueuedQueryProcessor {
 	private final boolean isPartial;
 
 	/**
-	 * The stemmer used for stemming words.
-	 */
-	private final Stemmer stemmer;
-
-	/**
 	 * The work queue used for processing tasks asynchronously.
 	 */
 	private final WorkQueue queue;
@@ -64,7 +59,6 @@ public class QueuedQueryProcessor {
 	public QueuedQueryProcessor(ThreadSafeInvertedIndex index, boolean isPartial, WorkQueue queue) {
 		this.index = index;
 		this.isPartial = isPartial;
-		this.stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
 		this.queue = queue;
 		this.searchResult = new TreeMap<>();
 	}
@@ -81,12 +75,10 @@ public class QueuedQueryProcessor {
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				if (!line.trim().isEmpty()) {
-					queue.execute(new Task(line, isPartial));
-				}
+				queue.execute(new Task(line, isPartial));
 			}
+			queue.join();
 		}
-		queue.join();
 	}
 
 	/**
@@ -202,7 +194,7 @@ public class QueuedQueryProcessor {
 		/**
 		 * The set of query terms to be processed.
 		 */
-		private final String queryLine;
+		private final String line;
 
 		/**
 		 * A boolean indicating whether to perform a partial search (true) or an exact
@@ -211,16 +203,23 @@ public class QueuedQueryProcessor {
 		private final boolean isPartial;
 
 		/**
+		 * The stemmer used for stemming words.
+		 */
+		private final Stemmer localStemmer;
+
+		/**
 		 * Constructs a Task with the specified set of query terms and partial search
 		 * flag.
 		 *
-		 * @param queryLine the set of query terms to be processed
+		 * @param line the set of query terms to be processed
 		 * @param isPartial a boolean indicating whether to perform a partial search
 		 *   (true) or an exact search (false)
 		 */
-		public Task(String queryLine, boolean isPartial) {
-			this.queryLine = queryLine;
+		public Task(String line, boolean isPartial) {
+			this.line = line;
 			this.isPartial = isPartial;
+			this.localStemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
+			;
 		}
 
 		/**
@@ -228,8 +227,14 @@ public class QueuedQueryProcessor {
 		 */
 		@Override
 		public void run() {
-			TreeSet<String> querySet = FileStemmer.uniqueStems(queryLine);
-			String queryString = String.join(" ", querySet);
+			TreeSet<String> query = new TreeSet<>();
+
+			String[] words = FileStemmer.parse(line);
+
+			for (String word : words) {
+				query.add(localStemmer.stem(word).toString());
+			}
+			String queryString = String.join(" ", query);
 
 			synchronized (searchResult) {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
@@ -238,7 +243,7 @@ public class QueuedQueryProcessor {
 				searchResult.put(queryString, null);
 			}
 
-			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(querySet, isPartial);
+			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(query, isPartial);
 
 			synchronized (searchResult) {
 				searchResult.put(queryString, results);
