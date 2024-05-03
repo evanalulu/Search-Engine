@@ -23,10 +23,10 @@ public class Driver {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		ThreadSafeInvertedIndex threadSafeIndex = new ThreadSafeInvertedIndex();
-
 		WorkQueue queue = null;
 
 		boolean multithread = parser.hasFlag("-threads");
+		boolean isPartial = parser.hasFlag("-partial");
 
 		if (multithread) {
 			int threads = parser.getInteger("-threads", 5);
@@ -56,6 +56,26 @@ public class Driver {
 			}
 			catch (IOException e) {
 				System.out.println("Unable to build the inverted index from path: " + input);
+			}
+		}
+
+		QueryProcessor search = new QueryProcessor(index, isPartial);
+		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
+
+		if (parser.hasFlag("-query")) {
+			Path query = parser.getPath("-query");
+			if (query != null) {
+				try {
+					if (multithread) {
+						queuedSearch.processQueries(query);
+					}
+					else {
+						search.processQueries(query);
+					}
+				}
+				catch (IOException e) {
+					System.err.println("Error getting search results: " + e.getMessage());
+				}
 			}
 		}
 
@@ -90,27 +110,6 @@ public class Driver {
 				System.out.println("Error writing index data: " + e.getMessage());
 			}
 		}
-		boolean isPartial = parser.hasFlag("-partial");
-
-		QueryProcessor search = new QueryProcessor(index, isPartial);
-		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
-
-		if (parser.hasFlag("-query")) {
-			Path query = parser.getPath("-query");
-			if (query != null) {
-				try {
-					if (multithread) {
-						queuedSearch.processQueries(query);
-					}
-					else {
-						search.processQueries(query);
-					}
-				}
-				catch (IOException e) {
-					System.err.println("Error getting search results: " + e.getMessage());
-				}
-			}
-		}
 
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
@@ -125,6 +124,10 @@ public class Driver {
 			catch (IOException e) {
 				System.err.println(e.getMessage());
 			}
+		}
+
+		if (queue != null) {
+			queue.join();
 		}
 
 	}
