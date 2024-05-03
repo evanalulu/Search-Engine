@@ -100,16 +100,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Checks if a specific word is indexed in any document.
-	 *
-	 * @param word the word to check
-	 * @return {@code true} if the word is indexed
-	 */
-	public boolean hasWord(String word) {
-		return indexMap.containsKey(word);
-	}
-
-	/**
 	 * Checks if a specific document is indexed in word count map.
 	 *
 	 * @param path the document to check
@@ -117,6 +107,16 @@ public class InvertedIndex {
 	 */
 	public boolean hasFileinCount(String path) {
 		return wordCountMap.containsKey(path);
+	}
+
+	/**
+	 * Checks if a specific word is indexed in any document.
+	 *
+	 * @param word the word to check
+	 * @return {@code true} if the word is indexed
+	 */
+	public boolean hasWord(String word) {
+		return indexMap.containsKey(word);
 	}
 
 	/**

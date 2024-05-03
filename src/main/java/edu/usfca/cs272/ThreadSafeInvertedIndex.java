@@ -73,42 +73,6 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public int numWords(String word) {
-		lock.readLock().lock();
-
-		try {
-			return super.numWords(word);
-		}
-		finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	@Override
-	public int numLocations(String word, String location) {
-		lock.readLock().lock();
-
-		try {
-			return super.numLocations(word, location);
-		}
-		finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	@Override
-	public int numPositions(String word, String location, Integer position) {
-		lock.readLock().lock();
-
-		try {
-			return super.numPositions(word, location, position);
-		}
-		finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	@Override
 	public boolean hasFileinCount(String path) {
 		try {
 			return super.hasFileinCount(path);
@@ -145,6 +109,42 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		lock.readLock().lock();
 		try {
 			return super.hasPosition(word, location, position);
+		}
+		finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public int numWords(String word) {
+		lock.readLock().lock();
+
+		try {
+			return super.numWords(word);
+		}
+		finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public int numLocations(String word, String location) {
+		lock.readLock().lock();
+
+		try {
+			return super.numLocations(word, location);
+		}
+		finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public int numPositions(String word, String location, Integer position) {
+		lock.readLock().lock();
+
+		try {
+			return super.numPositions(word, location, position);
 		}
 		finally {
 			lock.readLock().unlock();
