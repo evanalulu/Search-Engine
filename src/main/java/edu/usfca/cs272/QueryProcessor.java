@@ -101,17 +101,6 @@ public class QueryProcessor {
 	}
 
 	/**
-	 * Writes the search result map to a JSON file specified by the given output
-	 * path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeSearchResults(Path output) throws IOException {
-		JsonWriter.writeSearchResults(searchResult, output);
-	}
-
-	/**
 	 * Retrieves the number of queries processed and stored in the search result
 	 * map.
 	 *
@@ -176,7 +165,6 @@ public class QueryProcessor {
 	 */
 	public List<IndexSearcher> viewResults(String query) {
 		ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query));
-
 		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
 	}
 
@@ -191,4 +179,14 @@ public class QueryProcessor {
 		return String.join(" ", FileStemmer.uniqueStems(query));
 	}
 
+	/**
+	 * Writes the search result map to a JSON file specified by the given output
+	 * path.
+	 *
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
+	 */
+	public void writeSearchResults(Path output) throws IOException {
+		JsonWriter.writeSearchResults(searchResult, output);
+	}
 }
