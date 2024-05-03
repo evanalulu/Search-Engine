@@ -83,7 +83,7 @@ public class QueuedQueryProcessor {
 				}
 			}
 		}
-		queue.finish();
+		queue.join();
 	}
 
 	/**
