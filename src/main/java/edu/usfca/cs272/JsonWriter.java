@@ -9,9 +9,11 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import edu.usfca.cs272.InvertedIndex.IndexSearcher;
 
@@ -514,23 +516,36 @@ public class JsonWriter {
 			throws IOException {
 		writer.write("[");
 		if (!elements.isEmpty()) {
-			writer.write(System.lineSeparator());
 
 			var iterator = elements.iterator();
-			if (iterator.hasNext()) {
-				IndexSearcher firstSearcher = iterator.next();
-				firstSearcher.toJson(writer, indent + 1);
+			while (iterator.hasNext()) {
+				writer.write(System.lineSeparator());
 
-				while (iterator.hasNext()) {
+				IndexSearcher searcher = iterator.next();
+				String searcherJson = searcher.toString();
+				String indentedSearcherJson = indentJson(searcherJson, indent + 1);
+				writer.write(indentedSearcherJson);
+
+				if (iterator.hasNext()) {
 					writer.write(",");
-					writer.write(System.lineSeparator());
-					IndexSearcher searcher = iterator.next();
-					searcher.toJson(writer, indent + 1);
 				}
 			}
 		}
 		writer.write(System.lineSeparator());
 		writeIndent("]", writer, indent);
+	}
+
+	/**
+	 * Applies indentation to IndexSearcher string.
+	 *
+	 * @param searcher the IndexSearcher string to be indented.
+	 * @param indent the number of spaces to use for indentation.
+	 * @return the indented JSON string.
+	 */
+	private static String indentJson(String searcher, int indent) {
+		String indentSpace = "  ".repeat(indent);
+		String[] lines = searcher.split("\n");
+		return Arrays.stream(lines).map(line -> indentSpace + line).collect(Collectors.joining("\n"));
 	}
 
 	/**

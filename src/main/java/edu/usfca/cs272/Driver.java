@@ -90,8 +90,8 @@ public class Driver {
 				System.out.println("Error writing index data: " + e.getMessage());
 			}
 		}
-
 		boolean isPartial = parser.hasFlag("-partial");
+
 		QueryProcessor search = new QueryProcessor(index, isPartial);
 		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
 

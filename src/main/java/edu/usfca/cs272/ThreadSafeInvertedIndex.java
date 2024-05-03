@@ -109,10 +109,9 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public boolean hasWord(String word) {
-		lock.readLock().lock();
+	public boolean hasFileinCount(String path) {
 		try {
-			return super.hasWord(word);
+			return super.hasFileinCount(path);
 		}
 		finally {
 			lock.readLock().unlock();
@@ -120,9 +119,10 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 
 	@Override
-	public boolean hasFileinCount(String path) {
+	public boolean hasWord(String word) {
+		lock.readLock().lock();
 		try {
-			return super.hasFileinCount(path);
+			return super.hasWord(word);
 		}
 		finally {
 			lock.readLock().unlock();
