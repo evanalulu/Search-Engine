@@ -42,6 +42,10 @@ public class InvertedIndex {
 	public void addWord(String word, String location, Integer position) {
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
 
+		/*
+		 * TODO Since you are using functional/lambdas for the indexMap, use it to
+		 * update the wordCountMap too. Can use wordCountMap.merge!
+		 */
 		if (!wordCountMap.containsKey(location) || position > wordCountMap.get(location)) {
 			wordCountMap.put(location, position);
 		}
@@ -285,6 +289,7 @@ public class InvertedIndex {
 
 		for (String queryTerm : query) {
 			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(queryTerm);
+			// TODO Move this if/for loop into the processSearchResult method!
 			if (locations != null) {
 				for (var entry : locations.entrySet()) {
 					processSearchResult(entry.getKey(), entry.getValue().size(), lookup, results);
