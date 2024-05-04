@@ -1,5 +1,7 @@
 package edu.usfca.cs272;
 
+import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,6 +42,11 @@ public class QueuedQueryProcessor {
 	private final WorkQueue queue;
 
 	/**
+	 * The stemmer used for stemming words.
+	 */
+	private final Stemmer stemmer;
+
+	/**
 	 * The map storing search results, where keys represent query strings and values
 	 * represent lists of searchers.
 	 */
@@ -60,6 +67,7 @@ public class QueuedQueryProcessor {
 		this.index = index;
 		this.isPartial = isPartial;
 		this.queue = queue;
+		this.stemmer = new SnowballStemmer(ENGLISH);
 		this.searchResult = new TreeMap<>();
 	}
 
@@ -88,8 +96,7 @@ public class QueuedQueryProcessor {
 	 */
 	public int numQueryLines() {
 		synchronized (searchResult) {
-			return searchResult.size();
-
+			return viewQueries().size();
 		}
 	}
 
@@ -101,8 +108,7 @@ public class QueuedQueryProcessor {
 	 */
 	public int numResults(String query) {
 		synchronized (searchResult) {
-			List<IndexSearcher> results = searchResult.get(getQuerySting(query));
-			return (results != null) ? results.size() : 0;
+			return viewResults(query).size();
 		}
 	}
 
@@ -115,20 +121,7 @@ public class QueuedQueryProcessor {
 	 */
 	public boolean hasQueryLine(String queryLine) {
 		synchronized (searchResult) {
-			return searchResult.containsKey(getQuerySting(queryLine));
-		}
-	}
-
-	/**
-	 * Checks if search results exist for the specified query.
-	 *
-	 * @param query the query to be checked for search results
-	 * @return true if search results exist for the query, false otherwise
-	 */
-	public boolean hasResult(String query) {
-		String queryString = getQuerySting(query);
-		synchronized (searchResult) {
-			return searchResult.containsKey(queryString) && !searchResult.get(queryString).isEmpty();
+			return viewQueries().contains(getQueryString(queryLine));
 		}
 	}
 
@@ -156,8 +149,8 @@ public class QueuedQueryProcessor {
 	 */
 	public List<IndexSearcher> viewResults(String query) {
 		synchronized (searchResult) {
-			ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query));
-			return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
+			ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query));
+			return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 		}
 	}
 
@@ -168,8 +161,8 @@ public class QueuedQueryProcessor {
 	 * @param query the query to be stemmed and joined
 	 * @return the constructed query string
 	 */
-	private static String getQuerySting(String query) {
-		return String.join(" ", FileStemmer.uniqueStems(query));
+	public String getQueryString(String query) {
+		return String.join(" ", FileStemmer.uniqueStems(query, stemmer));
 	}
 
 	/**
@@ -227,6 +220,7 @@ public class QueuedQueryProcessor {
 		 */
 		@Override
 		public void run() {
+
 			TreeSet<String> query = new TreeSet<>();
 
 			String[] words = FileStemmer.parse(line);
@@ -235,6 +229,10 @@ public class QueuedQueryProcessor {
 				query.add(localStemmer.stem(word).toString());
 			}
 			String queryString = String.join(" ", query);
+
+			// This throws out weird wrong ordering
+			// TreeSet<String> query2 = FileStemmer.uniqueStems(line, stemmer);
+			// String queryString2 = String.join(" ", query2);
 
 			synchronized (searchResult) {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
