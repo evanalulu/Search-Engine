@@ -69,7 +69,7 @@ public class QueryProcessor {
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				processQueryLine(line);
+				processQueries(line);
 			}
 		}
 	}
@@ -82,14 +82,8 @@ public class QueryProcessor {
 	 *
 	 * @param line the query line to be processed
 	 */
-	private void processQueryLine(String line) {
-		TreeSet<String> query = new TreeSet<>();
-
-		String[] words = FileStemmer.parse(line);
-
-		for (String word : words) {
-			query.add(stemmer.stem(word).toString());
-		}
+	public void processQueries(String line) {
+		TreeSet<String> query = FileStemmer.uniqueStems(line, stemmer);
 		String queryString = String.join(" ", query);
 
 		if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
@@ -101,13 +95,24 @@ public class QueryProcessor {
 	}
 
 	/**
+	 * Writes the search result map to a JSON file specified by the given output
+	 * path.
+	 *
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
+	 */
+	public void writeSearchResults(Path output) throws IOException {
+		JsonWriter.writeSearchResults(searchResult, output);
+	}
+
+	/**
 	 * Retrieves the number of queries processed and stored in the search result
 	 * map.
 	 *
 	 * @return the number of queries processed
 	 */
 	public int numQueryLines() {
-		return searchResult.size();
+		return viewQueries().size();
 	}
 
 	/**
@@ -117,8 +122,7 @@ public class QueryProcessor {
 	 * @return the number of search results for the query
 	 */
 	public int numResults(String query) {
-		List<IndexSearcher> results = searchResult.get(getQuerySting(query));
-		return (results != null) ? results.size() : 0;
+		return viewResults(query).size();
 	}
 
 	/**
@@ -129,18 +133,7 @@ public class QueryProcessor {
 	 * @return true if search results exist for the query line, false otherwise
 	 */
 	public boolean hasQueryLine(String queryLine) {
-		return searchResult.containsKey(getQuerySting(queryLine));
-	}
-
-	/**
-	 * Checks if search results exist for the specified query.
-	 *
-	 * @param query the query to be checked for search results
-	 * @return true if search results exist for the query, false otherwise
-	 */
-	public boolean hasResult(String query) {
-		String queryString = getQuerySting(query);
-		return searchResult.containsKey(queryString) && !searchResult.get(queryString).isEmpty();
+		return viewQueries().contains(getQueryString(queryLine));
 	}
 
 	/**
@@ -164,8 +157,9 @@ public class QueryProcessor {
 	 *   results exist for the query line
 	 */
 	public List<IndexSearcher> viewResults(String query) {
-		ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query));
-		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
+		ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query));
+
+		return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 	}
 
 	/**
@@ -175,18 +169,8 @@ public class QueryProcessor {
 	 * @param query the query to be stemmed and joined
 	 * @return the constructed query string
 	 */
-	private static String getQuerySting(String query) {
-		return String.join(" ", FileStemmer.uniqueStems(query));
+	public String getQueryString(String query) {
+		return String.join(" ", FileStemmer.uniqueStems(query, stemmer));
 	}
 
-	/**
-	 * Writes the search result map to a JSON file specified by the given output
-	 * path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeSearchResults(Path output) throws IOException {
-		JsonWriter.writeSearchResults(searchResult, output);
-	}
 }
