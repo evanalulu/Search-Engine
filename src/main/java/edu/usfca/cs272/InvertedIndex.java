@@ -305,25 +305,23 @@ public class InvertedIndex {
 	 * Performs an exact search for the specified set of query terms in the inverted
 	 * index.
 	 *
-	 * @param query the set of query terms to be searched for in the inverted index
+	 * @param queries the set of query terms to be searched for in the inverted
+	 *   index
 	 * @return an ArrayList containing IndexSearcher objects representing the exact
 	 *   search results, sorted based on the calculated scores in descending order
 	 */
-	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
-		for (String queryTerm : query) {
-			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(queryTerm);
-			if (locations != null) {
-				for (var entry : locations.entrySet()) {
-					processSearchResult(entry.getKey(), entry.getValue().size(), lookup, results);
-				}
-			}
+		for (String query : queries) {
+			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(query);
+			processSearchResult(locations, lookup, results);
 		}
 
 		Collections.sort(results);
 		return results;
+
 	}
 
 	/**
@@ -341,15 +339,12 @@ public class InvertedIndex {
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
 		for (String query : queries) {
-			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
-				if (outerEntry.getKey().startsWith(query)) {
-					for (var innerEntry : outerEntry.getValue().entrySet()) {
-						processSearchResult(innerEntry.getKey(), innerEntry.getValue().size(), lookup, results);
-					}
-				}
-				else {
+			for (var outerEntry : indexMap.tailMap(query, true).entrySet()) {
+				if (!outerEntry.getKey().startsWith(query)) {
 					break;
 				}
+				TreeMap<String, TreeSet<Integer>> locations = outerEntry.getValue();
+				processSearchResult(locations, lookup, results);
 			}
 		}
 
@@ -363,22 +358,30 @@ public class InvertedIndex {
 	 * updated based on the matches. Otherwise, a new IndexSearcher is created, its
 	 * score is calculated, and it's added to the results list and lookup map.
 	 *
-	 * @param location the location associated with the search result
-	 * @param matches the number of matches found at the location
+	 * @param locations the paths where the indexed word is in
 	 * @param lookup the map used to look up existing IndexSearchers by location
 	 * @param results the list containing the search results
 	 */
-	private void processSearchResult(String location, int matches, Map<String, IndexSearcher> lookup,
+	private void processSearchResult(TreeMap<String, TreeSet<Integer>> locations, Map<String, IndexSearcher> lookup,
 			ArrayList<IndexSearcher> results) {
-		IndexSearcher current = lookup.get(location);
-		if (current != null) {
-			current.calculateScore(matches);
-		}
-		else {
-			IndexSearcher newSearcher = new IndexSearcher(location);
-			newSearcher.calculateScore(matches);
-			results.add(newSearcher);
-			lookup.put(location, newSearcher);
+		if (locations != null) {
+			for (var entry : locations.entrySet()) {
+				String location = entry.getKey();
+
+				int matches = entry.getValue().size();
+
+				IndexSearcher current = lookup.get(location);
+				if (current != null) {
+					current.calculateScore(matches);
+				}
+				else {
+					IndexSearcher newSearcher = new IndexSearcher(location);
+					newSearcher.calculateScore(matches);
+					results.add(newSearcher);
+					lookup.put(location, newSearcher);
+				}
+			}
+
 		}
 	}
 
