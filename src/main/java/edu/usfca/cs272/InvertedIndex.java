@@ -42,9 +42,7 @@ public class InvertedIndex {
 	public void addWord(String word, String location, Integer position) {
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
 
-		if (!wordCountMap.containsKey(location) || position > wordCountMap.get(location)) {
-			wordCountMap.put(location, position);
-		}
+		wordCountMap.merge(location, position, Integer::max);
 	}
 
 	/**
