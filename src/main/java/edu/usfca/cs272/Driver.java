@@ -22,6 +22,13 @@ public class Driver {
 	public static void main(String[] args) {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
+		
+		/*
+		 * TODO Move this here:
+
+		boolean isPartialSearch = parser.hasFlag("-partial");
+		QueryProcessor search = new QueryProcessor(index, isPartialSearch);
+		 */
 
 		if (parser.hasFlag("-text")) {
 			Path input = parser.getPath("-text");
@@ -38,6 +45,12 @@ public class Driver {
 				System.out.println("Unable to build the inverted index from path: " + input);
 			}
 		}
+		
+		/* TODO Move this here:
+
+		if (parser.hasFlag("-query")) {
+			...
+		 */
 
 		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
@@ -82,7 +95,7 @@ public class Driver {
 				search.writeSearchResults(resultsOutput);
 			}
 			catch (IOException e) {
-				System.err.println(e.getMessage());
+				System.err.println(e.getMessage()); // TODO Better message
 			}
 		}
 
