@@ -158,7 +158,6 @@ public class QueryProcessor {
 	 */
 	public List<IndexSearcher> viewResults(String query) {
 		ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query));
-
 		return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 	}
 
