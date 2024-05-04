@@ -22,13 +22,23 @@ public class Driver {
 	public static void main(String[] args) {
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
-		
-		/*
-		 * TODO Move this here:
+		ThreadSafeInvertedIndex threadSafeIndex = new ThreadSafeInvertedIndex();
+		WorkQueue queue = null;
 
-		boolean isPartialSearch = parser.hasFlag("-partial");
-		QueryProcessor search = new QueryProcessor(index, isPartialSearch);
-		 */
+		boolean multithread = parser.hasFlag("-threads");
+		boolean isPartial = parser.hasFlag("-partial");
+
+		QueryProcessor search = new QueryProcessor(index, isPartial);
+
+		if (multithread) {
+			int threads = parser.getInteger("-threads", 5);
+
+			if (threads < 1) {
+				threads = 5;
+			}
+
+			queue = new WorkQueue(threads);
+		}
 
 		if (parser.hasFlag("-text")) {
 			Path input = parser.getPath("-text");
@@ -39,24 +49,47 @@ public class Driver {
 			}
 
 			try {
-				FileProcessor.processPath(input, index);
+				if (multithread) {
+					QueuedFileProcessor.processPath(input, threadSafeIndex, queue);
+				}
+				else {
+					FileProcessor.processPath(input, index);
+				}
 			}
 			catch (IOException e) {
 				System.out.println("Unable to build the inverted index from path: " + input);
 			}
 		}
-		
-		/* TODO Move this here:
+
+		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
 
 		if (parser.hasFlag("-query")) {
-			...
-		 */
+			Path query = parser.getPath("-query");
+			if (query != null) {
+				try {
+					if (multithread) {
+						queuedSearch.processQueries(query);
+					}
+					else {
+						search.processQueries(query);
+					}
+				}
+				catch (IOException e) {
+					System.err.println("Error getting search results: " + e.getMessage());
+				}
+			}
+		}
 
 		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
 			try {
-				index.writeWordCountMap(countOutput);
+				if (multithread) {
+					threadSafeIndex.writeWordCountMap(countOutput);
+				}
+				else {
+					index.writeWordCountMap(countOutput);
+				}
 			}
 			catch (IOException e) {
 				System.out.println("Error writing word count data: " + e.getMessage());
@@ -67,36 +100,35 @@ public class Driver {
 			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
 
 			try {
-				index.writeIndexMap(indexOutput);
+				if (multithread) {
+					threadSafeIndex.writeIndexMap(indexOutput);
+				}
+				else {
+					index.writeIndexMap(indexOutput);
+				}
 			}
 			catch (IOException e) {
 				System.out.println("Error writing index data: " + e.getMessage());
 			}
 		}
 
-		boolean isPartialSearch = parser.hasFlag("-partial");
-		QueryProcessor search = new QueryProcessor(index, isPartialSearch);
-
-		if (parser.hasFlag("-query")) {
-			Path query = parser.getPath("-query");
-			if (query != null) {
-				try {
-					search.processQueries(query);
-				}
-				catch (IOException e) {
-					System.err.println("Error getting search results: " + e.getMessage());
-				}
-			}
-		}
-
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			try {
-				search.writeSearchResults(resultsOutput);
+				if (multithread) {
+					queuedSearch.writeSearchResults(resultsOutput);
+				}
+				else {
+					search.writeSearchResults(resultsOutput);
+				}
 			}
 			catch (IOException e) {
-				System.err.println(e.getMessage()); // TODO Better message
+				System.err.println(e.getMessage());
 			}
+		}
+
+		if (queue != null) {
+			queue.join();
 		}
 
 	}

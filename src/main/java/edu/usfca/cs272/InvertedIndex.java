@@ -42,33 +42,39 @@ public class InvertedIndex {
 	public void addWord(String word, String location, Integer position) {
 		indexMap.computeIfAbsent(word, k -> new TreeMap<>()).computeIfAbsent(location, k -> new TreeSet<>()).add(position);
 
-		/*
-		 * TODO Since you are using functional/lambdas for the indexMap, use it to
-		 * update the wordCountMap too. Can use wordCountMap.merge!
-		 */
-		if (!wordCountMap.containsKey(location) || position > wordCountMap.get(location)) {
-			wordCountMap.put(location, position);
+		wordCountMap.merge(location, position, Integer::max);
+	}
+
+	/**
+	 * Adds all entries from the specified inverted index to this inverted index.
+	 *
+	 * @param other the inverted index containing entries to be added to this
+	 *   inverted index
+	 */
+	public void addAll(InvertedIndex other) {
+		for (var wordEntry : other.indexMap.entrySet()) {
+			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
+
+			if (wordMap == null) {
+				this.indexMap.put(wordEntry.getKey(), wordEntry.getValue());
+			}
+			else {
+				for (var locationEntry : wordEntry.getValue().entrySet()) {
+					TreeSet<Integer> locationMap = wordMap.get(locationEntry.getKey());
+
+					if (locationMap == null) {
+						wordMap.put(locationEntry.getKey(), locationEntry.getValue());
+					}
+					else {
+						locationMap.addAll(locationEntry.getValue());
+					}
+				}
+			}
 		}
-	}
 
-	/**
-	 * Writes the word count map to a JSON file specified by the given output path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeWordCountMap(Path output) throws IOException {
-		JsonWriter.writeObject(wordCountMap, output);
-	}
-
-	/**
-	 * Writes the index map to a JSON file specified by the given output path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeIndexMap(Path output) throws IOException {
-		JsonWriter.writeWordPositionsMap(indexMap, output);
+		for (var otherEntry : other.wordCountMap.entrySet()) {
+			this.wordCountMap.merge(otherEntry.getKey(), otherEntry.getValue(), Integer::max);
+		}
 	}
 
 	/**
@@ -83,6 +89,15 @@ public class InvertedIndex {
 	}
 
 	/**
+	 * Returns the number of documents indexed.
+	 *
+	 * @return the number of indexed documents
+	 */
+	public int getFileCount() {
+		return wordCountMap.size();
+	}
+
+	/**
 	 * Checks if a specific document is indexed in word count map.
 	 *
 	 * @param path the document to check
@@ -90,15 +105,6 @@ public class InvertedIndex {
 	 */
 	public boolean hasFileinCount(String path) {
 		return wordCountMap.containsKey(path);
-	}
-
-	/**
-	 * Returns the number of documents indexed.
-	 *
-	 * @return the number of indexed documents
-	 */
-	public int getFileCount() {
-		return wordCountMap.size();
 	}
 
 	/**
@@ -139,6 +145,53 @@ public class InvertedIndex {
 			return positions != null && positions.contains(position);
 		}
 		return false;
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word in the index map.
+	 *
+	 * @param word the word to count occurrences for
+	 * @return the number of occurrences of the word in the index map
+	 */
+	public int numWords(String word) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			return locationMap.values().stream().mapToInt(TreeSet::size).sum();
+		}
+		return 0;
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word in the given
+	 * location.
+	 *
+	 * @param word the word to count occurrences for
+	 * @param location the location to search for occurrences of the word
+	 * @return the number of occurrences of the word in the given location
+	 */
+	public int numLocations(String word, String location) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		return locationMap.size();
+	}
+
+	/**
+	 * Returns the number of occurrences of the specified word at the given location
+	 * and position.
+	 *
+	 * @param word the word to count occurrences for
+	 * @param location the location to search for occurrences of the word
+	 * @param position the position to search for occurrences of the word within the
+	 *   location
+	 * @return the number of occurrences of the word at the given location and
+	 *   position
+	 */
+	public int numPositions(String word, String location, Integer position) {
+		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
+		if (locationMap != null) {
+			TreeSet<Integer> positions = locationMap.get(location);
+			return positions.size();
+		}
+		return 0;
 	}
 
 	/**
@@ -196,50 +249,23 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Returns the number of occurrences of the specified word in the index map.
+	 * Writes the word count map to a JSON file specified by the given output path.
 	 *
-	 * @param word the word to count occurrences for
-	 * @return the number of occurrences of the word in the index map
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
 	 */
-	public int numWords(String word) {
-		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
-		if (locationMap != null) {
-			return locationMap.values().stream().mapToInt(TreeSet::size).sum();
-		}
-		return 0;
+	public void writeWordCountMap(Path output) throws IOException {
+		JsonWriter.writeObject(wordCountMap, output);
 	}
 
 	/**
-	 * Returns the number of occurrences of the specified word in the given
-	 * location.
+	 * Writes the index map to a JSON file specified by the given output path.
 	 *
-	 * @param word the word to count occurrences for
-	 * @param location the location to search for occurrences of the word
-	 * @return the number of occurrences of the word in the given location
+	 * @param output the path to the output JSON file
+	 * @throws IOException if an I/O error occurs while writing the JSON file
 	 */
-	public int numLocations(String word, String location) {
-		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
-		return locationMap.size();
-	}
-
-	/**
-	 * Returns the number of occurrences of the specified word at the given location
-	 * and position.
-	 *
-	 * @param word the word to count occurrences for
-	 * @param location the location to search for occurrences of the word
-	 * @param position the position to search for occurrences of the word within the
-	 *   location
-	 * @return the number of occurrences of the word at the given location and
-	 *   position
-	 */
-	public int numPositions(String word, String location, Integer position) {
-		TreeMap<String, TreeSet<Integer>> locationMap = indexMap.get(word);
-		if (locationMap != null) {
-			TreeSet<Integer> positions = locationMap.get(location);
-			return positions.size();
-		}
-		return 0;
+	public void writeIndexMap(Path output) throws IOException {
+		JsonWriter.writeWordPositionsMap(indexMap, output);
 	}
 
 	@Override
@@ -279,26 +305,23 @@ public class InvertedIndex {
 	 * Performs an exact search for the specified set of query terms in the inverted
 	 * index.
 	 *
-	 * @param query the set of query terms to be searched for in the inverted index
+	 * @param queries the set of query terms to be searched for in the inverted
+	 *   index
 	 * @return an ArrayList containing IndexSearcher objects representing the exact
 	 *   search results, sorted based on the calculated scores in descending order
 	 */
-	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> query) {
+	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
-		for (String queryTerm : query) {
-			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(queryTerm);
-			// TODO Move this if/for loop into the processSearchResult method!
-			if (locations != null) {
-				for (var entry : locations.entrySet()) {
-					processSearchResult(entry.getKey(), entry.getValue().size(), lookup, results);
-				}
-			}
+		for (String query : queries) {
+			TreeMap<String, TreeSet<Integer>> locations = indexMap.get(query);
+			processSearchResult(locations, lookup, results);
 		}
 
 		Collections.sort(results);
 		return results;
+
 	}
 
 	/**
@@ -316,15 +339,12 @@ public class InvertedIndex {
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
 		for (String query : queries) {
-			for (var outerEntry : indexMap.tailMap(query).entrySet()) {
-				if (outerEntry.getKey().startsWith(query)) {
-					for (var innerEntry : outerEntry.getValue().entrySet()) {
-						processSearchResult(innerEntry.getKey(), innerEntry.getValue().size(), lookup, results);
-					}
-				}
-				else {
+			for (var outerEntry : indexMap.tailMap(query, true).entrySet()) {
+				if (!outerEntry.getKey().startsWith(query)) {
 					break;
 				}
+				TreeMap<String, TreeSet<Integer>> locations = outerEntry.getValue();
+				processSearchResult(locations, lookup, results);
 			}
 		}
 
@@ -338,22 +358,30 @@ public class InvertedIndex {
 	 * updated based on the matches. Otherwise, a new IndexSearcher is created, its
 	 * score is calculated, and it's added to the results list and lookup map.
 	 *
-	 * @param location the location associated with the search result
-	 * @param matches the number of matches found at the location
+	 * @param locations the paths where the indexed word is in
 	 * @param lookup the map used to look up existing IndexSearchers by location
 	 * @param results the list containing the search results
 	 */
-	private void processSearchResult(String location, int matches, Map<String, IndexSearcher> lookup,
+	private void processSearchResult(TreeMap<String, TreeSet<Integer>> locations, Map<String, IndexSearcher> lookup,
 			ArrayList<IndexSearcher> results) {
-		IndexSearcher current = lookup.get(location);
-		if (current != null) {
-			current.calculateScore(matches);
-		}
-		else {
-			IndexSearcher newSearcher = new IndexSearcher(location);
-			newSearcher.calculateScore(matches);
-			results.add(newSearcher);
-			lookup.put(location, newSearcher);
+		if (locations != null) {
+			for (var entry : locations.entrySet()) {
+				String location = entry.getKey();
+
+				int matches = entry.getValue().size();
+
+				IndexSearcher current = lookup.get(location);
+				if (current != null) {
+					current.calculateScore(matches);
+				}
+				else {
+					IndexSearcher newSearcher = new IndexSearcher(location);
+					newSearcher.calculateScore(matches);
+					results.add(newSearcher);
+					lookup.put(location, newSearcher);
+				}
+			}
+
 		}
 	}
 
