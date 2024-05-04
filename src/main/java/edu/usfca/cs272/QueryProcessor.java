@@ -82,7 +82,8 @@ public class QueryProcessor {
 	 *
 	 * @param line the query line to be processed
 	 */
-	private void processQueryLine(String line) {
+	private void processQueryLine(String line) { // TODO Rename processQueries and make public
+		// TODO Reuse FileStemmer.uniqueStems(line, stemmer) here instead (less duplicate code)
 		TreeSet<String> query = new TreeSet<>();
 
 		String[] words = FileStemmer.parse(line);
@@ -118,6 +119,7 @@ public class QueryProcessor {
 	 * @return the number of queries processed
 	 */
 	public int numQueryLines() {
+		// TODO Reuse view... return viewQueries().size();
 		return searchResult.size();
 	}
 
@@ -128,6 +130,7 @@ public class QueryProcessor {
 	 * @return the number of search results for the query
 	 */
 	public int numResults(String query) {
+		// TODO return viewResults(query).size();
 		List<IndexSearcher> results = searchResult.get(getQuerySting(query));
 		return (results != null) ? results.size() : 0;
 	}
@@ -140,6 +143,7 @@ public class QueryProcessor {
 	 * @return true if search results exist for the query line, false otherwise
 	 */
 	public boolean hasQueryLine(String queryLine) {
+		// TODO return viewQueries().contains(getQueryString(queryLine));
 		return searchResult.containsKey(getQuerySting(queryLine));
 	}
 
@@ -149,7 +153,7 @@ public class QueryProcessor {
 	 * @param query the query to be checked for search results
 	 * @return true if search results exist for the query, false otherwise
 	 */
-	public boolean hasResult(String query) {
+	public boolean hasResult(String query) { // TODO Don't need this one!
 		String queryString = getQuerySting(query);
 		return searchResult.containsKey(queryString) && !searchResult.get(queryString).isEmpty();
 	}
@@ -177,7 +181,7 @@ public class QueryProcessor {
 	public List<IndexSearcher> viewResults(String query) {
 		ArrayList<IndexSearcher> searchers = searchResult.get(getQuerySting(query));
 
-		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList();
+		return (searchers != null) ? Collections.unmodifiableList(new ArrayList<>(searchers)) : Collections.emptyList(); // TODO Do NOT make a copy here...
 	}
 
 	/**
@@ -187,8 +191,8 @@ public class QueryProcessor {
 	 * @param query the query to be stemmed and joined
 	 * @return the constructed query string
 	 */
-	private static String getQuerySting(String query) {
-		return String.join(" ", FileStemmer.uniqueStems(query));
+	private static String getQuerySting(String query) { // TODO Can make public
+		return String.join(" ", FileStemmer.uniqueStems(query)); // TODO Make non-static and reuse the stemmer here 
 	}
 
 }
