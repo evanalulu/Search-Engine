@@ -28,6 +28,8 @@ public class Driver {
 		boolean multithread = parser.hasFlag("-threads");
 		boolean isPartial = parser.hasFlag("-partial");
 
+		QueryProcessor search = new QueryProcessor(index, isPartial);
+
 		if (multithread) {
 			int threads = parser.getInteger("-threads", 5);
 
@@ -59,7 +61,6 @@ public class Driver {
 			}
 		}
 
-		QueryProcessor search = new QueryProcessor(index, isPartial);
 		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
 
 		if (parser.hasFlag("-query")) {
