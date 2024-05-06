@@ -23,6 +23,10 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		super();
 		lock = new MultiReaderLock();
 	}
+	
+	/*
+	 * TODO Rethink which lock to call for your methods
+	 */
 
 	@Override
 	public void addWord(String word, String location, Integer position) {
@@ -74,6 +78,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 
 	@Override
 	public boolean hasFileinCount(String path) {
+		// TODO Missing lock
 		try {
 			return super.hasFileinCount(path);
 		}

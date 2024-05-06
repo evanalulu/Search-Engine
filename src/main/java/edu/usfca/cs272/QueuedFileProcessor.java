@@ -107,6 +107,15 @@ public class QueuedFileProcessor {
 			try {
 				FileProcessor.processPath(path, index);
 				threadSafeIndex.addAll(index);
+				
+				/*
+				 * TODO A simplier approach is to call something like:
+				 * 
+				 * var stems = FileStemmer.listStems(path);
+				 * threadSafeIndex.addWords(stems, path.toString());
+				 * 
+				 * Why not use that implementation?
+				 */
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
