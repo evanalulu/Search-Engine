@@ -1,7 +1,5 @@
 package edu.usfca.cs272;
 
-import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,11 +40,6 @@ public class QueuedQueryProcessor {
 	private final WorkQueue queue;
 
 	/**
-	 * The stemmer used for stemming words.
-	 */
-	private final Stemmer stemmer; // TODO Remove
-
-	/**
 	 * The map storing search results, where keys represent query strings and values
 	 * represent lists of searchers.
 	 */
@@ -67,7 +60,6 @@ public class QueuedQueryProcessor {
 		this.index = index;
 		this.isPartial = isPartial;
 		this.queue = queue;
-		this.stemmer = new SnowballStemmer(ENGLISH);
 		this.searchResult = new TreeMap<>();
 	}
 
@@ -150,7 +142,8 @@ public class QueuedQueryProcessor {
 	 */
 	public List<IndexSearcher> viewResults(String query) {
 		synchronized (searchResult) {
-			ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query)); // TODO Don't sync for the getQueryString step
+			ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query)); // TODO Don't sync for the
+																																										// getQueryString step
 			return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 		}
 	}
@@ -163,8 +156,7 @@ public class QueuedQueryProcessor {
 	 * @return the constructed query string
 	 */
 	public String getQueryString(String query) {
-		// TODO return String.join(" ", FileStemmer.uniqueStems(query));
-		return String.join(" ", FileStemmer.uniqueStems(query, stemmer));
+		return String.join(" ", FileStemmer.uniqueStems(query));
 	}
 
 	/**
@@ -217,24 +209,11 @@ public class QueuedQueryProcessor {
 			;
 		}
 
-		/**
-		 * Executes the task to perform a search for the set of query terms.
-		 */
 		@Override
 		public void run() {
 
-			TreeSet<String> query = new TreeSet<>();
-
-			String[] words = FileStemmer.parse(line);
-
-			for (String word : words) {
-				query.add(localStemmer.stem(word).toString());
-			}
+			TreeSet<String> query = FileStemmer.uniqueStems(line, localStemmer);
 			String queryString = String.join(" ", query);
-
-			// This throws out weird wrong ordering
-			// TreeSet<String> query2 = FileStemmer.uniqueStems(line, stemmer); // TODO Do this but with the localStemmer instead
-			// String queryString2 = String.join(" ", query2);
 
 			synchronized (searchResult) {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
