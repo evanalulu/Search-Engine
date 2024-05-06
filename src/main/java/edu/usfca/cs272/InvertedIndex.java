@@ -52,6 +52,13 @@ public class InvertedIndex {
 	 *   inverted index
 	 */
 	public void addAll(InvertedIndex other) {
+		/*
+		 * TODO This is a really complex method. Need to justify.
+		 * 
+		 * Could reuse way more code by looping through the views/get methods
+		 * and calling addWord each time.
+		 */
+		
 		for (var wordEntry : other.indexMap.entrySet()) {
 			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
 

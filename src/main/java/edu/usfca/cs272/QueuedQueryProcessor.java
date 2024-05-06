@@ -44,7 +44,7 @@ public class QueuedQueryProcessor {
 	/**
 	 * The stemmer used for stemming words.
 	 */
-	private final Stemmer stemmer;
+	private final Stemmer stemmer; // TODO Remove
 
 	/**
 	 * The map storing search results, where keys represent query strings and values
@@ -120,6 +120,7 @@ public class QueuedQueryProcessor {
 	 * @return true if search results exist for the query line, false otherwise
 	 */
 	public boolean hasQueryLine(String queryLine) {
+		// TODO var cleanedLine = getQueryString(queryLine);
 		synchronized (searchResult) {
 			return viewQueries().contains(getQueryString(queryLine));
 		}
@@ -149,7 +150,7 @@ public class QueuedQueryProcessor {
 	 */
 	public List<IndexSearcher> viewResults(String query) {
 		synchronized (searchResult) {
-			ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query));
+			ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query)); // TODO Don't sync for the getQueryString step
 			return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 		}
 	}
@@ -162,6 +163,7 @@ public class QueuedQueryProcessor {
 	 * @return the constructed query string
 	 */
 	public String getQueryString(String query) {
+		// TODO return String.join(" ", FileStemmer.uniqueStems(query));
 		return String.join(" ", FileStemmer.uniqueStems(query, stemmer));
 	}
 
@@ -231,14 +233,14 @@ public class QueuedQueryProcessor {
 			String queryString = String.join(" ", query);
 
 			// This throws out weird wrong ordering
-			// TreeSet<String> query2 = FileStemmer.uniqueStems(line, stemmer);
+			// TreeSet<String> query2 = FileStemmer.uniqueStems(line, stemmer); // TODO Do this but with the localStemmer instead
 			// String queryString2 = String.join(" ", query2);
 
 			synchronized (searchResult) {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
 					return;
 				}
-				searchResult.put(queryString, null);
+				searchResult.put(queryString, null); // TODO Why?
 			}
 
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(query, isPartial);
