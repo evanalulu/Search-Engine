@@ -112,9 +112,9 @@ public class QueuedQueryProcessor {
 	 * @return true if search results exist for the query line, false otherwise
 	 */
 	public boolean hasQueryLine(String queryLine) {
-		// TODO var cleanedLine = getQueryString(queryLine);
+		String cleanedLine = getQueryString(queryLine);
 		synchronized (searchResult) {
-			return viewQueries().contains(getQueryString(queryLine));
+			return viewQueries().contains(cleanedLine);
 		}
 	}
 
@@ -141,9 +141,9 @@ public class QueuedQueryProcessor {
 	 *   results exist for the query line
 	 */
 	public List<IndexSearcher> viewResults(String query) {
+		String queryString = getQueryString(query);
 		synchronized (searchResult) {
-			ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query)); // TODO Don't sync for the
-																																										// getQueryString step
+			ArrayList<IndexSearcher> searchers = searchResult.get(queryString);
 			return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 		}
 	}
