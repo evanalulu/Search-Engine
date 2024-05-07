@@ -213,7 +213,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 
 	@Override
 	public void writeWordCountMap(Path output) throws IOException {
-		lock.readLock().lock();
+		lock.readLock().lock(); // Because we're reading index and not modifying
 
 		try {
 			super.writeWordCountMap(output);
