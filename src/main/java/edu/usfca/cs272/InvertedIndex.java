@@ -45,6 +45,13 @@ public class InvertedIndex {
 		wordCountMap.merge(location, position, Integer::max);
 	}
 
+	/**
+	 * Adds the specified list of word stems to the inverted index for the given
+	 * location.
+	 *
+	 * @param stems the list of word stems to be added
+	 * @param location the location associated with the word stems
+	 */
 	public void addWords(ArrayList<String> stems, String location) {
 		int position = 1;
 
@@ -69,7 +76,6 @@ public class InvertedIndex {
 		 */
 
 		for (var wordEntry : other.indexMap.entrySet()) {
-//			System.out.println("other.indexMap.entrySet()");
 			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
 
 			if (wordMap == null) {
