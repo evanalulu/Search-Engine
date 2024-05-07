@@ -78,7 +78,7 @@ public class QueuedFileProcessor {
 		/**
 		 * The non-thread-safe inverted index used to process the contents of the file.
 		 */
-		// private final InvertedIndex index;
+//		private final InvertedIndex index;
 
 		/**
 		 * The thread-safe inverted index where the processed data will be added.
@@ -96,7 +96,7 @@ public class QueuedFileProcessor {
 		private Task(Path path, ThreadSafeInvertedIndex threadSafeIndex) {
 			this.path = path;
 			this.threadSafeIndex = threadSafeIndex;
-			// this.index = new InvertedIndex();
+//			this.index = new InvertedIndex();
 		}
 
 		/**
@@ -110,7 +110,7 @@ public class QueuedFileProcessor {
 //				threadSafeIndex.addAll(index);
 
 				/*
-				 * A simplier approach:
+				 * A simpler approach:
 				 */
 				ArrayList<String> stems = FileStemmer.listStems(path);
 				threadSafeIndex.addWords(stems, path.toString());
