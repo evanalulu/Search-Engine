@@ -68,35 +68,19 @@ public class InvertedIndex {
 	 *   inverted index
 	 */
 	public void addAll(InvertedIndex other) {
-		/*
-		 * TODO This is a really complex method. Need to justify.
-		 * 
-		 * Could reuse way more code by looping through the views/get methods and
-		 * calling addWord each time.
-		 */
+		for (var word : other.viewWords()) {
+			Set<String> locations = other.viewLocations(word);
 
-		for (var wordEntry : other.indexMap.entrySet()) {
-			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
+			for (String location : locations) {
+				Set<Integer> positions = other.viewPositions(word, location);
 
-			if (wordMap == null) {
-				this.indexMap.put(wordEntry.getKey(), wordEntry.getValue());
-			}
-			else {
-				for (var locationEntry : wordEntry.getValue().entrySet()) {
-					TreeSet<Integer> locationMap = wordMap.get(locationEntry.getKey());
-
-					if (locationMap == null) {
-						wordMap.put(locationEntry.getKey(), locationEntry.getValue());
-					}
-					else {
-						locationMap.addAll(locationEntry.getValue());
-					}
+				for (Integer position : positions) {
+					this.addWord(word, location, position);
 				}
-			}
-		}
 
-		for (var otherEntry : other.wordCountMap.entrySet()) {
-			this.wordCountMap.merge(otherEntry.getKey(), otherEntry.getValue(), Integer::max);
+				int otherWordCount = other.getWordCount(location);
+				this.wordCountMap.merge(location, otherWordCount, Integer::max);
+			}
 		}
 	}
 
