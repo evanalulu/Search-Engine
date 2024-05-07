@@ -45,6 +45,15 @@ public class InvertedIndex {
 		wordCountMap.merge(location, position, Integer::max);
 	}
 
+	public void addWords(ArrayList<String> stems, String location) {
+		int position = 1;
+
+		for (String stem : stems) {
+			addWord(stem, location, position);
+			position++;
+		}
+	}
+
 	/**
 	 * Adds all entries from the specified inverted index to this inverted index.
 	 *
@@ -55,11 +64,12 @@ public class InvertedIndex {
 		/*
 		 * TODO This is a really complex method. Need to justify.
 		 * 
-		 * Could reuse way more code by looping through the views/get methods
-		 * and calling addWord each time.
+		 * Could reuse way more code by looping through the views/get methods and
+		 * calling addWord each time.
 		 */
-		
+
 		for (var wordEntry : other.indexMap.entrySet()) {
+//			System.out.println("other.indexMap.entrySet()");
 			TreeMap<String, TreeSet<Integer>> wordMap = this.indexMap.get(wordEntry.getKey());
 
 			if (wordMap == null) {

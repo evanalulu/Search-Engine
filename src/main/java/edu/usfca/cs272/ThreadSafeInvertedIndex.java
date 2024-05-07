@@ -23,10 +23,6 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		super();
 		lock = new MultiReaderLock();
 	}
-	
-	/*
-	 * TODO Rethink which lock to call for your methods
-	 */
 
 	@Override
 	public void addWord(String word, String location, Integer position) {
@@ -37,6 +33,17 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		}
 		finally {
 			lock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public void addWords(ArrayList<String> stems, String location) {
+		lock.writeLock().lock();
+		try {
+			super.addWords(stems, location);
+		}
+		finally {
+			lock.writeLock().unlock();
 		}
 	}
 
@@ -78,7 +85,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 
 	@Override
 	public boolean hasFileinCount(String path) {
-		// TODO Missing lock
+		lock.readLock().lock();
 		try {
 			return super.hasFileinCount(path);
 		}
