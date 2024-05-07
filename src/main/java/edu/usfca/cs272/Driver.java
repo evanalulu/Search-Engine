@@ -3,8 +3,6 @@ package edu.usfca.cs272;
 import java.io.IOException;
 import java.nio.file.Path;
 
-// TODO Add citations
-
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
