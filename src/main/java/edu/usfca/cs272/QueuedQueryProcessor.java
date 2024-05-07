@@ -219,7 +219,8 @@ public class QueuedQueryProcessor {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
 					return;
 				}
-				searchResult.put(queryString, null); // TODO Why?
+				searchResult.put(queryString, null); // Why? -> initializing entry so other thread doesnt put/replace if run
+																							// into duplicate?
 			}
 
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(query, isPartial);
