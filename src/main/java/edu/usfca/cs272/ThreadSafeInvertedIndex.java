@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * A thread-safe version of {@link InvertedIndex} using a read/write lock. *
@@ -246,20 +245,8 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		}
 	}
 
-	// TODO Remove
 	@Override
-	public ArrayList<IndexSearcher> search(TreeSet<String> queries, boolean isPartial) {
-		lock.readLock().lock();
-		try {
-			return super.search(queries, isPartial);
-		}
-		finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	@Override
-	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
+	public ArrayList<IndexSearcher> exactSearch(Set<String> queries) {
 		lock.readLock().lock();
 		try {
 			return super.exactSearch(queries);
