@@ -77,7 +77,7 @@ public class QueuedQueryProcessor {
 			while ((line = reader.readLine()) != null) {
 				queue.execute(new Task(line, isPartial));
 			}
-			queue.join(); // TODO queue.finish()
+			queue.finish();
 		}
 	}
 
@@ -219,10 +219,6 @@ public class QueuedQueryProcessor {
 				if (queryString.isEmpty() || searchResult.containsKey(queryString)) {
 					return;
 				}
-				
-				// TODO Remove
-				searchResult.put(queryString, null); // Why? -> initializing entry so other thread doesnt put/replace if run
-																							// into duplicate?
 			}
 
 			ArrayList<ThreadSafeInvertedIndex.IndexSearcher> results = index.search(query, isPartial);
