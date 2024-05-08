@@ -115,6 +115,7 @@ public class QueuedFileProcessor {
 				ArrayList<String> stems = FileStemmer.listStems(path);
 				threadSafeIndex.addWords(stems, path.toString());
 
+				// TODO Can restore using the local index
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

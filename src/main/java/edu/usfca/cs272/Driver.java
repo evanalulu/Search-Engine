@@ -3,6 +3,8 @@ package edu.usfca.cs272;
 import java.io.IOException;
 import java.nio.file.Path;
 
+// TODO Add in the citations again!
+
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -79,6 +81,8 @@ public class Driver {
 				}
 			}
 		}
+		
+		// TODO queue.shutdown here instead if the queue != null
 
 		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
