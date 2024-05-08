@@ -68,7 +68,8 @@ public class InvertedIndex {
 	 *   inverted index
 	 */
 	public void addAll(InvertedIndex other) {
-		// TODO Can return to this implementation: https://github.com/usf-cs272-spring2024/project-evanalulu/blob/f038c5f2c74b16a8ce6081005d172c0918587bdb/src/main/java/edu/usfca/cs272/InvertedIndex.java#L62-L84
+		// TODO Can return to this implementation:
+		// https://github.com/usf-cs272-spring2024/project-evanalulu/blob/f038c5f2c74b16a8ce6081005d172c0918587bdb/src/main/java/edu/usfca/cs272/InvertedIndex.java#L62-L84
 		for (var word : other.viewWords()) {
 			Set<String> locations = other.viewLocations(word);
 
@@ -78,8 +79,6 @@ public class InvertedIndex {
 				for (Integer position : positions) {
 					this.addWord(word, location, position);
 				}
-
-				// TODO Don't need this when using your addWord
 				int otherWordCount = other.getWordCount(location);
 				this.wordCountMap.merge(location, otherWordCount, Integer::max);
 			}
@@ -306,8 +305,7 @@ public class InvertedIndex {
 	 * @return an ArrayList containing IndexSearcher objects representing the search
 	 *   results, sorted based on the calculated scores in descending order
 	 */
-	// TODO public ArrayList<IndexSearcher> search(Set<String> query, boolean isPartial) {
-	public ArrayList<IndexSearcher> search(TreeSet<String> query, boolean isPartial) {
+	public ArrayList<IndexSearcher> search(Set<String> query, boolean isPartial) {
 		return (isPartial) ? partialSearch(query) : exactSearch(query);
 	}
 
@@ -320,8 +318,7 @@ public class InvertedIndex {
 	 * @return an ArrayList containing IndexSearcher objects representing the exact
 	 *   search results, sorted based on the calculated scores in descending order
 	 */
-	// TODO public ArrayList<IndexSearcher> exactSearch(Set<String> queries) {
-	public ArrayList<IndexSearcher> exactSearch(TreeSet<String> queries) {
+	public ArrayList<IndexSearcher> exactSearch(Set<String> queries) {
 		ArrayList<IndexSearcher> results = new ArrayList<>();
 		Map<String, IndexSearcher> lookup = new HashMap<>();
 
