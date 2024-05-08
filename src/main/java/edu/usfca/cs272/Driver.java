@@ -81,8 +81,10 @@ public class Driver {
 				}
 			}
 		}
-		
-		// TODO queue.shutdown here instead if the queue != null
+
+		if (queue != null) {
+			queue.shutdown();
+		}
 
 		if (parser.hasFlag("-counts")) {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
