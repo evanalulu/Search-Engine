@@ -26,7 +26,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 
 	@Override
 	public void addWord(String word, String location, Integer position) {
-		lock.readLock().lock();
+		lock.readLock().lock(); // TODO writeLock instead
 
 		try {
 			super.addWord(word, location, position);
@@ -246,6 +246,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		}
 	}
 
+	// TODO Remove
 	@Override
 	public ArrayList<IndexSearcher> search(TreeSet<String> queries, boolean isPartial) {
 		lock.readLock().lock();
