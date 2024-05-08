@@ -5,7 +5,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 /**
  * A thread-safe version of {@link FileProcessor} using a work queue.
@@ -78,7 +77,7 @@ public class QueuedFileProcessor {
 		/**
 		 * The non-thread-safe inverted index used to process the contents of the file.
 		 */
-//		private final InvertedIndex index;
+		private final InvertedIndex index;
 
 		/**
 		 * The thread-safe inverted index where the processed data will be added.
@@ -96,7 +95,7 @@ public class QueuedFileProcessor {
 		private Task(Path path, ThreadSafeInvertedIndex threadSafeIndex) {
 			this.path = path;
 			this.threadSafeIndex = threadSafeIndex;
-//			this.index = new InvertedIndex();
+			this.index = new InvertedIndex();
 		}
 
 		/**
@@ -106,16 +105,9 @@ public class QueuedFileProcessor {
 		@Override
 		public void run() {
 			try {
-//				FileProcessor.processPath(path, index);
-//				threadSafeIndex.addAll(index);
+				FileProcessor.processPath(path, index);
+				threadSafeIndex.addAll(index);
 
-				/*
-				 * A simpler approach:
-				 */
-				ArrayList<String> stems = FileStemmer.listStems(path);
-				threadSafeIndex.addWords(stems, path.toString());
-
-				// TODO Can restore using the local index
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
