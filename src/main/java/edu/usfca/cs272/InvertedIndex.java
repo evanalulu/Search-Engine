@@ -61,6 +61,10 @@ public class InvertedIndex {
 		}
 	}
 
+	// CITE: Derived from ChatGPT prompt: given a TreeMap<String, TreeMap<String,
+	// TreeSet<Integer>>> indexMap, help me write addAll(TreeMap<String,
+	// TreeMap<String, TreeSet<Integer>>> other) that merges content of other into
+	// current index instance in the class
 	/**
 	 * Adds all entries from the specified inverted index to this inverted index.
 	 *
