@@ -25,8 +25,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 
 	@Override
 	public void addWord(String word, String location, Integer position) {
-		lock.readLock().lock(); // TODO writeLock instead
-
+		lock.writeLock().lock();
 		try {
 			super.addWord(word, location, position);
 		}
@@ -212,7 +211,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 
 	@Override
 	public void writeWordCountMap(Path output) throws IOException {
-		lock.readLock().lock(); // Because we're reading index and not modifying
+		lock.readLock().lock();
 
 		try {
 			super.writeWordCountMap(output);
