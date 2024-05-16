@@ -17,25 +17,21 @@ public class QueuedFileProcessor {
 	 * inverted index. If a file path is already present in the inverted index, it
 	 * updates the word count and index information.
 	 *
-	 * @param input the path to the directory to traverse
+	 * @param directory the path to the directory to traverse
 	 * @param index the thread-safe inverted index to update with file contents
 	 * @param queue the work queue for executing file processing tasks
 	 * @throws IOException if an I/O error occurs while traversing the directory or
 	 *   processing files
 	 */
-	public static void traverseDirectory(Path input, ThreadSafeInvertedIndex index, WorkQueue queue) throws IOException {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(input);) {
-
-			var iterator = stream.iterator();
-
-			while (iterator.hasNext()) { // TODO for (Path path : paths) {
-				Path newPath = iterator.next();
-
-				if (Files.isDirectory(newPath)) {
-					traverseDirectory(newPath, index, queue);
+	public static void traverseDirectory(Path directory, ThreadSafeInvertedIndex index, WorkQueue queue)
+			throws IOException {
+		try (DirectoryStream<Path> paths = Files.newDirectoryStream(directory)) {
+			for (Path path : paths) {
+				if (Files.isDirectory(path)) {
+					traverseDirectory(path, index, queue);
 				}
-				else if (Files.isRegularFile(newPath) && FileProcessor.isExtensionText(newPath)) {
-					Task task = new Task(newPath, index);
+				else if (Files.isRegularFile(path) && FileProcessor.isExtensionText(path)) {
+					Task task = new Task(path, index);
 					queue.execute(task);
 				}
 			}
