@@ -16,6 +16,25 @@ import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
 
+/*
+ * TODO 
+ * 
+ * Create an interface that both
+ * QueryProcessor and QueuedQueryProcessor
+ * implement.
+ * 
+ * Every method in QueryProcessor should be in the interface
+ * 
+ * processQueries(Path): default
+ * processQueries(String): abstract
+ * 
+ * writeSearchResults: abstract
+ * 
+ * numQueryLines(): default
+ * etc.
+ * 
+ */
+
 /**
  * A class responsible for processing queries using a work queue and managing
  * search results.

@@ -30,7 +30,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 			super.addWord(word, location, position);
 		}
 		finally {
-			lock.readLock().unlock();
+			lock.readLock().unlock(); // TODO writeLock
 		}
 	}
 
