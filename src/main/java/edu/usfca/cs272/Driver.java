@@ -20,69 +20,31 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 */
 	public static void main(String[] args) {
-		/* TODO 
 		ArgumentParser parser = new ArgumentParser(args);
-		
+
 		InvertedIndex index;
 		ThreadSafeInvertedIndex threadSafeIndex = null;
 		WorkQueue queue = null;
+		QueryProcessorInterface search = null;
 
 		boolean multithread = parser.hasFlag("-threads");
 		boolean isPartial = parser.hasFlag("-partial");
-
-		QueryProcessorInterface search;
 
 		if (multithread) {
 			threadSafeIndex = new ThreadSafeInvertedIndex();
 			index = threadSafeIndex;
-			
-			init everything here
-		}
-		else {
-			index = new InvertedIndex();
-			or here
-		}
-		
-		if -text
-			this still needs to check for multithreading
-		
-		if -query
-			does NOT need to check for multithreading
-		
-		if queue != null
-			queue.shutdown()
-		
-		
-		if (parser.hasFlag("-index")) {
-			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
 
-			try {
-				index.writeIndexMap(indexOutput);
-			}
-			catch (IOException e) {
-				System.out.println("Error writing index data: " + e.getMessage());
-			}
-		}
-		*/
-		
-		ArgumentParser parser = new ArgumentParser(args);
-		InvertedIndex index = new InvertedIndex();
-		ThreadSafeInvertedIndex threadSafeIndex = new ThreadSafeInvertedIndex();
-		WorkQueue queue = null;
-
-		boolean multithread = parser.hasFlag("-threads");
-		boolean isPartial = parser.hasFlag("-partial");
-
-		QueryProcessor search = new QueryProcessor(index, isPartial);
-
-		if (multithread) {
 			int threads = parser.getInteger("-threads", 5);
-
 			if (threads < 1) {
 				threads = 5;
 			}
 
 			queue = new WorkQueue(threads);
+
+			search = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
+		}
+		else {
+			index = new InvertedIndex();
 		}
 
 		if (parser.hasFlag("-text")) {
@@ -106,18 +68,11 @@ public class Driver {
 			}
 		}
 
-		QueuedQueryProcessor queuedSearch = new QueuedQueryProcessor(threadSafeIndex, isPartial, queue);
-
 		if (parser.hasFlag("-query")) {
 			Path query = parser.getPath("-query");
 			if (query != null) {
 				try {
-					if (multithread) {
-						queuedSearch.processQueries(query);
-					}
-					else {
-						search.processQueries(query);
-					}
+					search.processQueries(query);
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
@@ -133,12 +88,7 @@ public class Driver {
 			Path countOutput = parser.getPath("-counts", Path.of("counts.json"));
 
 			try {
-				if (multithread) {
-					threadSafeIndex.writeWordCountMap(countOutput);
-				}
-				else {
-					index.writeWordCountMap(countOutput);
-				}
+				index.writeWordCountMap(countOutput);
 			}
 			catch (IOException e) {
 				System.out.println("Error writing word count data: " + e.getMessage());
@@ -147,14 +97,8 @@ public class Driver {
 
 		if (parser.hasFlag("-index")) {
 			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
-
 			try {
-				if (multithread) {
-					threadSafeIndex.writeIndexMap(indexOutput);
-				}
-				else {
-					index.writeIndexMap(indexOutput);
-				}
+				index.writeIndexMap(indexOutput);
 			}
 			catch (IOException e) {
 				System.out.println("Error writing index data: " + e.getMessage());
@@ -164,12 +108,7 @@ public class Driver {
 		if (parser.hasFlag("-results")) {
 			Path resultsOutput = parser.getPath("-results", Path.of("results.json"));
 			try {
-				if (multithread) {
-					queuedSearch.writeSearchResults(resultsOutput);
-				}
-				else {
-					search.writeSearchResults(resultsOutput);
-				}
+				search.writeSearchResults(resultsOutput);
 			}
 			catch (IOException e) {
 				System.err.println(e.getMessage());
