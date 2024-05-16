@@ -22,7 +22,7 @@ public class Driver {
 	public static void main(String[] args) {
 		ArgumentParser parser = new ArgumentParser(args);
 
-		InvertedIndex index;
+		InvertedIndex index = null;
 		ThreadSafeInvertedIndex threadSafeIndex = null;
 		WorkQueue queue = null;
 		QueryProcessorInterface search = null;
