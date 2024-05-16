@@ -20,6 +20,51 @@ public class Driver {
 	 * @param args flag/value pairs used to start this program
 	 */
 	public static void main(String[] args) {
+		/* TODO 
+		ArgumentParser parser = new ArgumentParser(args);
+		
+		InvertedIndex index;
+		ThreadSafeInvertedIndex threadSafeIndex = null;
+		WorkQueue queue = null;
+
+		boolean multithread = parser.hasFlag("-threads");
+		boolean isPartial = parser.hasFlag("-partial");
+
+		QueryProcessorInterface search;
+
+		if (multithread) {
+			threadSafeIndex = new ThreadSafeInvertedIndex();
+			index = threadSafeIndex;
+			
+			init everything here
+		}
+		else {
+			index = new InvertedIndex();
+			or here
+		}
+		
+		if -text
+			this still needs to check for multithreading
+		
+		if -query
+			does NOT need to check for multithreading
+		
+		if queue != null
+			queue.shutdown()
+		
+		
+		if (parser.hasFlag("-index")) {
+			Path indexOutput = parser.getPath("-index", Path.of("index.json"));
+
+			try {
+				index.writeIndexMap(indexOutput);
+			}
+			catch (IOException e) {
+				System.out.println("Error writing index data: " + e.getMessage());
+			}
+		}
+		*/
+		
 		ArgumentParser parser = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		ThreadSafeInvertedIndex threadSafeIndex = new ThreadSafeInvertedIndex();

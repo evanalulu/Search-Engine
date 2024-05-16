@@ -28,7 +28,7 @@ public class QueuedFileProcessor {
 
 			var iterator = stream.iterator();
 
-			while (iterator.hasNext()) {
+			while (iterator.hasNext()) { // TODO for (Path path : paths) {
 				Path newPath = iterator.next();
 
 				if (Files.isDirectory(newPath)) {
@@ -105,9 +105,8 @@ public class QueuedFileProcessor {
 		@Override
 		public void run() {
 			try {
-				FileProcessor.processPath(path, index);
+				FileProcessor.processPath(path, index); // TODO readFile
 				threadSafeIndex.addAll(index);
-
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
