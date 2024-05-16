@@ -1,8 +1,6 @@
 package edu.usfca.cs272;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,30 +14,11 @@ import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
 
-/*
- * TODO 
- * 
- * Create an interface that both
- * QueryProcessor and QueuedQueryProcessor
- * implement.
- * 
- * Every method in QueryProcessor should be in the interface
- * 
- * processQueries(Path): default
- * processQueries(String): abstract
- * 
- * writeSearchResults: abstract
- * 
- * numQueryLines(): default
- * etc.
- * 
- */
-
 /**
  * A class responsible for processing queries using a work queue and managing
  * search results.
  */
-public class QueuedQueryProcessor {
+public class QueuedQueryProcessor implements QueryProcessorInterface {
 
 	/**
 	 * The thread-safe inverted index used for query processing and search result
@@ -85,51 +64,30 @@ public class QueuedQueryProcessor {
 	/**
 	 * Processes queries stored in a file specified by the input path.
 	 *
-	 * @param path the path to the file containing query sets to be processed exact
+	 * @param line the path to the file containing query sets to be processed exact
 	 *   search (false)
-	 * @throws IOException if an I/O error occurs while reading the query file or
-	 *   processing queries
 	 */
-	public void processQueries(Path path) throws IOException {
-		try (BufferedReader reader = Files.newBufferedReader(path)) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				queue.execute(new Task(line, isPartial));
-			}
-			queue.finish();
-		}
+	@Override
+	public void processQueries(String line) {
+		queue.execute(new Task(line, isPartial));
+		queue.finish();
 	}
 
-	/**
-	 * Retrieves the number of query lines processed by the QueuedQueryProcessor.
-	 *
-	 * @return the number of query lines processed
-	 */
+	@Override
 	public int numQueryLines() {
 		synchronized (searchResult) {
 			return viewQueries().size();
 		}
 	}
 
-	/**
-	 * Retrieves the number of search results associated with the specified query.
-	 *
-	 * @param query the query for which to retrieve the number of search results
-	 * @return the number of search results for the query
-	 */
+	@Override
 	public int numResults(String query) {
 		synchronized (searchResult) {
 			return viewResults(query).size();
 		}
 	}
 
-	/**
-	 * Checks if the search result map contains search results for the specified
-	 * query line.
-	 *
-	 * @param queryLine the query line to be checked
-	 * @return true if search results exist for the query line, false otherwise
-	 */
+	@Override
 	public boolean hasQueryLine(String queryLine) {
 		String cleanedLine = getQueryString(queryLine);
 		synchronized (searchResult) {
@@ -137,28 +95,14 @@ public class QueuedQueryProcessor {
 		}
 	}
 
-	/**
-	 * Retrieves an unmodifiable set of query strings stored in the search result
-	 * map.
-	 *
-	 * @return an unmodifiable set containing the query strings for which search
-	 *   results are stored
-	 */
+	@Override
 	public Set<String> viewQueries() {
 		synchronized (searchResult) {
 			return Collections.unmodifiableSet(searchResult.keySet());
 		}
 	}
 
-	/**
-	 * Retrieves an unmodifiable list of search results associated with the
-	 * specified query line.
-	 *
-	 * @param query the query line for which to retrieve search results
-	 * @return an unmodifiable list containing IndexSearcher objects representing
-	 *   the search results for the query line, or an empty list if no search
-	 *   results exist for the query line
-	 */
+	@Override
 	public List<IndexSearcher> viewResults(String query) {
 		String queryString = getQueryString(query);
 		synchronized (searchResult) {
@@ -167,24 +111,12 @@ public class QueuedQueryProcessor {
 		}
 	}
 
-	/**
-	 * Constructs a query string by stemming the input query and joining the stemmed
-	 * words with spaces.
-	 *
-	 * @param query the query to be stemmed and joined
-	 * @return the constructed query string
-	 */
+	@Override
 	public String getQueryString(String query) {
 		return String.join(" ", FileStemmer.uniqueStems(query));
 	}
 
-	/**
-	 * Writes the search result map to a JSON file specified by the given output
-	 * path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
+	@Override
 	public void writeSearchResults(Path output) throws IOException {
 		synchronized (searchResult) {
 			JsonWriter.writeSearchResults(searchResult, output);
@@ -209,7 +141,7 @@ public class QueuedQueryProcessor {
 		private final boolean isPartial;
 
 		/**
-		 * The stemmer used for stemming words.
+		 * The local stemmer used for stemming words.
 		 */
 		private final Stemmer localStemmer;
 

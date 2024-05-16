@@ -9,6 +9,15 @@ import java.util.Set;
 
 import edu.usfca.cs272.InvertedIndex.IndexSearcher;
 
+/**
+ * The QueryProcessorInterface defines methods for processing queries from a
+ * file and performing searches on an inverted index.
+ * 
+ * This interface provides methods for reading queries from a file, processing
+ * each query line, retrieving statistics about the processed queries, and
+ * checking for the existence of search results associated with specific query
+ * lines.
+ */
 public interface QueryProcessorInterface {
 
 	/**
@@ -26,6 +35,11 @@ public interface QueryProcessorInterface {
 		}
 	}
 
+	/**
+	 * Processes a single query line.
+	 * 
+	 * @param line The query line to process.
+	 */
 	public abstract void processQueries(String line);
 
 	/**
@@ -71,6 +85,15 @@ public interface QueryProcessorInterface {
 	 *   results exist for the query line
 	 */
 	public abstract List<IndexSearcher> viewResults(String query);
+
+	/**
+	 * Constructs a query string by stemming the input query and joining the stemmed
+	 * words with spaces.
+	 *
+	 * @param query the query to be stemmed and joined
+	 * @return the constructed query string
+	 */
+	public abstract String getQueryString(String query);
 
 	/**
 	 * Writes the search result map to a JSON file specified by the given output

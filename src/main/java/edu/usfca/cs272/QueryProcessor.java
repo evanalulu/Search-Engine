@@ -2,9 +2,7 @@ package edu.usfca.cs272;
 
 import static opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM.ENGLISH;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +18,7 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
 /**
  * A class responsible for processing queries and managing search results.
  */
-public class QueryProcessor {
+public class QueryProcessor implements QueryProcessorInterface {
 
 	/**
 	 * The inverted index used for query processing and search result management.
@@ -59,29 +57,7 @@ public class QueryProcessor {
 		this.searchResult = new TreeMap<>();
 	}
 
-	/**
-	 * Reads queries from a file and performs search on an inverted index.
-	 * 
-	 * @param path The path to the file containing queries.
-	 * @throws IOException If an I/O error occurs while reading the query file.
-	 */
-	public void processQueries(Path path) throws IOException {
-		try (BufferedReader reader = Files.newBufferedReader(path)) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				processQueries(line);
-			}
-		}
-	}
-
-	/**
-	 * Processes a single query line by stemming the words, constructing a query
-	 * string, and performing a search in the inverted index. If the query string is
-	 * empty or search results already exist for the query, the method returns
-	 * without further processing.
-	 *
-	 * @param line the query line to be processed
-	 */
+	@Override
 	public void processQueries(String line) {
 		TreeSet<String> query = FileStemmer.uniqueStems(line, stemmer);
 		String queryString = String.join(" ", query);
@@ -94,82 +70,39 @@ public class QueryProcessor {
 		searchResult.put(queryString, results);
 	}
 
-	/**
-	 * Writes the search result map to a JSON file specified by the given output
-	 * path.
-	 *
-	 * @param output the path to the output JSON file
-	 * @throws IOException if an I/O error occurs while writing the JSON file
-	 */
-	public void writeSearchResults(Path output) throws IOException {
-		JsonWriter.writeSearchResults(searchResult, output);
-	}
-
-	/**
-	 * Retrieves the number of queries processed and stored in the search result
-	 * map.
-	 *
-	 * @return the number of queries processed
-	 */
+	@Override
 	public int numQueryLines() {
 		return viewQueries().size();
 	}
 
-	/**
-	 * Retrieves the number of search results associated with the specified query.
-	 *
-	 * @param query the query for which to retrieve the number of search results
-	 * @return the number of search results for the query
-	 */
+	@Override
 	public int numResults(String query) {
 		return viewResults(query).size();
 	}
 
-	/**
-	 * Checks if the search result map contains search results for the specified
-	 * query line.
-	 *
-	 * @param queryLine the query line to be checked
-	 * @return true if search results exist for the query line, false otherwise
-	 */
+	@Override
 	public boolean hasQueryLine(String queryLine) {
 		return viewQueries().contains(getQueryString(queryLine));
 	}
 
-	/**
-	 * Retrieves an unmodifiable set of query strings stored in the search result
-	 * map.
-	 *
-	 * @return an unmodifiable set containing the query strings for which search
-	 *   results are stored
-	 */
+	@Override
 	public Set<String> viewQueries() {
 		return Collections.unmodifiableSet(searchResult.keySet());
 	}
 
-	/**
-	 * Retrieves an unmodifiable list of search results associated with the
-	 * specified query line.
-	 *
-	 * @param query the query line for which to retrieve search results
-	 * @return an unmodifiable list containing IndexSearcher objects representing
-	 *   the search results for the query line, or an empty list if no search
-	 *   results exist for the query line
-	 */
+	@Override
 	public List<IndexSearcher> viewResults(String query) {
 		ArrayList<IndexSearcher> searchers = searchResult.get(getQueryString(query));
 		return (searchers != null) ? Collections.unmodifiableList(searchers) : Collections.emptyList();
 	}
 
-	/**
-	 * Constructs a query string by stemming the input query and joining the stemmed
-	 * words with spaces.
-	 *
-	 * @param query the query to be stemmed and joined
-	 * @return the constructed query string
-	 */
+	@Override
 	public String getQueryString(String query) {
 		return String.join(" ", FileStemmer.uniqueStems(query, stemmer));
 	}
 
+	@Override
+	public void writeSearchResults(Path output) throws IOException {
+		JsonWriter.writeSearchResults(searchResult, output);
+	}
 }
