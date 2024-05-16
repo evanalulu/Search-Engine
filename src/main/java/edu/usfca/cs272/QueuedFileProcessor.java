@@ -101,7 +101,7 @@ public class QueuedFileProcessor {
 		@Override
 		public void run() {
 			try {
-				FileProcessor.processPath(path, index); // TODO readFile
+				FileProcessor.readFile(path, index);
 				threadSafeIndex.addAll(index);
 			}
 			catch (IOException e) {
