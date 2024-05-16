@@ -45,6 +45,7 @@ public class Driver {
 		}
 		else {
 			index = new InvertedIndex();
+			search = new QueryProcessor(index, isPartial);
 		}
 
 		if (parser.hasFlag("-text")) {
@@ -72,9 +73,7 @@ public class Driver {
 			Path query = parser.getPath("-query");
 			if (query != null) {
 				try {
-					if (search != null) {
-						search.processQueries(query);
-					}
+					search.processQueries(query);
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
