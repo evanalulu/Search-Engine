@@ -72,7 +72,9 @@ public class Driver {
 			Path query = parser.getPath("-query");
 			if (query != null) {
 				try {
-					search.processQueries(query);
+					if (search != null) {
+						search.processQueries(query);
+					}
 				}
 				catch (IOException e) {
 					System.err.println("Error getting search results: " + e.getMessage());
