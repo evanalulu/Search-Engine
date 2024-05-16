@@ -212,24 +212,24 @@ public class MultiReaderLock {
 		 */
 		@Override
 		public void lock() {
-			synchronized (lock) {
-				// TODO Either store the result of !isActiveWriter() instead of callingThread, or just call !isActiveWriter() in the boolean below
-				Thread callingThread = Thread.currentThread();
-				while ((writers > 0 && activeWriter != callingThread) || (readers > 0 && activeWriter != callingThread)) {
-					try { // TODO put try/catch on outside of the while loop
+			Thread callingThread = Thread.currentThread();
+			try {
+				synchronized (lock) {
+					while (writers > 0 && !isActiveWriter()) {
 						lock.wait();
 					}
-					catch (InterruptedException ex) {
-						log.catching(Level.DEBUG, ex);
-						Thread.currentThread().interrupt();
-						return;
-					}
 				}
-				if (writers == 0) {
-					activeWriter = callingThread;
-				}
-				writers++;
 			}
+			catch (InterruptedException ex) {
+				log.catching(Level.DEBUG, ex);
+				Thread.currentThread().interrupt();
+				return;
+			}
+
+			if (writers == 0) {
+				activeWriter = callingThread;
+			}
+			writers++;
 		}
 
 		/**
@@ -247,7 +247,7 @@ public class MultiReaderLock {
 					throw new IllegalStateException("Cannot unlock write lock that is not locked.");
 				}
 
-				if (activeWriter != Thread.currentThread()) { // TODO !isActiveWriter()
+				if (!isActiveWriter()) {
 					throw new ConcurrentModificationException("Current thread does not hold the write lock.");
 				}
 
